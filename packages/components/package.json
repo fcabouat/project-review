@@ -1,0 +1,33 @@
+{
+  "name": "@project-review/components",
+  "private": true,
+  "version": "0.5.0",
+  "description": "Svelte component library: slide templates, editor widgets and dialogs, slideshow host, and the editor's interface catalog (i18n). Depends only on @project-review/core.",
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "src"
+  ],
+  "exports": {
+    "./*.svelte": "./src/*.svelte",
+    "./*.css": "./src/*.css",
+    "./assets/*": "./src/assets/*",
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
+  },
+  "dependencies": {
+    "@project-review/core": "workspace:*",
+    "remixicon": "^4.9.1",
+    "reveal.js": "^6.0.1",
+    "svelte": "^5.56.10"
+  },
+  "devDependencies": {
+    "@fontsource/inter": "^5.3.0",
+    "tailwindcss": "^4.3.3",
+    "@tailwindcss/vite": "^4.3.3"
+  }
+}

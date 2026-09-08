@@ -1,0 +1,805 @@
+/* ==========================================================================
+   « Flat » slide style — second layout family, validated on the V2 study
+   `mockups/theme-flat.html`: full Material color planes, ZERO radius, ZERO
+   shadow, separation by color fields and thick ink rules, bare typography,
+   spaced-capitals labels. Structural accent: Material indigo 700 (#303F9F).
+
+   Every rule sits under `:root[data-slide-style='flat']` — the attribute is
+   set at runtime by App.svelte from `settings.theme.style`, so switching the
+   setting re-themes the live DOM (editor preview, slideshow, ?print) without
+   a reload. With the attribute at 'classic' (or absent), this sheet is
+   inert and the V1 canon of `theme.css` renders untouched.
+
+   The four canonical frames (title, divider, sheet ×2) are transposed 1:1;
+   the six templates the study does not cover (D1, D2, recap, decisions,
+   archives, previous record, free slide) extrapolate the same grammar:
+   solid accent table headers, no zebra, square wire chips, solid stat tiles.
+   ========================================================================== */
+
+/* ---------- tokens: the Material remap, on the slide only ----------------- */
+
+:root[data-slide-style='flat'] .slide {
+  /* Structural accent: Material indigo 700 (#303F9F), NOT indigo 500 — the
+     category color 'indigo' resolves to #3F51B5 in the material family, and
+     the accent must never collide with a category tint (canon ruling). */
+  --accent: #303f9f;
+  --accent-main: #303f9f;
+  --accent-975: #e8eaf6;
+  --accent-925: #c5cae9;
+  --accent-850: #9fa8da;
+
+  /* ink & rules (blue-grey Material) */
+  --txt: #212121;
+  --txt2: #455a64;
+  --muted: #78909c;
+  --border: #cfd8dc;
+  --border2: #cfd8dc;
+  --bg: #ffffff;
+  --bg-alt: #f5f5f5;
+
+  /* level scale: solid Material tones (white text guaranteed, amber excepted) */
+  --ok: #2e7d32;
+  --ok-bg: #e8f5e9;
+  --vig-txt: #212121;
+  --vig-dot: #f9a825;
+  --vig-bg: #fff8e1;
+  --warn: #ef6c00;
+  --warn-bg: #fff3e0;
+  --err: #c62828;
+  --err-bg: #ffebee;
+  --ne: #90a4ae;
+  --ne-bg: #eceff1;
+
+  /* progress ramp */
+  --av-0: #c62828;
+  --av-1: #ef6c00;
+  --av-34: #f9a825;
+  --av-67: #7cb342;
+  --av-100: #2e7d32;
+  --av-na: #cfd8dc;
+}
+
+/* ---------- chrome: no rail, kicker in spaced capitals -------------------- */
+
+:root[data-slide-style='flat'] .slide .rail {
+  display: none;
+}
+
+/* the kicker + heading rule cost vertical room the rail used to pay for:
+   the logo box drops to the sheet scale to give most of it back */
+:root[data-slide-style='flat'] .slide .head {
+  height: 48px;
+}
+:root[data-slide-style='flat'] .slide .logo {
+  height: 48px;
+  width: 135px;
+}
+
+/* the rail text survives as a kicker line above the heading (same words) */
+:root[data-slide-style='flat'] .slide .flat-kicker {
+  flex: none;
+  margin-top: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+:root[data-slide-style='flat'] .slide .flat-kicker + .slide-heading,
+:root[data-slide-style='flat'] .slide .flat-kicker + .heading-row {
+  margin-top: 6px;
+}
+
+/* headings: bare ink over a thick ink rule — no more accent-colored titles */
+:root[data-slide-style='flat'] .slide .slide-heading {
+  color: var(--txt);
+  letter-spacing: -0.015em;
+  border-bottom: 3px solid var(--txt);
+  padding-bottom: 9px;
+}
+:root[data-slide-style='flat'] .slide .heading-row {
+  border-bottom: 3px solid var(--txt);
+  padding-bottom: 9px;
+}
+:root[data-slide-style='flat'] .slide .heading-row .slide-heading {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+/* labels: capitals stay, the tracking widens (canon .f-lab) */
+:root[data-slide-style='flat'] .slide .label {
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+}
+
+/* cartouche: same 3 lines, spaced capitals on the first (canon .cart) */
+:root[data-slide-style='flat'] .slide .ent {
+  line-height: 1.5;
+}
+:root[data-slide-style='flat'] .slide .ent b {
+  font-size: 12.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--txt);
+}
+:root[data-slide-style='flat'] .slide .ent i {
+  color: var(--txt2);
+}
+:root[data-slide-style='flat'] .slide .ent u {
+  color: var(--muted);
+}
+:root[data-slide-style='flat'] .slide .ent.on-colored-bg b {
+  color: #fff;
+}
+:root[data-slide-style='flat'] .slide .ent.on-colored-bg i {
+  color: rgba(255, 255, 255, 0.85);
+}
+:root[data-slide-style='flat'] .slide .ent.on-colored-bg u {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* foot: closed by a net rule (canon .f-foot) — heights compensated so the
+   body keeps its room (17 + 14 becomes 8 + 1 + 8 + 14) */
+:root[data-slide-style='flat'] .slide .slide-foot {
+  margin-top: 8px;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+
+/* ---------- primitives: square wire chips --------------------------------- */
+
+:root[data-slide-style='flat'] .slide .pill,
+:root[data-slide-style='flat'] .slide .id-chip {
+  border-radius: 0;
+  background: transparent;
+  color: var(--cat, var(--accent));
+  border: 1.5px solid currentColor;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* stage / health / priority atoms: same treatment, tone kept by the text hue */
+:root[data-slide-style='flat'] .slide .chip,
+:root[data-slide-style='flat'] .slide .health.chip {
+  border-radius: 0;
+  background: transparent;
+  border: 1.5px solid currentColor;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+:root[data-slide-style='flat'] .slide .chip--toScope,
+:root[data-slide-style='flat'] .slide .chip--closed {
+  color: var(--txt2);
+}
+:root[data-slide-style='flat'] .slide .chip--onHold {
+  color: #8d6e00;
+}
+:root[data-slide-style='flat'] .slide .health.chip {
+  color: var(--dot-txt);
+}
+
+/* cards lose radius and shadow everywhere */
+:root[data-slide-style='flat'] .slide .card {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* the recap's text-shape health dot goes square too */
+:root[data-slide-style='flat'] .slide .health .dot {
+  border-radius: 0;
+}
+
+/* gauges: square track and fill, neutral grey ground */
+:root[data-slide-style='flat'] .slide .gauge .bar,
+:root[data-slide-style='flat'] .slide .gauge .bar i {
+  border-radius: 0;
+}
+:root[data-slide-style='flat'] .slide .gauge .bar {
+  background: #eceff1;
+}
+
+/* ---------- tables: solid accent header, net rules, no zebra -------------- */
+
+:root[data-slide-style='flat'] .slide .table th {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+:root[data-slide-style='flat'] .slide .table tbody tr {
+  border-bottom: 1px solid var(--border);
+}
+:root[data-slide-style='flat'] .slide .table tbody tr:nth-child(even) {
+  background: transparent;
+}
+
+/* handwriting zones: a net rule, not a dotted one */
+:root[data-slide-style='flat'] .slide .write-line {
+  border-bottom: 1px solid var(--muted);
+}
+
+/* ---------- D1: solid stat tiles, square category bars -------------------- */
+
+:root[data-slide-style='flat'] .slide .stat {
+  border-radius: 0;
+}
+:root[data-slide-style='flat'] .slide .stat b {
+  font-weight: 800;
+}
+:root[data-slide-style='flat'] .slide .tone--neutral {
+  --ground: #eceff1;
+  --ink: var(--txt2);
+}
+:root[data-slide-style='flat'] .slide .tone--accent {
+  --ground: var(--accent);
+  --ink: #fff;
+}
+:root[data-slide-style='flat'] .slide .tone--alert {
+  --ground: var(--warn);
+  --ink: #fff;
+}
+:root[data-slide-style='flat'] .slide .tone--critical {
+  --ground: var(--err);
+  --ink: #fff;
+}
+:root[data-slide-style='flat'] .slide .tone--good {
+  --ground: var(--ok);
+  --ink: #fff;
+}
+
+:root[data-slide-style='flat'] .slide .cat-bar {
+  border-radius: 0;
+}
+/* One language everywhere (canon ruling): HOLLOW = not yet — so the hollow
+   outline goes to the pre-project segment, and "done (residuals)" becomes the
+   pale tint; "in progress" stays the full tint. The legend follows. */
+:root[data-slide-style='flat'] .slide .cat-bar .sg-av {
+  background: #fff;
+  border: 2px solid var(--tint);
+}
+:root[data-slide-style='flat'] .slide .cat-bar .sg-fi {
+  background: color-mix(in srgb, var(--tint) 25%, #fff);
+  border: 0;
+}
+:root[data-slide-style='flat'] .slide .legend-key {
+  border-radius: 0;
+}
+:root[data-slide-style='flat'] .slide .legend-key--preProject {
+  background: #fff;
+  border: 2px solid var(--txt2);
+}
+:root[data-slide-style='flat'] .slide .legend-key--done {
+  background: color-mix(in srgb, var(--txt2) 25%, #fff);
+  border: 0;
+}
+
+/* ---------- D2: square dots and bars, the late-milestone inset as a solid -- */
+
+:root[data-slide-style='flat'] .slide .health-dot {
+  border-radius: 0;
+}
+:root[data-slide-style='flat'] .slide .health-bar,
+:root[data-slide-style='flat'] .slide .health-bar i {
+  border-radius: 0;
+}
+:root[data-slide-style='flat'] .slide .health-bar {
+  background: #eceff1;
+}
+
+:root[data-slide-style='flat'] .slide .callout {
+  border-radius: 0;
+  background: var(--err);
+}
+:root[data-slide-style='flat'] .slide .callout .label {
+  color: rgba(255, 255, 255, 0.85);
+}
+:root[data-slide-style='flat'] .slide .callout p,
+:root[data-slide-style='flat'] .slide .callout p b {
+  color: #fff;
+}
+:root[data-slide-style='flat'] .slide .callout p .dim {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* the pending table keeps its thick level marker — a flat gesture already */
+
+/* ---------- title slide (canon F-01): full indigo field -------------------- */
+
+:root[data-slide-style='flat'] .slide.slide--flat-title {
+  flex-direction: column;
+  background: var(--accent);
+  color: #fff;
+}
+:root[data-slide-style='flat'] .flat-title-logo {
+  position: absolute;
+  top: 26px;
+  left: 44px;
+  height: 56px;
+  width: 158px;
+  object-fit: contain;
+  object-position: left center;
+  display: block;
+}
+:root[data-slide-style='flat'] .flat-title-cart {
+  position: absolute;
+  top: 26px;
+  right: 44px;
+}
+:root[data-slide-style='flat'] .flat-title-field {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 96px;
+}
+:root[data-slide-style='flat'] .flat-title-kicker {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+:root[data-slide-style='flat'] .slide--flat-title h1 {
+  margin-top: 14px;
+  font-size: 64px;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.04;
+}
+:root[data-slide-style='flat'] .flat-title-sub {
+  margin-top: 12px;
+  font-size: 19px;
+  opacity: 0.85;
+}
+:root[data-slide-style='flat'] .flat-title-kpis {
+  flex: none;
+  display: flex;
+  margin: 0 96px 58px;
+  border-top: 1px solid rgba(255, 255, 255, 0.35);
+}
+:root[data-slide-style='flat'] .flat-title-kpis > div {
+  flex: 1;
+  padding: 22px 0 26px;
+}
+:root[data-slide-style='flat'] .flat-title-kpis b {
+  display: block;
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+:root[data-slide-style='flat'] .flat-title-kpis span {
+  display: block;
+  margin-top: 6px;
+  font-size: 12.5px;
+  opacity: 0.8;
+}
+:root[data-slide-style='flat'] .flat-title-sign {
+  position: absolute;
+  left: 96px;
+  bottom: 26px;
+  font-size: 12.5px;
+  opacity: 0.85;
+}
+:root[data-slide-style='flat'] .flat-title-contact {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+/* ---------- divider (canon F-02): bottom-anchored plate, no rail ---------- */
+
+:root[data-slide-style='flat'] .slide.slide--flat-divider {
+  display: flex;
+  flex-direction: column;
+}
+:root[data-slide-style='flat'] .flat-divider-plate {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0 96px 84px;
+}
+:root[data-slide-style='flat'] .flat-divider-num {
+  font-size: 200px;
+  font-weight: 800;
+  line-height: 0.8;
+  letter-spacing: -0.04em;
+  opacity: 0.32;
+}
+:root[data-slide-style='flat'] .flat-divider-plate h2 {
+  margin-top: 8px;
+  font-size: 56px;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.05;
+}
+:root[data-slide-style='flat'] .flat-divider-count {
+  margin-top: 8px;
+  font-size: 15px;
+  opacity: 0.85;
+}
+:root[data-slide-style='flat'] .flat-divider-list {
+  list-style: none;
+  margin: 26px 0 0;
+  padding: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.4);
+  max-width: 640px;
+}
+:root[data-slide-style='flat'] .flat-divider-list li {
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+  font-size: 15px;
+  line-height: 1.35;
+  display: flex;
+  gap: 14px;
+}
+:root[data-slide-style='flat'] .flat-divider-list li b {
+  font-weight: 800;
+  min-width: 44px;
+  flex: none;
+}
+/* 6 projects and beyond: same rows, two columns (transposed from the V1 rule) */
+:root[data-slide-style='flat'] .flat-divider-list--compact {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 34px;
+  max-width: 1000px;
+}
+:root[data-slide-style='flat'] .flat-divider-list li.flat-divider-more {
+  font-size: 13px;
+  font-style: italic;
+  opacity: 0.75;
+  grid-column: 1 / -1;
+}
+
+/* ---------- project sheet (canon F-03/F-04) -------------------------------- */
+/* header = full-width category color plane, body below: the frame stacks */
+
+:root[data-slide-style='flat'] .slide.slide--sheet {
+  flex-direction: column;
+}
+:root[data-slide-style='flat'] .flat-head {
+  flex: none;
+  position: relative;
+  background: var(--cat, var(--accent));
+  color: #fff;
+  padding: 22px 44px 16px;
+}
+:root[data-slide-style='flat'] .flat-head .flat-cart {
+  position: absolute;
+  top: 26px;
+  right: 44px;
+}
+:root[data-slide-style='flat'] .flat-head .flat-kicker {
+  margin-top: 0;
+  color: rgba(255, 255, 255, 0.8);
+}
+:root[data-slide-style='flat'] .flat-head h2 {
+  margin-top: 6px;
+  font-size: 29px;
+  line-height: 35px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  max-width: 900px;
+}
+:root[data-slide-style='flat'] .flat-headrow {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+/* chips on the plane: white wire; the health chip is the FULL one (canon) */
+:root[data-slide-style='flat'] .flat-head .chip {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.75);
+  background: transparent;
+}
+:root[data-slide-style='flat'] .flat-head .health.chip {
+  background: #fff;
+  border-color: #fff;
+  color: var(--cat, var(--accent));
+}
+:root[data-slide-style='flat'] .flat-head .health.chip .dot {
+  display: none;
+}
+:root[data-slide-style='flat'] .flat-head .flat-meta {
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.9);
+}
+:root[data-slide-style='flat'] .flat-head .flat-meta b {
+  font-weight: 700;
+  color: #fff;
+}
+
+/* white body under the plane */
+:root[data-slide-style='flat'] .slide--sheet .canvas {
+  padding: 16px 44px 12px;
+}
+:root[data-slide-style='flat'] .slide .sheet-body {
+  margin-top: 0;
+}
+:root[data-slide-style='flat'] .slide--sheet .slide-foot {
+  margin-top: 4px;
+}
+
+/* row A: bare typography, goal + facts over one thick ink rule (canon .f-top) */
+:root[data-slide-style='flat'] .slide .row-a {
+  gap: 40px;
+  max-height: 116px;
+  border-bottom: 3px solid var(--txt);
+  padding-bottom: 11px;
+}
+:root[data-slide-style='flat'] .slide .goal {
+  background: transparent;
+  border-left: 0;
+  border-radius: 0;
+  padding: 0;
+}
+:root[data-slide-style='flat'] .slide .goal p {
+  margin-top: 5px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--txt);
+}
+:root[data-slide-style='flat'] .slide .goal .label {
+  color: var(--muted);
+}
+/* the facts block flattens into the canon's 2 × 2 grid — `display: contents`
+   dissolves the row wrapper, the budget takes the fourth cell */
+:root[data-slide-style='flat'] .slide .row-a .facts {
+  width: 392px;
+  background: transparent;
+  border-left: 0;
+  border-radius: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 24px;
+  align-content: start;
+}
+:root[data-slide-style='flat'] .slide .facts .facts-row {
+  display: contents;
+}
+:root[data-slide-style='flat'] .slide .facts .fact {
+  padding: 0;
+  border-left: 0;
+}
+:root[data-slide-style='flat'] .slide .facts .label {
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+}
+:root[data-slide-style='flat'] .slide .facts .value {
+  margin-top: 2px;
+  font-size: 15px;
+  font-weight: 800;
+}
+:root[data-slide-style='flat'] .slide .facts .track {
+  margin-top: 6px;
+}
+:root[data-slide-style='flat'] .slide .facts .budget {
+  margin-top: 0;
+  padding: 0;
+  border-top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+:root[data-slide-style='flat'] .slide .facts .budget-text {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--txt2);
+}
+
+/* row B: three bare columns, headings underlined in the category color ------ */
+:root[data-slide-style='flat'] .slide .row-b {
+  gap: 32px;
+}
+:root[data-slide-style='flat'] .slide .narrative-card {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+}
+:root[data-slide-style='flat'] .slide .narrative-card .ch {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  color: var(--txt);
+  padding-bottom: 7px;
+  border-bottom: 3px solid var(--cat, var(--accent));
+}
+:root[data-slide-style='flat'] .slide .narrative-card .disc {
+  display: none;
+}
+:root[data-slide-style='flat'] .slide .narrative-card .line.bullet {
+  padding-left: 16px;
+}
+:root[data-slide-style='flat'] .slide .narrative-card .line.bullet::before {
+  border-radius: 0;
+  width: 6px;
+  height: 6px;
+  background: var(--cat, var(--accent));
+  left: 2px;
+  top: 9px;
+}
+
+/* row C: solid level planes, white (or dark, on amber) text ----------------- */
+:root[data-slide-style='flat'] .slide .row-c {
+  gap: 16px;
+}
+:root[data-slide-style='flat'] .slide .row-c .risks,
+:root[data-slide-style='flat'] .slide .row-c .decision {
+  border-radius: 0;
+  border-left: 0;
+  padding: 11px 18px;
+}
+:root[data-slide-style='flat'] .slide .row-c .risks--onTrack,
+:root[data-slide-style='flat'] .slide .row-c .risks--alert,
+:root[data-slide-style='flat'] .slide .row-c .risks--critical {
+  color: #fff;
+}
+:root[data-slide-style='flat'] .slide .row-c .risks--onTrack {
+  background: var(--ok);
+}
+:root[data-slide-style='flat'] .slide .row-c .risks--watch {
+  background: var(--vig-dot);
+  color: #212121;
+}
+:root[data-slide-style='flat'] .slide .row-c .risks--alert {
+  background: var(--warn);
+}
+:root[data-slide-style='flat'] .slide .row-c .risks--critical {
+  background: var(--err);
+}
+:root[data-slide-style='flat'] .slide .row-c .risks--neutral {
+  background: var(--bg-alt);
+}
+:root[data-slide-style='flat'] .slide .row-c .risks--onTrack .label,
+:root[data-slide-style='flat'] .slide .row-c .risks--alert .label,
+:root[data-slide-style='flat'] .slide .row-c .risks--critical .label {
+  color: rgba(255, 255, 255, 0.85);
+}
+:root[data-slide-style='flat'] .slide .row-c .risks--watch .label {
+  color: rgba(33, 33, 33, 0.75);
+}
+:root[data-slide-style='flat'] .slide .row-c .risks--onTrack p,
+:root[data-slide-style='flat'] .slide .row-c .risks--alert p,
+:root[data-slide-style='flat'] .slide .row-c .risks--critical p {
+  color: #fff;
+}
+:root[data-slide-style='flat'] .slide .row-c .risks--watch p {
+  color: #212121;
+}
+:root[data-slide-style='flat'] .slide .row-c .decision {
+  background: var(--accent);
+}
+:root[data-slide-style='flat'] .slide .row-c .decision .label {
+  color: rgba(255, 255, 255, 0.85);
+}
+:root[data-slide-style='flat'] .slide .row-c .decision p {
+  color: #fff;
+}
+:root[data-slide-style='flat'] .slide .row-c .decision-owner {
+  color: rgba(255, 255, 255, 0.8);
+}
+:root[data-slide-style='flat'] .slide .row-c .decision--none {
+  background: var(--bg-alt);
+}
+:root[data-slide-style='flat'] .slide .row-c .decision--none .label {
+  color: var(--muted);
+}
+:root[data-slide-style='flat'] .slide .row-c .decision--none p {
+  color: var(--muted);
+}
+
+/* timeline: thick ink axis, SQUARE milestones (canon .f-tl) ----------------- */
+:root[data-slide-style='flat'] .slide .tl {
+  border-top: 0;
+}
+:root[data-slide-style='flat'] .slide .tl-axis {
+  height: 2px;
+  background: var(--txt);
+}
+:root[data-slide-style='flat'] .slide .tl-cursor {
+  width: 3px;
+  margin-left: -1.5px;
+}
+:root[data-slide-style='flat'] .slide .tl-dot {
+  border-radius: 0;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  top: 37px;
+  border-width: 2px;
+}
+:root[data-slide-style='flat'] .slide .tl-lab {
+  color: var(--txt);
+  font-weight: 800;
+  font-size: 11.5px;
+}
+/* legend markers follow the squares */
+:root[data-slide-style='flat'] .slide .timeline-legend .past,
+:root[data-slide-style='flat'] .slide .timeline-legend .upcoming,
+:root[data-slide-style='flat'] .slide .tlg-d,
+:root[data-slide-style='flat'] .slide .tlg-o {
+  border-radius: 0;
+}
+:root[data-slide-style='flat'] .slide .timeline-legend .upcoming,
+:root[data-slide-style='flat'] .slide .tlg-o {
+  border-width: 2px;
+}
+:root[data-slide-style='flat'] .slide .timeline-legend .cursor {
+  width: 3px;
+}
+
+/* ---------- free slide: bare typography, square markers -------------------- */
+
+:root[data-slide-style='flat'] .slide .freeform-card {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+:root[data-slide-style='flat'] .slide .freeform-title {
+  color: var(--txt);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  border-bottom: 3px solid var(--accent);
+  padding-bottom: 7px;
+}
+:root[data-slide-style='flat'] .slide .freeform-card .line.bullet::before {
+  border-radius: 0;
+  width: 6px;
+  height: 6px;
+  background: var(--accent);
+  top: 0.5em;
+}
+
+/* ---------- A4: the same grammar on the printed page ----------------------- */
+
+@media print {
+  /* title & divider: the flow compositions absorb the 1122 × 793 box; only
+     the outer gutters follow the A4 margins of `print.css` (96 → 86, 44 → 40) */
+  :root[data-slide-style='flat'] .flat-title-field {
+    padding: 0 86px;
+  }
+  :root[data-slide-style='flat'] .flat-title-kpis {
+    margin: 0 86px 54px;
+  }
+  :root[data-slide-style='flat'] .flat-title-sign {
+    left: 86px;
+  }
+  :root[data-slide-style='flat'] .flat-title-logo {
+    left: 40px;
+    top: 30px;
+  }
+  :root[data-slide-style='flat'] .flat-title-cart {
+    right: 40px;
+    top: 30px;
+  }
+  :root[data-slide-style='flat'] .flat-divider-plate {
+    padding: 0 86px 78px;
+  }
+  :root[data-slide-style='flat'] .flat-head {
+    padding: 22px 40px 16px;
+  }
+  :root[data-slide-style='flat'] .flat-head .flat-cart {
+    right: 40px;
+  }
+  :root[data-slide-style='flat'] .slide--sheet .canvas {
+    padding: 16px 40px 12px;
+  }
+  /* facts grid: 392 px would eat the narrower A4 canvas */
+  :root[data-slide-style='flat'] .slide .row-a .facts {
+    width: 360px;
+  }
+}

@@ -1,0 +1,1036 @@
+/* ==========================================================================
+   Slide theme — the 16:9 template (1280 × 720), copied value for value from
+   the canonical mockup `mockups/slides.html`. Nothing is redrawn here.
+
+   Why one global stylesheet rather than per-component scoped styles: the
+   frame, the tables and the sheet rows are ONE grid shared by ten templates,
+   and `print.css` has to transpose that same grid to A4. A single sheet keeps
+   the canon in one readable place and gives the print sheet a single set of
+   selectors to override.
+
+   Semantic tokens (--accent, --ok, --av-*, …) come from `app.css`; only the
+   geometry of the deck — and the type stack — is defined here.
+   ========================================================================== */
+
+:root {
+  /* Inter by default; `settings.theme.font` overrides it from phase 7 on —
+     no web font is fetched at this stage. */
+  --font: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  /* golden-ratio grid of the canon: 27 · 44 · 71 · 115 … */
+  --slide-width: 1280px;
+  --slide-height: 720px;
+  --slide-rail: 71px;
+  --slide-margin: 44px;
+  --slide-gutter: 27px;
+  --slide-step: 17px;
+  /* title slide: white column 489 + blue block 791 = 1280 */
+  --title-column: 489px;
+  --title-block: 791px;
+  /* 4 projects = 489 px: the scale is shared by every category bar (D1) */
+  --bar-px-per-project: 122.25;
+}
+
+/* ---------- frame -------------------------------------------------------- */
+
+.slide {
+  position: relative;
+  width: var(--slide-width);
+  height: var(--slide-height);
+  overflow: hidden;
+  background: var(--bg);
+  display: flex;
+  font-family: var(--font);
+  font-size: 14.5px;
+  line-height: 1.45;
+  color: var(--txt);
+}
+.slide * {
+  box-sizing: border-box;
+}
+
+/* vertical bar — text anchored at the bottom (text end 44 px from the floor) */
+.rail {
+  width: var(--slide-rail);
+  flex: none;
+  background: var(--accent);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: var(--slide-margin);
+}
+/* a sheet's rail takes the color of its category */
+.slide--sheet .rail {
+  background: var(--cat, var(--accent));
+}
+.rail-text {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.14em;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.canvas {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 26px var(--slide-margin) 22px;
+}
+
+/* header: normalized logo box (180 × 64, contain, flush left) + cartouche */
+.head {
+  height: 64px;
+  flex: none;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.logo {
+  height: 64px;
+  width: 180px;
+  object-fit: contain;
+  object-position: left center;
+  display: block;
+}
+
+/* slide title */
+.slide-heading {
+  flex: none;
+  margin-top: var(--slide-step);
+  font-size: 30px;
+  line-height: 36px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -0.01em;
+}
+.heading-row {
+  flex: none;
+  margin-top: var(--slide-step);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--slide-gutter);
+}
+.heading-row .slide-heading {
+  margin-top: 0;
+  min-width: 0;
+}
+.heading-notes {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex: none;
+}
+.heading-note {
+  font-size: 12.5px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* body + foot */
+.slide-body {
+  flex: 1;
+  min-height: 0;
+  margin-top: var(--slide-step);
+  display: flex;
+  flex-direction: column;
+}
+.slide-body--centered {
+  justify-content: center;
+}
+.slide-body--split {
+  flex-direction: row;
+  gap: var(--slide-margin);
+}
+.slide-body--tight {
+  margin-top: 14px;
+}
+.slide-foot {
+  flex: none;
+  height: 14px;
+  margin-top: var(--slide-step);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--slide-step);
+  font-size: 11px;
+  color: var(--muted);
+}
+.foot-mid {
+  flex: 1;
+  text-align: center;
+}
+.foot-right {
+  white-space: nowrap;
+}
+
+/* ---------- primitives --------------------------------------------------- */
+
+.label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.label--accent {
+  color: var(--accent);
+}
+.dim {
+  color: var(--muted);
+}
+.none {
+  font-style: italic;
+  color: var(--muted);
+}
+
+/* category pill and id chip: the tint at 12 % is the canon's rgba(cat, .12) */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cat, var(--accent)) 12%, #fff);
+  color: var(--cat, var(--accent));
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  /* fallback: stable metrics, then a hairline in the text hue (pitfall n° 13) */
+  border: 1px solid transparent;
+  border-color: color-mix(in srgb, currentColor 25%, transparent);
+}
+.id-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 21px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cat, var(--accent)) 12%, #fff);
+  color: var(--cat, var(--accent));
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  border-color: color-mix(in srgb, currentColor 25%, transparent);
+}
+
+/* micro-format bullets (hanging indent) — free slides */
+.bullets {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.card {
+  background: #fff;
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 12px 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* ---------- tables ------------------------------------------------------- */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.table th {
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: left;
+  padding: 9px 10px;
+  letter-spacing: 0.02em;
+}
+.table td {
+  padding: 6px 10px;
+  font-size: 13px;
+  color: var(--txt2);
+  vertical-align: middle;
+}
+.table tbody tr {
+  height: 40px;
+}
+.table tbody tr:nth-child(even) {
+  background: var(--bg-alt);
+}
+.table .num {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--txt);
+}
+.table .name {
+  font-size: 13px;
+  color: var(--txt);
+  line-height: 1.22;
+}
+.table .center {
+  text-align: center;
+}
+
+/* ---------- D1 — portfolio dashboard ------------------------------------- */
+
+.stats {
+  flex: none;
+  height: 88px;
+  display: flex;
+  gap: 14px;
+}
+.category-rows {
+  flex: 1;
+  min-height: 0;
+  margin-top: var(--slide-step);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.category-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 27px;
+}
+.category-name {
+  width: 170px;
+  flex: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--txt);
+}
+.category-count {
+  width: 24px;
+  flex: none;
+  text-align: right;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--txt2);
+}
+.category-row .cat-bar {
+  margin-left: 5px;
+}
+.legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.legend-key {
+  display: inline-block;
+  width: 13px;
+  height: 9px;
+  border-radius: 2px;
+  margin: 0 5px 0 14px;
+}
+.legend > .legend-key:first-child {
+  margin-left: 0;
+}
+.legend-key--inProgress {
+  background: var(--txt2);
+}
+.legend-key--preProject {
+  background: color-mix(in srgb, var(--txt2) 25%, #fff);
+}
+.legend-key--done {
+  background: #fff;
+  border: 1.5px solid var(--txt2);
+}
+
+/* ---------- D2 — health dashboard ---------------------------------------- */
+
+.health-column {
+  width: 302px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+}
+.health-rows {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.health-row {
+  display: grid;
+  grid-template-columns: 9px 1fr auto;
+  align-items: center;
+  column-gap: 9px;
+  row-gap: 7px;
+}
+.health-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--tone);
+}
+.health-label {
+  font-size: 13.5px;
+  color: var(--txt);
+}
+.health-count {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--txt);
+}
+.health-bar {
+  grid-column: 2 / 4;
+  height: 4px;
+  border-radius: 999px;
+  background: #ededed;
+  overflow: hidden;
+}
+.health-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--tone);
+}
+.level--onTrack {
+  --tone: var(--ok);
+}
+.level--watch {
+  --tone: var(--vig-dot);
+}
+.level--alert {
+  --tone: var(--warn);
+}
+.level--critical {
+  --tone: var(--err);
+}
+.level--notAssessed {
+  --tone: var(--ne);
+}
+
+/* the inset follows the health block directly (gap 17): no dead space */
+.callout {
+  margin-top: var(--slide-step);
+  background: var(--err-bg);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.callout .label {
+  font-size: 11px;
+  color: var(--err);
+}
+.callout p {
+  margin-top: 5px;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--txt2);
+}
+.callout p b {
+  font-weight: 700;
+  color: var(--err);
+}
+
+.pending-column {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.table--pending {
+  margin-top: 12px;
+}
+.table--pending tbody tr {
+  background: none;
+  height: auto;
+  border-bottom: 1px solid var(--border2);
+}
+.table--pending td {
+  padding: 9px 10px;
+  vertical-align: middle;
+  border-left: 3px solid transparent;
+}
+.table--pending td + td {
+  border-left: 0;
+}
+.table--pending tr.level--alert td:first-child {
+  border-left-color: var(--warn);
+}
+.table--pending tr.level--critical td:first-child {
+  border-left-color: var(--err);
+}
+.table--pending .name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--txt);
+  line-height: 1.28;
+}
+.table--pending .who {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.25;
+}
+.more-row td {
+  font-size: 12px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* ---------- recap -------------------------------------------------------- */
+/* tight padding: a project name on 2 lines fits the 40 px row */
+.table--recap td {
+  padding: 4px 9px;
+}
+.table--recap th {
+  padding: 9px 9px;
+}
+.table--recap .pill {
+  height: 20px;
+  font-size: 11px;
+  padding: 0 8px;
+}
+/* second selector: without it `.table td` (more specific) would win */
+.table--recap .milestone {
+  font-size: 12px;
+  line-height: 1.2;
+  color: var(--txt);
+}
+.table--recap .milestone.late,
+.table--recap .milestone.late .dim {
+  color: var(--err);
+  font-weight: 600;
+}
+.decision-mark {
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* ---------- archives ----------------------------------------------------- */
+
+.table--archives tbody tr {
+  height: 52px;
+}
+.note {
+  margin-top: 20px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ---------- decisions (today's table) + record of the previous review ----- */
+/* the writing zones stay at 52 px: this is the table one fills by hand */
+.table--decisions th {
+  padding: 6px 10px;
+}
+.table--decisions tbody tr {
+  height: 64px;
+}
+.table--decisions td {
+  padding: 6px 10px;
+  vertical-align: top;
+}
+.table--decisions .question {
+  font-size: 12.5px;
+  line-height: 1.32;
+  color: var(--txt2);
+}
+.table--decisions .who {
+  font-size: 12px;
+  color: var(--txt2);
+}
+/* chip floated on a 15 px text line: the name takes the full width from the
+   2nd line on — the 21 % "Project" column then fits in 2 lines */
+.project-cell {
+  display: block;
+  font-size: 12px;
+  line-height: 1.25;
+}
+.project-cell .id-chip {
+  float: left;
+  height: 15px;
+  font-size: 10.5px;
+  padding: 0 5px;
+  margin-right: 7px;
+}
+.project-cell .name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--txt);
+  line-height: 1.25;
+}
+.write-line {
+  display: block;
+  height: 52px;
+  border-bottom: 1px dotted #b9b9b9;
+}
+/* record of the previous review — appendix, two airy lines */
+.table--record tbody tr {
+  height: 68px;
+}
+.table--record td {
+  padding: 10px 10px;
+  vertical-align: middle;
+}
+.table--record .question {
+  font-size: 12.5px;
+  line-height: 1.32;
+  color: var(--muted);
+}
+.table--record .taken {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--txt);
+  line-height: 1.3;
+}
+.table--record .who {
+  font-size: 12.5px;
+  color: var(--txt2);
+}
+/* the outcome is entered text, rendered by TextLine: the record gives it the
+   weight of an answer (the chain outranks the atom's scoped rule) */
+.slide .table--record .taken .line {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* ---------- title slide -------------------------------------------------- */
+
+.title-left {
+  width: var(--title-column);
+  flex: none;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  padding: var(--slide-margin);
+}
+/* align-self: without it the flex box stretches the image and the vertical text */
+.title-logo {
+  height: 88px;
+  width: 180px;
+  object-fit: contain;
+  object-position: left center;
+  display: block;
+  align-self: flex-start;
+}
+.title-vertical {
+  align-self: flex-start;
+  margin-top: auto;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 44px;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: -0.01em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.title-right {
+  flex: 1;
+  min-width: 0;
+  background: var(--accent);
+  color: #fff;
+  position: relative;
+  padding: 187px var(--slide-rail) 0;
+}
+.title-right h1 {
+  font-size: 56px;
+  font-weight: 800;
+  line-height: 1.06;
+  letter-spacing: -0.015em;
+}
+.title-sub {
+  margin-top: var(--slide-step);
+  font-size: 20px;
+  color: rgba(255, 255, 255, 0.8);
+}
+/* standard cartouche, in white, on the grid of the blue block — same inset as
+   every other slide */
+.title-cartouche {
+  position: absolute;
+  top: 26px;
+  right: var(--slide-margin);
+}
+/* discreet signature, foot of the blue block */
+.title-sign {
+  position: absolute;
+  left: var(--slide-rail);
+  bottom: var(--slide-margin);
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.65);
+}
+.title-contact {
+  display: block;
+  margin-top: 4px;
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.5);
+}
+.kpis {
+  position: absolute;
+  left: var(--slide-rail);
+  right: var(--slide-rail);
+  top: 446px;
+  display: flex;
+  gap: var(--slide-gutter);
+}
+.kpi {
+  flex: 1;
+  border-top: 1px solid rgba(255, 255, 255, 0.28);
+  padding-top: var(--slide-step);
+}
+.kpi b {
+  display: block;
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.kpi span {
+  display: block;
+  margin-top: 9px;
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.3;
+}
+
+/* ---------- dividers ----------------------------------------------------- */
+/* "monument" composition: right-aligned content column, giant numeral anchored
+   bottom-left and bleeding off both edges of the frame */
+.slide--divider {
+  position: relative;
+  background: var(--cat, var(--accent));
+  color: #fff;
+  display: block;
+  overflow: hidden;
+}
+.divider-cartouche {
+  position: absolute;
+  top: 26px;
+  right: var(--slide-margin);
+  z-index: 3;
+}
+.divider-numeral {
+  position: absolute;
+  left: -28px;
+  bottom: -92px;
+  font-size: 400px;
+  font-weight: 800;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.12);
+  letter-spacing: -0.02em;
+  z-index: 1;
+}
+.divider-block {
+  position: absolute;
+  right: var(--slide-margin);
+  top: 376px;
+  max-width: 920px;
+  z-index: 2;
+  text-align: right;
+}
+.divider-block h2 {
+  font-size: 64px;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+}
+.divider-count {
+  margin-top: 14px;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.82);
+}
+.divider-list {
+  position: absolute;
+  right: var(--slide-margin);
+  top: 520px;
+  width: 680px;
+  z-index: 2;
+  margin: 0;
+  padding: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.28);
+}
+.divider-list li {
+  list-style: none;
+  font-size: 14px;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.92);
+  padding: 9px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.28);
+  text-align: right;
+}
+.divider-list li b {
+  font-weight: 700;
+  color: #fff;
+  margin-right: 6px;
+}
+/* 6 projects and beyond, the single column would run past the floor: same
+   rows, two columns, list widened to the left */
+.divider-list--compact {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 34px;
+  width: 1000px;
+}
+.divider-list li.divider-more {
+  padding: 9px 0;
+  text-align: right;
+  font-size: 13px;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.75);
+  border-top: 1px solid rgba(255, 255, 255, 0.28);
+  grid-column: 1 / -1;
+}
+
+/* ---------- project sheet — bands composition (v2.1) --------------------- */
+/* logo box at 48 px (same ratio as the normalized 180 × 64 box): the header
+   height is then given by the cartouche, unchanged — 48.6 px */
+.slide--sheet .head {
+  height: auto;
+}
+.slide--sheet .logo {
+  height: 48px;
+  width: 135px;
+}
+.sheet-title {
+  flex: none;
+  margin-top: 10px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--slide-step);
+}
+.sheet-title h2 {
+  font-size: 29px;
+  line-height: 35px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -0.01em;
+  min-width: 0;
+}
+.sheet-chips {
+  display: flex;
+  gap: 8px;
+  flex: none;
+  margin-top: 4px;
+}
+.sheet-meta {
+  flex: none;
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--muted);
+}
+.sheet-meta b {
+  font-weight: 600;
+  color: var(--txt2);
+}
+.sheet-body {
+  flex: 1;
+  min-height: 0;
+  margin-top: 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+/* the foot takes the gutter of the prototype: gap 12 + margin 1 */
+.slide--sheet .slide-foot {
+  margin-top: 13px;
+}
+
+/* row A: goal band (elastic) + the merged facts block (338 px). The height is
+   driven by the facts; a long goal — or a long budget — may stretch the row a
+   little, up to a ceiling. Contents aligned to the TOP. */
+.row-a {
+  flex: none;
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+  max-height: 104px;
+}
+.goal {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--accent-975);
+  border-left: 4px solid var(--accent);
+  border-radius: 4px;
+  padding: 9px 16px;
+  display: flex;
+  flex-direction: column;
+}
+.goal p {
+  margin-top: 4px;
+  font-size: 13.5px;
+  line-height: 1.32;
+  color: #312e81;
+}
+/* the facts block carries its own metrics (atom); the row owns its width */
+.row-a .facts {
+  width: 338px;
+  flex: none;
+}
+
+/* row B: three narrative cards, strict thirds */
+.row-b {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+.narrative-card {
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  background: #fff;
+  padding: 9px 13px;
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+/* v2.1: the bullets are centered in the leftover height of the card — the
+   heading stays pinned to the top, the list floats on `margin: auto 0` */
+.narrative-card .col {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.slide .narrative-card .bul {
+  margin: auto 0;
+  padding: 4px 0 1px;
+}
+/* the sheet tightens the atom's bullets to the canon's metrics (12 px / 1.3);
+   the extra `.slide` raises specificity above the component's scoped rule */
+.slide .narrative-card .line {
+  font-size: 12px;
+  line-height: 1.3;
+  padding: 2px 0 2px 13px;
+}
+.slide .narrative-card .line::before {
+  top: 9px;
+}
+
+/* row C: risks + decision, two bands with a left rule, equal halves. The risks
+   band is an atom (five tones): only the decision band is drawn here. */
+.row-c {
+  flex: none;
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+.decision {
+  flex: 1;
+  min-width: 0;
+  border-radius: 4px;
+  padding: 9px 14px;
+  /* line-height 0 on the box: the inline label adds no leading of its own */
+  line-height: 0;
+  background: var(--accent-975);
+  border-left: 4px solid var(--accent);
+}
+.decision .label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+  color: var(--accent);
+}
+.decision p {
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--accent);
+}
+.decision-owner {
+  margin-top: 3px;
+  font-size: 11px;
+  line-height: 1.2;
+  color: color-mix(in srgb, var(--accent) 75%, transparent);
+}
+.decision--none {
+  background: var(--bg-alt);
+  border-left-color: #9ca3af;
+}
+.decision--none .label {
+  color: var(--muted);
+}
+.decision--none p {
+  font-weight: 400;
+  font-style: italic;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* the timeline closes the sheet: it takes its own height, never the leftovers
+   of the narrative row (`.block` is the MilestoneTimeline atom's root) */
+.sheet-body > .block {
+  flex: none;
+  margin-top: 4px;
+}
+
+/* timeline legend, in the slide foot */
+.timeline-legend i {
+  display: inline-block;
+  margin-right: 5px;
+}
+.timeline-legend .cursor {
+  width: 2px;
+  height: 10px;
+  background: var(--err);
+  vertical-align: -2px;
+}
+.timeline-legend .past {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cat, var(--accent));
+  vertical-align: -1px;
+}
+.timeline-legend .upcoming {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid var(--cat, var(--accent));
+  vertical-align: -1px;
+}
+
+/* ---------- free slide --------------------------------------------------- */
+
+.freeform-blocks {
+  display: flex;
+  gap: var(--slide-step);
+  align-items: stretch;
+  width: 100%;
+}
+/* One block: an 800 px card flush with the left margin, as in the canon.
+   Two or three: they share the width and shrink, never wrap. */
+.freeform-card {
+  flex: 0 1 800px;
+  padding: 34px var(--slide-margin);
+}
+/* the free slide reads at arm's length: 17 px bullets, 17 gutter. The chained
+   `.line.bullet` raises specificity above the TextLine atom's scoped rule. */
+.slide .freeform-card .line.bullet {
+  padding: 0 0 0 14px;
+  margin-bottom: var(--slide-step);
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--txt2);
+}
+.slide .freeform-card .line.bullet:last-child {
+  margin-bottom: 0;
+}
+.slide .freeform-card .line.bullet::before {
+  top: 0.52em;
+  background: #b6b6b6;
+}
+.freeform-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 12px;
+}

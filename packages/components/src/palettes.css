@@ -1,0 +1,56 @@
+/* Category color palettes — the ONLY place a generic color name becomes a hex.
+   The data says "teal" (core model/category.ts); whichever element carries
+   data-palette (the app root in the editor and print mode, the <html> of an
+   exported slideshow, a preview swatch in the settings) decides which teal.
+   Consumers read var(--cat-<name>) — see commons/cat-color.ts. */
+
+/* The sentinel of the implicit "unsorted" category: the SAME neutral grey in
+   every family — "unsorted" must stay recognizably neutral in every theme. */
+[data-palette] {
+  --cat-grey: #757575;
+}
+
+[data-palette='dsfr'] {
+  --cat-blue: #417dc4; /* cumulus */
+  --cat-indigo: #465f9d; /* écume */
+  --cat-teal: #009099; /* archipel */
+  --cat-cyan: #009081; /* menthe */
+  --cat-green: #00a95f; /* émeraude */
+  --cat-olive: #68a532; /* bourgeon */
+  --cat-amber: #c3992a; /* moutarde */
+  --cat-orange: #e4794a; /* terre-battue */
+  --cat-red: #ce614a; /* tuile */
+  --cat-purple: #a558a0; /* glycine */
+  --cat-brown: #c08c65; /* caramel */
+  --cat-taupe: #bd987a; /* opéra */
+}
+
+[data-palette='tailwind'] {
+  --cat-blue: #2563eb;
+  --cat-indigo: #4f46e5;
+  --cat-teal: #0d9488;
+  --cat-cyan: #0e7490;
+  --cat-green: #16a34a;
+  --cat-olive: #4d7c0f;
+  --cat-amber: #d97706;
+  --cat-orange: #ea580c;
+  --cat-red: #dc2626;
+  --cat-purple: #9333ea;
+  --cat-brown: #92400e;
+  --cat-taupe: #78716c;
+}
+
+[data-palette='material'] {
+  --cat-blue: #1976d2;
+  --cat-indigo: #3f51b5;
+  --cat-teal: #00897b;
+  --cat-cyan: #00838f;
+  --cat-green: #43a047;
+  --cat-olive: #558b2f;
+  --cat-amber: #ff6f00;
+  --cat-orange: #f4511e;
+  --cat-red: #e53935;
+  --cat-purple: #9c27b0;
+  --cat-brown: #795548;
+  --cat-taupe: #546e7a;
+}

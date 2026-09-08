@@ -1,0 +1,909 @@
+{
+  "version": 3,
+  "review": {
+    "title": "Revue des projets",
+    "subtitle": "Revue mensuelle",
+    "reviewDate": "2026-09-03",
+    "previousReviewDate": "2026-07-02"
+  },
+  "settings": {
+    "language": "fr",
+    "identity": {
+      "org": "Déjà Vu Ltd.",
+      "unit": "DSI",
+      "orgLong": "Déjà Vu Ltd.",
+      "unitLong": "Direction des Systèmes d'Information",
+      "contact": "dsi@dejavu.example",
+      "logo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5NiIgaGVpZ2h0PSI5NiIgdmlld0JveD0iMCAwIDk2IDk2Ij4KICA8IS0tIETDqWrDoCBWdSBMdGQuIOKAlCBsb2dvIGNhcnLDqSA6IHVuIMKrIFYgwrsgZXQgc29uIMOpY2hvIChkw6lqw6AtdnUpLCBwYWxldHRlIFRhaWx3aW5kIC0tPgogIDxkZWZzPgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJiZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiM0RjQ2RTUiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjOTMzM0VBIi8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogIDwvZGVmcz4KICA8cmVjdCB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHJ4PSIyMCIgZmlsbD0idXJsKCNiZykiLz4KICA8ZyBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMTEiPgogICAgPHBhdGggZD0iTTIyIDI2IEw0MCA1OCBMNTggMjYiIHN0cm9rZT0iIzVFRUFENCIgb3BhY2l0eT0iLjQ1Ii8+CiAgICA8cGF0aCBkPSJNMzIgMzggTDUwIDcwIEw2OCAzOCIgc3Ryb2tlPSIjRkZGRkZGIi8+CiAgPC9nPgogIDxjaXJjbGUgY3g9Ijc0IiBjeT0iMjYiIHI9IjYiIGZpbGw9IiNGNTlFMEIiLz4KPC9zdmc+Cg=="
+    },
+    "theme": {
+      "style": "flat",
+      "palette": "material",
+      "font": "Roboto"
+    },
+    "show": {
+      "healthDashboard": true,
+      "recap": true,
+      "archives": true,
+      "decisions": true
+    },
+    "recapRows": 11
+  },
+  "categories": [
+    {
+      "id": "poste",
+      "name": "Poste de travail",
+      "color": "indigo"
+    },
+    {
+      "id": "infra",
+      "name": "Infrastructure",
+      "color": "teal"
+    },
+    {
+      "id": "services",
+      "name": "Services",
+      "color": "blue"
+    },
+    {
+      "id": "telephonie",
+      "name": "Téléphonie",
+      "color": "purple"
+    },
+    {
+      "id": "applications",
+      "name": "Applications",
+      "color": "orange"
+    },
+    {
+      "id": "ssi",
+      "name": "Sécurité",
+      "color": "red"
+    },
+    {
+      "id": "ia",
+      "name": "IA & données",
+      "color": "green"
+    },
+    {
+      "id": "organisation",
+      "name": "Organisation & processus",
+      "color": "brown"
+    }
+  ],
+  "projects": [
+    {
+      "id": "P-01",
+      "name": "Renouvellement des stations graphiques",
+      "categoryId": "poste",
+      "priority": "P2",
+      "stage": "inProgress",
+      "onHold": false,
+      "health": "onTrack",
+      "progress": 60,
+      "lead": "M. OKONKWO",
+      "sponsor": "Direction",
+      "scope": "Siège + studio de Bordeaux — 38 stations",
+      "goal": "Remplacer les stations graphiques des équipes créa sans bloquer la production, en réduisant le nombre de configurations maintenues.",
+      "budget": "Contrat-cadre constructeur — 38 machines",
+      "start": "2026-03-15",
+      "targetEnd": "2027-01-15",
+      "done": [
+        "Inventaire du parc existant",
+        "Définition des trois configurations types",
+        "Passation des commandes — 07/26"
+      ],
+      "ongoing": ["Installation de l'**équipe pilote** — plateau animation, siège"],
+      "next": ["Déploiement par plateau — 6 vagues", "Reprise des anciennes stations"],
+      "risks": "Retards de livraison du constructeur constatés sur la première commande.",
+      "decisions": [
+        {
+          "question": "Passer les stations des équipes nomades en location ?",
+          "decider": "Direction",
+          "taken": {
+            "text": "Validé — location pour les 3 équipes nomades",
+            "when": "2026-07-02"
+          }
+        }
+      ],
+      "milestones": [
+        {
+          "label": "Expression de besoin",
+          "date": "2026-03-15",
+          "done": true
+        },
+        {
+          "label": "Commandes",
+          "date": "2026-07-01",
+          "done": true
+        },
+        {
+          "label": "Équipe pilote",
+          "date": "2026-09-20",
+          "done": false
+        },
+        {
+          "label": "Fin de déploiement",
+          "date": "2027-01-15",
+          "done": false
+        }
+      ],
+      "sheet": "auto",
+      "updatedOn": "2026-09-01",
+      "author": "M. OKONKWO"
+    },
+    {
+      "id": "P-02",
+      "name": "Gestion unifiée des postes (MDM) — vague 2",
+      "categoryId": "poste",
+      "priority": "P1",
+      "stage": "inProgress",
+      "onHold": false,
+      "health": "watch",
+      "progress": 45,
+      "lead": "S. LINDQVIST",
+      "scope": "210 postes restants (Mac et PC, Bordeaux inclus)",
+      "goal": "Enrôler tous les postes dans la gestion unifiée avant l'audit de fin d'année, sans perte d'outil de production.",
+      "budget": "n.c.",
+      "start": "2026-01-12",
+      "targetEnd": "2026-12-18",
+      "done": [
+        "Vague 1 close — 180 postes",
+        "Qualification du socle applicatif v2",
+        "Commande des 30 postes de renouvellement anticipé",
+        "Communication aux chefs d'équipe — planning par plateau"
+      ],
+      "ongoing": [
+        "Enrôlement des équipes support — 40 postes",
+        "Tests du poste type « QA » avec double écran"
+      ],
+      "next": [
+        "Vague studio de Bordeaux — à partir de 10/26",
+        "Traitement des 12 postes à tablette graphique incompatible",
+        "Bilan de fin de déploiement — 01/27"
+      ],
+      "risks": "Pilote de tablette graphique incompatible avec l'agent MDM sur 12 postes ; correctif éditeur attendu.",
+      "decisions": [],
+      "milestones": [
+        {
+          "label": "Vague 1",
+          "date": "2026-05-30",
+          "done": true
+        },
+        {
+          "label": "Vague 2",
+          "date": "2026-10-16",
+          "done": false
+        },
+        {
+          "label": "Studio de Bordeaux",
+          "date": "2026-12-18",
+          "done": false
+        }
+      ],
+      "sheet": "auto",
+      "updatedOn": "2026-08-28",
+      "author": "S. LINDQVIST"
+    },
+    {
+      "id": "P-03",
+      "name": "Salles de réunion hybrides",
+      "categoryId": "poste",
+      "stage": "residuals",
+      "onHold": false,
+      "health": "onTrack",
+      "progress": 100,
+      "lead": "A. FERREIRA",
+      "scope": "3 salles équipées",
+      "goal": "Équiper trois salles de réunion pour la visioconférence et simplifier la réservation.",
+      "budget": "Reliquat du budget matériel 2025",
+      "start": "2025-10-01",
+      "targetEnd": "2026-01-30",
+      "actualEnd": "2026-02-23",
+      "done": [
+        "Équipement des 3 salles — écrans + barres visio",
+        "Réservation intégrée à l'agenda",
+        "Guide d'utilisation affiché en salle"
+      ],
+      "ongoing": ["Reprise de l'acoustique — salle Mirage"],
+      "next": ["Bilan d'usage à 6 mois — 12/26"],
+      "decisions": [],
+      "milestones": [
+        {
+          "label": "Déploiement technique",
+          "date": "2025-12-15",
+          "done": true
+        },
+        {
+          "label": "Mise en service",
+          "date": "2026-02-23",
+          "done": true
+        },
+        {
+          "label": "Bilan 6 mois",
+          "date": "2026-12-10",
+          "done": false
+        }
+      ],
+      "sheet": "auto",
+      "updatedOn": "2026-08-30",
+      "author": "A. FERREIRA"
+    },
+    {
+      "id": "P-04",
+      "name": "Sauvegarde externalisée de la forge logicielle",
+      "categoryId": "infra",
+      "priority": "P1",
+      "stage": "inProgress",
+      "onHold": false,
+      "health": "alert",
+      "progress": 35,
+      "lead": "R. KOVAČ",
+      "sponsor": "RSSI",
+      "scope": "Forge — dépôts, artefacts de build, 46 VM",
+      "goal": "Externaliser la sauvegarde de la forge logicielle et prouver la restauration complète par un test annuel.",
+      "budget": "Baie dédiée — extension à arbitrer",
+      "start": "2026-05-08",
+      "targetEnd": "2026-12-01",
+      "done": ["Cadrage et dimensionnement", "Maquette validée sur 4 VM — 08/26"],
+      "ongoing": ["Préparation de la bascule du 1er lot — 15 VM"],
+      "next": ["Bascule 1er lot — 10/26", "**Test de restauration complète** — 12/26"],
+      "risks": "Fenêtre de sauvegarde nocturne insuffisante ; les builds de nuit pourraient ne pas être couverts.",
+      "decisions": [
+        {
+          "question": "Arbitrer l'extension de baie (18 k€) pour tenir la rétention de 30 jours ?",
+          "decider": "Direction"
+        }
+      ],
+      "milestones": [
+        {
+          "label": "Cadrage",
+          "date": "2026-05-08",
+          "done": true
+        },
+        {
+          "label": "Maquette",
+          "date": "2026-08-10",
+          "done": true
+        },
+        {
+          "label": "Bascule 1er lot",
+          "date": "2026-10-05",
+          "done": false
+        },
+        {
+          "label": "Test de restauration",
+          "date": "2026-12-01",
+          "done": false
+        }
+      ],
+      "sheet": "auto",
+      "updatedOn": "2026-09-02",
+      "author": "R. KOVAČ"
+    },
+    {
+      "id": "P-05",
+      "name": "Refroidissement de la salle serveurs",
+      "categoryId": "infra",
+      "priority": "P2",
+      "stage": "ready",
+      "onHold": false,
+      "health": "onTrack",
+      "lead": "R. KOVAČ",
+      "sponsor": "Services généraux",
+      "scope": "Salle serveurs du siège — climatisation et supervision",
+      "goal": "Fiabiliser le refroidissement de la salle serveurs : remplacement des deux groupes froids et sondes de supervision.",
+      "budget": "Budget travaux 2027",
+      "start": "2027-01-11",
+      "targetEnd": "2027-07-02",
+      "done": ["Étude thermique réalisée avec les services généraux"],
+      "ongoing": [],
+      "next": ["Consultation des entreprises — 01/27"],
+      "decisions": [],
+      "milestones": [
+        {
+          "label": "Consultation",
+          "date": "2027-01-11",
+          "done": false
+        },
+        {
+          "label": "Travaux",
+          "date": "2027-04-06",
+          "display": "T2 2027",
+          "done": false
+        }
+      ],
+      "sheet": "auto",
+      "updatedOn": "2026-07-01",
+      "author": "R. KOVAČ"
+    },
+    {
+      "id": "P-06",
+      "name": "Renforcement du lien réseau du studio de Bordeaux",
+      "categoryId": "infra",
+      "priority": "P2",
+      "stage": "inProgress",
+      "onHold": true,
+      "health": "critical",
+      "progress": 20,
+      "lead": "T. NGUYEN",
+      "scope": "Studio de Bordeaux + entrepôt — liens opérateur",
+      "goal": "Doubler le débit des liens des sites distants pour absorber les synchronisations d'assets et la visioconférence.",
+      "budget": "20 k€ — devis opérateur attendu",
+      "start": "2026-04-02",
+      "targetEnd": "2026-12-15",
+      "done": ["Audit réseau des deux sites", "Demande de devis opérateur — 06/26"],
+      "ongoing": ["**En attente** de la réponse opérateur sur la faisabilité"],
+      "next": ["Commande dès réception du devis", "Bascule site par site"],
+      "risks": "Saturation constatée aux heures de pointe ; synchronisations d'assets dégradées à Bordeaux.",
+      "decisions": [
+        {
+          "question": "Arbitrer le financement (20 k€) pour lancer la commande dès réception du devis ?",
+          "decider": "Direction"
+        }
+      ],
+      "milestones": [
+        {
+          "label": "Audit",
+          "date": "2026-05-15",
+          "done": true
+        },
+        {
+          "label": "Réponse opérateur",
+          "date": "2026-08-31",
+          "done": false
+        },
+        {
+          "label": "Bascule",
+          "date": "2026-11-30",
+          "done": false
+        }
+      ],
+      "sheet": "auto",
+      "updatedOn": "2026-09-01",
+      "author": "T. NGUYEN"
+    },
+    {
+      "id": "P-07",
+      "name": "Migration de la messagerie vers la suite collaborative",
+      "categoryId": "services",
+      "priority": "P2",
+      "stage": "inProgress",
+      "onHold": false,
+      "health": "watch",
+      "progress": 50,
+      "lead": "C. HADDAD",
+      "scope": "≈ 620 boîtes individuelles et partagées",
+      "goal": "Basculer la messagerie hébergée en interne vers la suite collaborative en ligne, sans perte d'archives.",
+      "budget": "n.c.",
+      "start": "2026-02-02",
+      "targetEnd": "2026-11-27",
+      "done": ["Nettoyage de l'annuaire — 90 boîtes dormantes fermées", "Pilote sur 25 boîtes"],
+      "ongoing": ["Migration par équipe — 3 vagues sur 5 faites"],
+      "next": ["Vagues 4 et 5 — derniers plateaux", "Bascule des boîtes partagées"],
+      "risks": "Archives locales volumineuses chez quelques utilisateurs ; accompagnement individuel nécessaire.",
+      "decisions": [],
+      "milestones": [
+        {
+          "label": "Pilote",
+          "date": "2026-04-10",
+          "done": true
+        },
+        {
+          "label": "Vague 3",
+          "date": "2026-08-21",
+          "done": true
+        },
+        {
+          "label": "Vague 5",
+          "date": "2026-11-27",
+          "done": false
+        }
+      ],
+      "sheet": "auto",
+      "updatedOn": "2026-08-31",
+      "author": "C. HADDAD"
+    },
+    {
+      "id": "P-08",
+      "name": "Portail de demandes et catalogue de services",
+      "categoryId": "services",
+      "stage": "toScope",
+      "onHold": false,
+      "scope": "Guichet unique des demandes",
+      "goal": "Offrir un point d'entrée unique des demandes, avec un catalogue lisible par les utilisateurs.",
+      "done": [],
+      "ongoing": [],
+      "next": ["Note de cadrage après désignation du porteur"],
+      "decisions": [
+        {
+          "question": "Désigner le porteur du projet ?",
+          "decider": "DSI"
+        }
+      ],
+      "milestones": [],
+      "sheet": "auto",
+      "updatedOn": "2026-07-02"
+    },
+    {
+      "id": "P-09",
+      "name": "Passage de la téléphonie fixe en ToIP",
+      "categoryId": "telephonie",
+      "priority": "P1",
+      "stage": "inProgress",
+      "onHold": false,
+      "health": "watch",
+      "progress": 70,
+      "lead": "L. TREMBLAY",
+      "sponsor": "Direction",
+      "scope": "Siège + 2 sites — 540 lignes, 41 numéros d'astreinte",
+      "goal": "Basculer toute la téléphonie fixe sur IP avant l'arrêt commercial du réseau cuivre, en conservant la totalité des numéros publiés, les lignes d'astreinte de l'exploitation et les débordements du standard vers le prestataire de support.",
+      "budget": "Contrat opérateur — matériel inclus",
+      "start": "2025-11-03",
+      "targetEnd": "2026-12-11",
+      "done": [
+        "**Siège basculé** — 380 lignes",
+        "Portabilité validée avec l'opérateur — 100 % des numéros",
+        "Postes d'astreinte doublés pendant la transition — 41 lignes",
+        "Formation des hôtes d'accueil aux nouveaux postes — 7 personnes",
+        "Supervision des passerelles intégrée à l'outil du pôle réseau"
+      ],
+      "ongoing": [
+        "Audit réseau du studio de Bordeaux — rendu attendu 18/09",
+        "Préparation de la bascule de l'entrepôt",
+        "Inventaire des lignes analogiques et cas particuliers — ascenseurs, alarmes"
+      ],
+      "next": [
+        "Bascule entrepôt — 30/09",
+        "Bascule studio de Bordeaux — selon audit",
+        "Reprise des 12 lignes analogiques techniques — 11/26",
+        "Résiliation des accès cuivre — 12/26"
+      ],
+      "risks": "Lien réseau de Bordeaux possiblement insuffisant (voir P-06) ; débordement du standard non testé en charge réelle ; quelques équipements techniques (alarmes, ascenseurs) encore dépendants de lignes analogiques.",
+      "decisions": [
+        {
+          "question": "Valider le report de la bascule de Bordeaux si l'audit réseau confirme la nécessité de renforcer le lien ?",
+          "decider": "DSI"
+        }
+      ],
+      "milestones": [
+        {
+          "label": "Cadrage",
+          "date": "2025-11-03",
+          "done": true
+        },
+        {
+          "label": "Siège",
+          "date": "2026-03-27",
+          "done": true
+        },
+        {
+          "label": "Audit Bordeaux",
+          "date": "2026-09-18",
+          "done": false
+        },
+        {
+          "label": "Entrepôt",
+          "date": "2026-09-30",
+          "done": false
+        },
+        {
+          "label": "Studio de Bordeaux",
+          "date": "2026-12-11",
+          "done": false
+        },
+        {
+          "label": "Résiliation cuivre",
+          "date": "2026-12-18",
+          "done": false
+        }
+      ],
+      "sheet": "auto",
+      "updatedOn": "2026-09-02",
+      "author": "L. TREMBLAY"
+    },
+    {
+      "id": "P-10",
+      "name": "Refonte de l'accueil téléphonique",
+      "categoryId": "telephonie",
+      "priority": "P3",
+      "stage": "ready",
+      "onHold": false,
+      "health": "onTrack",
+      "lead": "L. TREMBLAY",
+      "scope": "Standard — arborescence d'accueil",
+      "goal": "Simplifier l'arborescence du serveur vocal et enregistrer de nouveaux messages d'accueil.",
+      "start": "2026-10-05",
+      "targetEnd": "2026-12-18",
+      "done": ["Arborescence cible validée par l'accueil"],
+      "ongoing": [],
+      "next": ["Enregistrement des messages", "Bascule un vendredi soir, retour arrière possible"],
+      "decisions": [],
+      "milestones": [
+        {
+          "label": "Messages",
+          "date": "2026-10-30",
+          "done": false
+        },
+        {
+          "label": "Bascule",
+          "date": "2026-12-04",
+          "done": false
+        }
+      ],
+      "sheet": "auto",
+      "updatedOn": "2026-08-20"
+    },
+    {
+      "id": "P-11",
+      "name": "Migration de l'outil de suivi de production vers le SaaS",
+      "categoryId": "applications",
+      "priority": "P2",
+      "stage": "inProgress",
+      "onHold": false,
+      "health": "watch",
+      "progress": 80,
+      "lead": "E. MORETTI",
+      "sponsor": "Direction de production",
+      "scope": "1 outil interne — 60 utilisateurs",
+      "goal": "Remplacer l'outil de suivi développé en interne par la version SaaS de l'éditeur, avec reprise des données.",
+      "start": "2026-01-19",
+      "targetEnd": "2026-10-31",
+      "done": ["Reprise de données testée — 2 anomalies corrigées", "Formation des référents"],
+      "ongoing": ["**Recette utilisateurs** — 25/09"],
+      "next": ["Mise en production — 31/10", "Décommissionnement de l'outil interne"],
+      "risks": "Disponibilité des utilisateurs pour la recette en période de bouclage.",
+      "decisions": [
+        {
+          "question": "Confirmer la mise en production au 31/10 ou la reporter à fin novembre ?",
+          "decider": "Direction de production"
+        }
+      ],
+      "milestones": [
+        {
+          "label": "Reprise de données",
+          "date": "2026-06-12",
+          "done": true
+        },
+        {
+          "label": "Recette",
+          "date": "2026-09-25",
+          "done": false
+        },
+        {
+          "label": "Mise en production",
+          "date": "2026-10-31",
+          "done": false
+        }
+      ],
+      "sheet": "auto",
+      "updatedOn": "2026-09-01",
+      "author": "E. MORETTI"
+    },
+    {
+      "id": "P-12",
+      "name": "Généralisation de l'authentification multifacteur",
+      "categoryId": "ssi",
+      "priority": "P1",
+      "stage": "inProgress",
+      "onHold": false,
+      "health": "onTrack",
+      "progress": 55,
+      "lead": "N. VIRTANEN",
+      "sponsor": "RSSI",
+      "scope": "Tous utilisateurs — accès distants puis postes",
+      "goal": "Généraliser la double authentification, en commençant par les accès distants.",
+      "start": "2026-03-02",
+      "targetEnd": "2027-02-26",
+      "done": ["Accès distants couverts — 100 %", "Campagne de sensibilisation de juin"],
+      "ongoing": ["Généralisation par vagues d'équipe"],
+      "next": ["Vague 3 — 15/10", "Solution de repli pour utilisateurs sans smartphone"],
+      "risks": "Une partie des utilisateurs ne dispose pas de smartphone professionnel.",
+      "decisions": [
+        {
+          "question": "Valider la solution de repli (jeton physique) pour les utilisateurs sans smartphone professionnel ?",
+          "decider": "RSSI"
+        }
+      ],
+      "milestones": [
+        {
+          "label": "Accès distants",
+          "date": "2026-05-29",
+          "done": true
+        },
+        {
+          "label": "Vague 3",
+          "date": "2026-10-15",
+          "done": false
+        },
+        {
+          "label": "Couverture complète",
+          "date": "2027-02-26",
+          "done": false
+        }
+      ],
+      "sheet": "auto",
+      "updatedOn": "2026-09-02",
+      "author": "N. VIRTANEN"
+    },
+    {
+      "id": "P-13",
+      "name": "Expérimentation d'un assistant IA interne",
+      "categoryId": "ia",
+      "priority": "P2",
+      "stage": "inProgress",
+      "onHold": false,
+      "health": "onTrack",
+      "progress": 30,
+      "lead": "S. LINDQVIST",
+      "scope": "3 cas d'usage — 20 testeurs — 6 mois",
+      "goal": "Évaluer un assistant IA hébergé en interne sur trois cas d'usage : support niveau 1, documentation, traduction.",
+      "budget": "Instance mutualisée existante — sans coût additionnel",
+      "start": "2026-06-01",
+      "targetEnd": "2026-12-18",
+      "done": [
+        "Note de cadrage validée — périmètre et testeurs",
+        "Ouverture des comptes — 20 testeurs"
+      ],
+      "ongoing": ["Ateliers de prise en main — 2 sur 4 réalisés"],
+      "next": ["Point d'étape à mi-parcours — 10/26", "Bilan et avis sécurité — 12/26"],
+      "decisions": [
+        {
+          "question": "Valider le périmètre de l'expérimentation (3 cas d'usage, 20 testeurs, 6 mois) ?",
+          "decider": "Direction",
+          "taken": {
+            "text": "Périmètre validé tel que proposé",
+            "when": "2026-07-02"
+          }
+        }
+      ],
+      "milestones": [
+        {
+          "label": "Cadrage",
+          "date": "2026-06-15",
+          "done": true
+        },
+        {
+          "label": "Mi-parcours",
+          "date": "2026-10-16",
+          "done": false
+        },
+        {
+          "label": "Bilan",
+          "date": "2026-12-18",
+          "done": false
+        }
+      ],
+      "sheet": "auto",
+      "updatedOn": "2026-08-29",
+      "author": "S. LINDQVIST"
+    },
+    {
+      "id": "P-17",
+      "name": "Industrialisation de la revue des projets",
+      "categoryId": "organisation",
+      "priority": "P3",
+      "stage": "inProgress",
+      "onHold": false,
+      "health": "onTrack",
+      "progress": 40,
+      "lead": "K. TANAKA",
+      "sponsor": "DSI",
+      "scope": "Processus mensuel — collecte, fiches, diaporama",
+      "goal": "Outiller la revue mensuelle : collecte en un point unique, fiches et diaporama générés, impression sans reprise manuelle.",
+      "done": [
+        "Maquette du support unique validée",
+        "Modèle de fiche stabilisé — 20 fiches migrées"
+      ],
+      "ongoing": ["Génération automatique du diaporama"],
+      "next": ["Impression automatisée — 11/26", "Bilan après trois revues — 01/27"],
+      "decisions": [],
+      "milestones": [
+        {
+          "label": "Maquette",
+          "date": "2026-07-15",
+          "done": true
+        },
+        {
+          "label": "Diaporama auto",
+          "date": "2026-10-01",
+          "done": false
+        },
+        {
+          "label": "Bilan",
+          "date": "2027-01-08",
+          "done": false
+        }
+      ],
+      "sheet": "auto",
+      "updatedOn": "2026-09-01",
+      "author": "K. TANAKA"
+    },
+    {
+      "id": "P-18",
+      "name": "Processus arrivées / départs",
+      "categoryId": "organisation",
+      "priority": "P2",
+      "stage": "inProgress",
+      "onHold": false,
+      "health": "watch",
+      "progress": 30,
+      "lead": "A. FERREIRA",
+      "scope": "Comptes, matériel, accès — toutes équipes",
+      "goal": "Formaliser le circuit d'équipement des arrivées et de restitution des départs, avec un délai cible unique.",
+      "done": ["Cartographie du circuit actuel", "Liste de contrôle arrivée/départ rédigée"],
+      "ongoing": ["Test de la liste de contrôle sur les mouvements de septembre"],
+      "next": ["Ajustement après test — 10/26", "Passage en routine — 11/26"],
+      "risks": "Les demandes arrivent encore par trois canaux différents.",
+      "decisions": [
+        {
+          "question": "Valider le délai cible de 5 jours ouvrés pour l'équipement d'un arrivant ?",
+          "decider": "DSI"
+        }
+      ],
+      "milestones": [
+        {
+          "label": "Cartographie",
+          "date": "2026-06-30",
+          "done": true
+        },
+        {
+          "label": "Test de septembre",
+          "date": "2026-09-30",
+          "done": false
+        },
+        {
+          "label": "Routine",
+          "date": "2026-11-30",
+          "done": false
+        }
+      ],
+      "sheet": "auto",
+      "updatedOn": "2026-09-01",
+      "author": "A. FERREIRA"
+    },
+    {
+      "id": "P-19",
+      "name": "Inventaire du parc et des licences",
+      "categoryId": "organisation",
+      "priority": "P3",
+      "stage": "ready",
+      "onHold": false,
+      "lead": "T. NGUYEN",
+      "scope": "Matériel, licences créa, abonnements",
+      "goal": "Fiabiliser l'inventaire dans l'outil de gestion de parc et instaurer une revue trimestrielle des licences.",
+      "done": ["Périmètre et outil retenus"],
+      "ongoing": [],
+      "next": ["Campagne d'inventaire physique — 11/26"],
+      "decisions": [],
+      "milestones": [
+        {
+          "label": "Campagne d'inventaire",
+          "date": "2026-11-15",
+          "done": false
+        },
+        {
+          "label": "Première revue trimestrielle",
+          "date": "2027-02-15",
+          "done": false
+        }
+      ],
+      "sheet": "auto",
+      "updatedOn": "2026-08-25",
+      "author": "T. NGUYEN"
+    },
+    {
+      "id": "P-20",
+      "name": "Base documentaire d'exploitation",
+      "categoryId": "organisation",
+      "priority": "P3",
+      "stage": "inProgress",
+      "onHold": false,
+      "health": "onTrack",
+      "progress": 25,
+      "lead": "A. FERREIRA",
+      "scope": "Procédures d'exploitation et fiches réflexes",
+      "goal": "Regrouper les procédures dans un espace unique, chaque document daté et relu au moins une fois par an.",
+      "done": [
+        "Espace documentaire structuré — 6 rubriques",
+        "15 procédures migrées — 40 recensées"
+      ],
+      "ongoing": ["Migration des procédures réseau"],
+      "next": ["Fiches réflexes incidents — 12/26"],
+      "decisions": [],
+      "milestones": [
+        {
+          "label": "Structure",
+          "date": "2026-06-30",
+          "done": true
+        },
+        {
+          "label": "Migration complète",
+          "date": "2026-12-20",
+          "done": false
+        }
+      ],
+      "sheet": "auto",
+      "updatedOn": "2026-08-30",
+      "author": "A. FERREIRA"
+    },
+    {
+      "id": "P-14",
+      "name": "Regroupement des accueils des deux bâtiments",
+      "categoryId": "organisation",
+      "stage": "closed",
+      "onHold": false,
+      "progress": 100,
+      "lead": "DSI",
+      "goal": "Regrouper l'accueil physique des deux bâtiments du siège et adapter les permanences téléphoniques.",
+      "actualEnd": "2026-06-30",
+      "done": ["Nouvel accueil commun ouvert — 06/26"],
+      "ongoing": [],
+      "next": [],
+      "decisions": [
+        {
+          "question": "Regrouper les accueils des deux bâtiments ?",
+          "decider": "Direction",
+          "taken": {
+            "text": "Regroupement validé",
+            "when": "2026-05-05"
+          }
+        }
+      ],
+      "milestones": [],
+      "sheet": "auto",
+      "updatedOn": "2026-07-02"
+    },
+    {
+      "id": "P-15",
+      "name": "Virtualisation des serveurs de build",
+      "categoryId": "infra",
+      "stage": "closed",
+      "onHold": false,
+      "progress": 100,
+      "lead": "E. MORETTI",
+      "goal": "Regrouper les serveurs de build physiques sur le cluster de virtualisation.",
+      "actualEnd": "2024-06-30",
+      "done": ["46 VM migrées, anciens serveurs décommissionnés"],
+      "ongoing": [],
+      "next": [],
+      "decisions": [],
+      "milestones": [],
+      "sheet": "auto",
+      "updatedOn": "2026-01-06"
+    },
+    {
+      "id": "P-16",
+      "name": "Refonte de l'intranet",
+      "categoryId": "services",
+      "stage": "abandoned",
+      "onHold": false,
+      "lead": "C. HADDAD",
+      "goal": "Moderniser l'intranet interne.",
+      "done": [],
+      "ongoing": [],
+      "next": [],
+      "risks": "Abandonné au profit des espaces de la suite collaborative (voir P-07).",
+      "decisions": [],
+      "milestones": [],
+      "sheet": "auto",
+      "updatedOn": "2026-05-15"
+    }
+  ],
+  "freeSlides": [
+    {
+      "id": "sl-01",
+      "anchor": {
+        "type": "opening"
+      },
+      "title": "Actualités de la DSI",
+      "blocks": [
+        [
+          "**Équipe** : 2 arrivées au pôle support — 01/09",
+          "**Contrats** : contrat-cadre stations graphiques signé — 07/26",
+          "**À venir** : exercice de continuité — 14/10"
+        ]
+      ]
+    }
+  ]
+}

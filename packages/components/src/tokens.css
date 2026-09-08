@@ -1,0 +1,50 @@
+/* Tokens du thème — repris des maquettes (contrat visuel).
+   Les 12 couleurs génériques de catégorie sont résolues par palettes.css
+   (blocs [data-palette]) : ici, uniquement le chrome structurel et les
+   échelles sémantiques. Les widgets du paquet lisent ces variables ; l'app
+   (app.css) et le Storybook du paquet importent ce fichier — une seule source. */
+@import './palettes.css';
+:root {
+  /* structure (famille Tailwind par défaut ; l'accent peut être surchargé par flavor) */
+  --accent: #312e81;
+  --txt: #111827;
+  --txt2: #374151;
+  --muted: #6b7280;
+  --border: #d1d5db;
+  --border2: #e5e7eb;
+  --bg: #ffffff;
+  --bg-alt: #f3f4f6;
+  --accent-975: #eef2ff;
+  --accent-925: #e0e7ff;
+  --accent-850: #c7d2fe;
+  --accent-main: #6366f1;
+
+  /* échelle d'alerte (Niveau) */
+  --ok: #15803d;
+  --ok-bg: #dcfce7;
+  --vig-txt: #92400e;
+  --vig-dot: #d97706;
+  --vig-bg: #fffbeb;
+  --warn: #c2410c;
+  --warn-bg: #fff7ed;
+  --err: #dc2626;
+  --err-bg: #fef2f2;
+  --ne: #6b7280;
+  --ne-bg: #e5e7eb;
+
+  /* progress ramp */
+  --av-0: #dc2626;
+  --av-1: #ea580c;
+  --av-34: #d97706;
+  --av-67: #4d7c0f;
+  --av-100: #15803d;
+  --av-na: #cccccc;
+
+  /* Single source: theme.css declares the --font default, applyFont() (phase 7)
+     overrides it inline from settings.theme.font. */
+  font-family: var(--font, 'Inter', 'Segoe UI', system-ui, sans-serif);
+  color: var(--txt);
+  background: var(--bg-alt);
+}
+
+/* Piège n°13 : les chips portent toujours un filet currentColor pour rester lisibles sur tout fond. */

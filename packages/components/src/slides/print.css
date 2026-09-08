@@ -1,0 +1,536 @@
+/* ==========================================================================
+   A4 landscape recomposition — copied value for value from the canonical
+   mockup `mockups/impression-a4.html`.
+
+   This is NOT a homothetic reduction of the 16:9: the ratio goes from 1.778 to
+   1.414, so the title column drops to 434 px, the goal card follows it, the
+   typographic scale goes to ×0.95, and the height gained on row A is paid back
+   to the narrative row.
+
+   Pitfall n° 10: the printed page is 1122 × 793 px, ONE pixel under the screen
+   format (1123 × 794), otherwise Chrome slips a blank page between two slides.
+
+   Every selector is prefixed by `.slide` — one class more than the theme's, so
+   these rules win regardless of the order the two stylesheets load in. The
+   handful of `.slide .x .y` chains reach inside the atoms (cartouche, chips,
+   timeline), whose own rules carry a scoping class of their own.
+   ========================================================================== */
+
+@page {
+  size: A4 landscape;
+  margin: 0;
+}
+
+@media print {
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  html,
+  body {
+    background: #fff;
+    padding: 0;
+    margin: 0;
+  }
+
+  /* 297 × 210 mm are 1122.5 × 793.7 px at 96 dpi: staying one pixel under the
+     screen format keeps Chrome from inserting a blank page. */
+  .slide.slide {
+    width: 1122px;
+    height: 793px;
+    box-shadow: none;
+    margin: 0 !important;
+    font-size: 13.8px;
+    break-inside: avoid;
+    break-after: page;
+    page-break-after: always;
+  }
+  .slide.slide:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  /* ---------- frame ------------------------------------------------------ */
+  /* the rail keeps its 71 px; only the bottom gutter follows the A4 */
+  .slide .rail {
+    padding-bottom: 40px;
+  }
+  .slide .rail-text {
+    font-size: 13px;
+    letter-spacing: 0.13em;
+  }
+  /* usable height = 794 − 30 − 26 = 738 */
+  .slide .canvas {
+    padding: 30px 40px 26px;
+  }
+  .slide .head {
+    height: 60px;
+  }
+  .slide .logo {
+    height: 60px;
+    width: 170px;
+  }
+
+  /* cartouche: same component, A4 scale (the extra `.slide` outranks the
+     atom's own scoped rule) */
+  .slide .ent b {
+    font-size: 12.5px;
+  }
+  .slide .ent i {
+    font-size: 11.5px;
+  }
+  .slide .ent u {
+    font-size: 10.5px;
+  }
+
+  .slide .slide-heading {
+    margin-top: 16px;
+    font-size: 28.5px;
+    line-height: 34px;
+  }
+  .slide .heading-row {
+    margin-top: 16px;
+    gap: 24px;
+  }
+  .slide .heading-note {
+    font-size: 12px;
+  }
+  /* aggregate slides: 738 − 60 − 16 − 34 − 16 − 16 − 13 = 583 px of body */
+  .slide .slide-body {
+    margin-top: 16px;
+  }
+  .slide .slide-body--split {
+    gap: 40px;
+  }
+  .slide .slide-foot {
+    height: 13px;
+    margin-top: 16px;
+    gap: 16px;
+    font-size: 10.5px;
+  }
+
+  /* ---------- primitives ------------------------------------------------- */
+  .slide .label {
+    font-size: 11.5px;
+  }
+  .slide .pill {
+    height: 21px;
+    padding: 0 8px;
+    font-size: 11.5px;
+  }
+  .slide .id-chip {
+    height: 20px;
+    padding: 0 7px;
+    font-size: 11px;
+  }
+  /* stage / health / priority chips (atoms): A4 metrics */
+  .slide .chip,
+  .slide .health.chip {
+    height: 23px;
+    padding: 0 9px;
+    font-size: 11.5px;
+  }
+  .slide .gauge-val {
+    font-size: 11.5px;
+  }
+
+  /* ---------- tables ----------------------------------------------------- */
+  .slide .table th {
+    font-size: 11.5px;
+    padding: 9px 9px;
+  }
+  .slide .table td {
+    padding: 6px 9px;
+    font-size: 12.5px;
+  }
+  .slide .table tbody tr {
+    height: 44px;
+  }
+  .slide .table .num {
+    font-size: 12px;
+  }
+  .slide .table .name {
+    font-size: 12.5px;
+  }
+
+  /* ---------- D1 --------------------------------------------------------- */
+  .slide .stats {
+    height: 92px;
+    gap: 12px;
+  }
+  .slide .stat {
+    height: 92px;
+    padding: 12px 13px;
+  }
+  .slide .stat b {
+    font-size: 28.5px;
+  }
+  .slide .stat span {
+    font-size: 11.5px;
+  }
+  .slide .category-row {
+    height: 30px;
+  }
+  .slide .category-row .cat-bar {
+    height: 30px;
+  }
+  .slide .category-name,
+  .slide .category-count {
+    font-size: 12.5px;
+  }
+
+  /* ---------- D2 --------------------------------------------------------- */
+  .slide .health-rows {
+    gap: 17px;
+  }
+  .slide .health-label {
+    font-size: 13px;
+  }
+  .slide .health-count {
+    font-size: 13.5px;
+  }
+  .slide .callout p {
+    font-size: 12.5px;
+  }
+  .slide .table--pending td {
+    padding: 10px 9px;
+  }
+  .slide .table--pending .name {
+    font-size: 12.5px;
+  }
+  .slide .table--pending .who {
+    font-size: 11.5px;
+  }
+
+  /* ---------- recap ------------------------------------------------------ */
+  /* 8 columns in 972 px: 7 px gutters and a tightened scale — the widths are
+     set on the measured width of each unbreakable content (chip, dot, gauge) */
+  .slide .table--recap td {
+    padding: 5px 6px;
+  }
+  .slide .table--recap th {
+    padding: 9px 6px;
+  }
+  .slide .table--recap .chip {
+    height: 20px;
+    font-size: 10.5px;
+    padding: 0 6px;
+    gap: 5px;
+  }
+  .slide .table--recap .pill {
+    height: 19px;
+    font-size: 9.5px;
+    padding: 0 5px;
+  }
+  .slide .table--recap .name {
+    font-size: 12px;
+  }
+  .slide .table--recap .health {
+    font-size: 11px;
+  }
+  .slide .table--recap .gauge {
+    gap: 7px;
+  }
+  .slide .table--recap .gauge .bar {
+    width: 50px;
+  }
+  .slide .table--recap .milestone {
+    font-size: 11px;
+  }
+  .slide .decision-mark {
+    font-size: 13px;
+  }
+
+  /* ---------- archives · decisions · record ------------------------------ */
+  .slide .table--archives tbody tr {
+    height: 56px;
+  }
+  .slide .note {
+    font-size: 11.5px;
+  }
+  /* the writing zone is not a typographic measure — it keeps the canon's
+     52 px, A4 being the format one writes on by hand */
+  .slide .table--decisions th {
+    padding: 7px 9px;
+  }
+  .slide .table--decisions tbody tr {
+    height: 66px;
+  }
+  .slide .table--decisions td {
+    padding: 7px 9px;
+  }
+  .slide .table--decisions .question {
+    font-size: 12px;
+  }
+  .slide .table--decisions .who {
+    font-size: 11.5px;
+  }
+  .slide .project-cell,
+  .slide .project-cell .name {
+    font-size: 11.5px;
+  }
+  .slide .project-cell .id-chip {
+    height: 14px;
+    font-size: 10px;
+    padding: 0 5px;
+  }
+
+  /* ---------- title page (434 / 689) ------------------------------------- */
+  .slide .title-left {
+    width: 434px;
+    padding: 40px;
+  }
+  .slide .title-logo {
+    height: 84px;
+    width: 170px;
+  }
+  .slide .title-vertical {
+    font-size: 42px;
+  }
+  /* flex:1 (not a frozen 689 px): the blue block absorbs the pixel dropped for
+     printing */
+  .slide .title-right {
+    padding: 170px 54px 0;
+  }
+  .slide .title-right h1 {
+    font-size: 53px;
+  }
+  .slide .title-sub {
+    margin-top: 16px;
+    font-size: 19px;
+  }
+  .slide .title-cartouche {
+    top: 30px;
+    right: 40px;
+  }
+  .slide .title-sign {
+    left: 54px;
+    bottom: 40px;
+    font-size: 12.5px;
+  }
+  .slide .title-contact {
+    font-size: 11px;
+  }
+  .slide .kpis {
+    left: 54px;
+    right: 54px;
+    top: 492px; /* 62 % of 794 */
+    gap: 20px;
+  }
+  .slide .kpi {
+    padding-top: 16px;
+  }
+  .slide .kpi b {
+    font-size: 38px;
+  }
+  .slide .kpi span {
+    font-size: 12px;
+  }
+
+  /* ---------- dividers --------------------------------------------------- */
+  .slide .divider-cartouche {
+    top: 30px;
+    right: 40px;
+  }
+  .slide .divider-numeral {
+    left: -26px;
+    bottom: -84px;
+    font-size: 360px;
+  }
+  .slide .divider-block {
+    right: 40px;
+    top: 424px;
+    max-width: 880px;
+  }
+  .slide .divider-block h2 {
+    font-size: 58px;
+  }
+  .slide .divider-count {
+    margin-top: 13px;
+  }
+  .slide .divider-list {
+    right: 40px;
+    top: 566px;
+    width: 640px;
+  }
+  .slide .divider-list--compact {
+    width: 960px;
+  }
+  .slide .divider-list li {
+    font-size: 13.5px;
+  }
+
+  /* ---------- project sheet (v2.1 bands) --------------------------------- */
+  /* The bands of rows A and C are atoms with scoped styles of their own, whose
+     selectors weigh two classes: the rules that reach inside them therefore
+     chain THREE (`.slide .facts .value`), never two — otherwise the winner
+     would depend on the order the stylesheets load in. */
+  /* logo box at 45 px (same ratio as the 170 × 60 normalized box): the header
+     height is then given by the cartouche, unchanged — 46.6 px */
+  .slide--sheet .logo {
+    height: 45px;
+    width: 127px;
+  }
+  .slide .sheet-title {
+    gap: 16px;
+  }
+  .slide .sheet-title h2 {
+    font-size: 27.5px;
+    line-height: 33px;
+  }
+  .slide .sheet-chips {
+    gap: 7px;
+  }
+  .slide .sheet-meta {
+    font-size: 12.5px;
+    line-height: 17px;
+  }
+  /* 738 − 46.6 − 10 − 33 − 6 − 17 − 12 − 14 − 13 = 586.4 px of rows */
+  .slide .sheet-body {
+    margin-top: 12px;
+    gap: 10px;
+  }
+  .slide--sheet .slide-foot {
+    margin-top: 14px;
+  }
+  /* the A4 timeline sits on the row gap alone, with no rule above it */
+  .slide .sheet-body > .block {
+    margin-top: 0;
+  }
+
+  /* row A: capped at 100 px and not 104 — the A4 page is 45 px shorter, and it
+     is the narrative row that must keep the air */
+  .slide .row-a {
+    gap: 11px;
+    max-height: 100px;
+  }
+  .slide .goal {
+    padding: 9px 15px;
+  }
+  .slide .goal p {
+    font-size: 13px;
+  }
+  /* the facts block: 310 px and not 338 — the A4 canvas is 28 px narrower */
+  .slide .row-a .facts {
+    width: 310px;
+  }
+  .slide .facts .fact {
+    padding: 0 11px;
+  }
+  .slide .facts .label {
+    font-size: 11.5px;
+  }
+  /* 13 px and not 14: in a 310 px block the three columns lose 9 px each */
+  .slide .facts .value {
+    font-size: 13px;
+  }
+  .slide .facts .budget {
+    padding: 6px 11px 0;
+  }
+  /* 10.5 px: at this width the longest budget (P-09, 49 characters) only fits
+     on 2 lines at that size — beyond it, the clamp would cut it */
+  .slide .facts .budget-text {
+    font-size: 10.5px;
+  }
+
+  /* row B: the narrative row takes the air gained on the 16:9. The dense case
+     holds by the type scale, not by a privileged column. */
+  .slide .row-b {
+    gap: 11px;
+  }
+  .slide .narrative-card {
+    padding: 9px 12px;
+  }
+  .slide .narrative-card .ch {
+    font-size: 10.5px;
+  }
+  .slide .narrative-card .disc {
+    width: 24px;
+    height: 24px;
+  }
+  .slide .narrative-card .line.bullet {
+    font-size: 11.5px;
+    padding: 2px 0 2px 12px;
+  }
+  .slide .narrative-card .line.bullet::before {
+    top: 8.5px;
+  }
+
+  /* row C */
+  .slide .row-c {
+    gap: 11px;
+  }
+  .slide .row-c .risks,
+  .slide .row-c .decision {
+    padding: 9px 13px;
+  }
+  .slide .row-c .risks .label,
+  .slide .row-c .decision .label {
+    font-size: 10.5px;
+  }
+  .slide .row-c .risks p {
+    font-size: 11.5px;
+  }
+  .slide .row-c .decision p {
+    font-size: 12.3px;
+  }
+  .slide .row-c .decision--none p {
+    font-size: 12.3px;
+  }
+  .slide .row-c .decision-owner {
+    font-size: 10.5px;
+  }
+
+  /* timeline — a little taller than in 16:9, the A4 has the room */
+  .slide .tl {
+    height: 76px;
+    padding-top: 0;
+    border-top: 0;
+  }
+  .slide .tl.tl--alt {
+    height: 78px;
+  }
+  .slide .tl-axis {
+    top: 38px;
+    height: 1px;
+  }
+  .slide .tl-cursor {
+    top: 26px;
+    width: 1.5px;
+    margin-left: -0.75px;
+  }
+  .slide .tl-dot {
+    top: 33px;
+    width: 11px;
+    height: 11px;
+    margin-left: -5.5px;
+    border-width: 1.5px;
+  }
+  .slide .tl-lab {
+    font-size: 11.5px;
+    font-weight: 600;
+    top: 9px;
+  }
+  .slide .tl-date {
+    font-size: 10px;
+    top: 49px;
+  }
+  .slide .tl--alt .tl-pt.up .tl-lab {
+    top: 0;
+  }
+  .slide .tl--alt .tl-pt.up .tl-date {
+    top: 15px;
+  }
+  .slide .tl--alt .tl-pt.dn .tl-lab {
+    top: 47px;
+  }
+  .slide .tl--alt .tl-pt.dn .tl-date {
+    top: 62px;
+  }
+
+  /* ---------- free slide ------------------------------------------------- */
+  .slide .freeform-card .line.bullet {
+    font-size: 16px;
+    margin-bottom: 16px;
+  }
+}

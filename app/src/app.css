@@ -1,0 +1,29 @@
+@import 'tailwindcss';
+/* The chrome tokens live with the widgets that read them (single source);
+   the app only layers the page-level concerns below on top. */
+@import '@project-review/components/tokens.css';
+
+/* Marianne (the French State font) is NOT redistributed in this public repo:
+   deploy the woff2 files under public/fonts/marianne/ and these faces light
+   up; otherwise the stack silently falls back to Inter. */
+@font-face {
+  font-family: 'Marianne';
+  src: url('/fonts/marianne/Marianne-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Marianne';
+  src: url('/fonts/marianne/Marianne-Medium.woff2') format('woff2');
+  font-weight: 500 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Marianne';
+  src: url('/fonts/marianne/Marianne-Bold.woff2') format('woff2');
+  font-weight: 700 800;
+  font-style: normal;
+  font-display: swap;
+}

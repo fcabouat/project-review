@@ -1,0 +1,24 @@
+{
+  "name": "@project-review/core",
+  "private": true,
+  "version": "0.5.0",
+  "description": "Embeddable core: pure domain (model, values, data, projections), the edit pipeline (commands, decide, events, apply, invert, bounded history), the business services (strict parse, persistence policy, i18n) and the abstract runtime (editing loop). No Svelte, no DOM, no runtime dependency.",
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "src",
+    "samples"
+  ],
+  "exports": {
+    "./projections": "./src/projections/index.ts",
+    "./events": "./src/events/index.ts",
+    "./commands": "./src/commands/index.ts",
+    "./services/parse": "./src/services/parse/index.ts",
+    "./data/empty-portfolio": "./src/data/empty-portfolio.ts",
+    "./samples/*": "./samples/*",
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "check": "tsc -p tsconfig.json"
+  }
+}

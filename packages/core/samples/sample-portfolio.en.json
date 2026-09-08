@@ -1,0 +1,906 @@
+{
+  "version": 3,
+  "review": {
+    "title": "Project review",
+    "subtitle": "Monthly review",
+    "reviewDate": "2026-09-03",
+    "previousReviewDate": "2026-07-02"
+  },
+  "settings": {
+    "language": "en",
+    "identity": {
+      "org": "Déjà Vu Ltd.",
+      "unit": "IT",
+      "orgLong": "Déjà Vu Ltd.",
+      "unitLong": "Information Technology Department",
+      "contact": "it@dejavu.example",
+      "logo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5NiIgaGVpZ2h0PSI5NiIgdmlld0JveD0iMCAwIDk2IDk2Ij4KICA8IS0tIETDqWrDoCBWdSBMdGQuIOKAlCBsb2dvIGNhcnLDqSA6IHVuIMKrIFYgwrsgZXQgc29uIMOpY2hvIChkw6lqw6AtdnUpLCBwYWxldHRlIFRhaWx3aW5kIC0tPgogIDxkZWZzPgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJiZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiM0RjQ2RTUiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjOTMzM0VBIi8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogIDwvZGVmcz4KICA8cmVjdCB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHJ4PSIyMCIgZmlsbD0idXJsKCNiZykiLz4KICA8ZyBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMTEiPgogICAgPHBhdGggZD0iTTIyIDI2IEw0MCA1OCBMNTggMjYiIHN0cm9rZT0iIzVFRUFENCIgb3BhY2l0eT0iLjQ1Ii8+CiAgICA8cGF0aCBkPSJNMzIgMzggTDUwIDcwIEw2OCAzOCIgc3Ryb2tlPSIjRkZGRkZGIi8+CiAgPC9nPgogIDxjaXJjbGUgY3g9Ijc0IiBjeT0iMjYiIHI9IjYiIGZpbGw9IiNGNTlFMEIiLz4KPC9zdmc+Cg=="
+    },
+    "theme": {
+      "style": "flat",
+      "palette": "material",
+      "font": "Roboto"
+    },
+    "show": {
+      "healthDashboard": true,
+      "recap": true,
+      "archives": true,
+      "decisions": true
+    },
+    "recapRows": 11
+  },
+  "categories": [
+    {
+      "id": "poste",
+      "name": "Workplace",
+      "color": "indigo"
+    },
+    {
+      "id": "infra",
+      "name": "Infrastructure",
+      "color": "teal"
+    },
+    {
+      "id": "services",
+      "name": "Services",
+      "color": "blue"
+    },
+    {
+      "id": "telephonie",
+      "name": "Telephony",
+      "color": "purple"
+    },
+    {
+      "id": "applications",
+      "name": "Applications",
+      "color": "orange"
+    },
+    {
+      "id": "ssi",
+      "name": "Security",
+      "color": "red"
+    },
+    {
+      "id": "ia",
+      "name": "AI & data",
+      "color": "green"
+    },
+    {
+      "id": "organisation",
+      "name": "Organisation & processes",
+      "color": "brown"
+    }
+  ],
+  "projects": [
+    {
+      "id": "P-01",
+      "name": "Graphics workstation refresh",
+      "categoryId": "poste",
+      "priority": "P2",
+      "stage": "inProgress",
+      "onHold": false,
+      "health": "onTrack",
+      "progress": 60,
+      "lead": "M. OKONKWO",
+      "sponsor": "Management",
+      "scope": "Head office + Bordeaux studio — 38 workstations",
+      "goal": "Replace the creative teams' graphics workstations without disrupting production, while reducing the number of configurations to maintain.",
+      "budget": "Manufacturer framework contract — 38 machines",
+      "start": "2026-03-15",
+      "targetEnd": "2027-01-15",
+      "done": [
+        "Inventory of the existing fleet",
+        "Definition of the three standard configurations",
+        "Orders placed — 07/26"
+      ],
+      "ongoing": ["**Pilot team** installation — animation floor, head office"],
+      "next": ["Floor-by-floor rollout — 6 waves", "Collection of the old workstations"],
+      "risks": "Manufacturer delivery delays observed on the first order.",
+      "decisions": [
+        {
+          "question": "Switch the mobile teams' workstations to leasing?",
+          "decider": "Management",
+          "taken": {
+            "text": "Approved — leasing for the 3 mobile teams",
+            "when": "2026-07-02"
+          }
+        }
+      ],
+      "milestones": [
+        {
+          "label": "Requirements statement",
+          "date": "2026-03-15",
+          "done": true
+        },
+        {
+          "label": "Orders",
+          "date": "2026-07-01",
+          "done": true
+        },
+        {
+          "label": "Pilot team",
+          "date": "2026-09-20",
+          "done": false
+        },
+        {
+          "label": "Rollout complete",
+          "date": "2027-01-15",
+          "done": false
+        }
+      ],
+      "sheet": "auto",
+      "updatedOn": "2026-09-01",
+      "author": "M. OKONKWO"
+    },
+    {
+      "id": "P-02",
+      "name": "Unified endpoint management (MDM) — wave 2",
+      "categoryId": "poste",
+      "priority": "P1",
+      "stage": "inProgress",
+      "onHold": false,
+      "health": "watch",
+      "progress": 45,
+      "lead": "S. LINDQVIST",
+      "scope": "210 remaining devices (Mac and PC, Bordeaux included)",
+      "goal": "Enrol every device into unified management before the year-end audit, without losing any production tool.",
+      "budget": "n/a",
+      "start": "2026-01-12",
+      "targetEnd": "2026-12-18",
+      "done": [
+        "Wave 1 closed — 180 devices",
+        "Qualification of application baseline v2",
+        "Order placed for the 30 early-refresh devices",
+        "Communication to team leads — floor-by-floor schedule"
+      ],
+      "ongoing": [
+        "Enrolment of the support teams — 40 devices",
+        "Testing the \"QA\" standard build with dual screens"
+      ],
+      "next": [
+        "Bordeaux studio wave — from 10/26",
+        "Handling of the 12 devices with an incompatible graphics tablet",
+        "End-of-rollout review — 01/27"
+      ],
+      "risks": "Graphics tablet driver incompatible with the MDM agent on 12 devices; vendor fix expected.",
+      "decisions": [],
+      "milestones": [
+        {
+          "label": "Wave 1",
+          "date": "2026-05-30",
+          "done": true
+        },
+        {
+          "label": "Wave 2",
+          "date": "2026-10-16",
+          "done": false
+        },
+        {
+          "label": "Bordeaux studio",
+          "date": "2026-12-18",
+          "done": false
+        }
+      ],
+      "sheet": "auto",
+      "updatedOn": "2026-08-28",
+      "author": "S. LINDQVIST"
+    },
+    {
+      "id": "P-03",
+      "name": "Hybrid meeting rooms",
+      "categoryId": "poste",
+      "stage": "residuals",
+      "onHold": false,
+      "health": "onTrack",
+      "progress": 100,
+      "lead": "A. FERREIRA",
+      "scope": "3 rooms equipped",
+      "goal": "Equip three meeting rooms for video conferencing and simplify room booking.",
+      "budget": "Remainder of the 2025 hardware budget",
+      "start": "2025-10-01",
+      "targetEnd": "2026-01-30",
+      "actualEnd": "2026-02-23",
+      "done": [
+        "3 rooms equipped — screens + video bars",
+        "Booking integrated with the calendar",
+        "User guide displayed in each room"
+      ],
+      "ongoing": ["Acoustic rework — Mirage room"],
+      "next": ["6-month usage review — 12/26"],
+      "decisions": [],
+      "milestones": [
+        {
+          "label": "Technical rollout",
+          "date": "2025-12-15",
+          "done": true
+        },
+        {
+          "label": "Go-live",
+          "date": "2026-02-23",
+          "done": true
+        },
+        {
+          "label": "6-month review",
+          "date": "2026-12-10",
+          "done": false
+        }
+      ],
+      "sheet": "auto",
+      "updatedOn": "2026-08-30",
+      "author": "A. FERREIRA"
+    },
+    {
+      "id": "P-04",
+      "name": "Off-site backup of the software forge",
+      "categoryId": "infra",
+      "priority": "P1",
+      "stage": "inProgress",
+      "onHold": false,
+      "health": "alert",
+      "progress": 35,
+      "lead": "R. KOVAČ",
+      "sponsor": "CISO",
+      "scope": "Forge — repositories, build artifacts, 46 VMs",
+      "goal": "Move the software forge backup off-site and prove full restoration through an annual test.",
+      "budget": "Dedicated array — extension to be arbitrated",
+      "start": "2026-05-08",
+      "targetEnd": "2026-12-01",
+      "done": ["Scoping and sizing", "Proof of concept validated on 4 VMs — 08/26"],
+      "ongoing": ["Preparation of the 1st batch cutover — 15 VMs"],
+      "next": ["1st batch cutover — 10/26", "**Full restoration test** — 12/26"],
+      "risks": "Nightly backup window too short; overnight builds might not be covered.",
+      "decisions": [
+        {
+          "question": "Arbitrate the array extension (€18k) to meet the 30-day retention target?",
+          "decider": "Management"
+        }
+      ],
+      "milestones": [
+        {
+          "label": "Scoping",
+          "date": "2026-05-08",
+          "done": true
+        },
+        {
+          "label": "Proof of concept",
+          "date": "2026-08-10",
+          "done": true
+        },
+        {
+          "label": "1st batch cutover",
+          "date": "2026-10-05",
+          "done": false
+        },
+        {
+          "label": "Restoration test",
+          "date": "2026-12-01",
+          "done": false
+        }
+      ],
+      "sheet": "auto",
+      "updatedOn": "2026-09-02",
+      "author": "R. KOVAČ"
+    },
+    {
+      "id": "P-05",
+      "name": "Server room cooling",
+      "categoryId": "infra",
+      "priority": "P2",
+      "stage": "ready",
+      "onHold": false,
+      "health": "onTrack",
+      "lead": "R. KOVAČ",
+      "sponsor": "Facilities",
+      "scope": "Head office server room — cooling and monitoring",
+      "goal": "Make the server room cooling reliable: replace the two chiller units and add monitoring probes.",
+      "budget": "2027 works budget",
+      "start": "2027-01-11",
+      "targetEnd": "2027-07-02",
+      "done": ["Thermal study carried out with Facilities"],
+      "ongoing": [],
+      "next": ["Call for tenders — 01/27"],
+      "decisions": [],
+      "milestones": [
+        {
+          "label": "Call for tenders",
+          "date": "2027-01-11",
+          "done": false
+        },
+        {
+          "label": "Works",
+          "date": "2027-04-06",
+          "display": "Q2 2027",
+          "done": false
+        }
+      ],
+      "sheet": "auto",
+      "updatedOn": "2026-07-01",
+      "author": "R. KOVAČ"
+    },
+    {
+      "id": "P-06",
+      "name": "Bordeaux studio network link upgrade",
+      "categoryId": "infra",
+      "priority": "P2",
+      "stage": "inProgress",
+      "onHold": true,
+      "health": "critical",
+      "progress": 20,
+      "lead": "T. NGUYEN",
+      "scope": "Bordeaux studio + warehouse — carrier links",
+      "goal": "Double the bandwidth of the remote sites' links to absorb asset synchronisation and video conferencing.",
+      "budget": "€20k — carrier quote awaited",
+      "start": "2026-04-02",
+      "targetEnd": "2026-12-15",
+      "done": ["Network audit of both sites", "Carrier quote requested — 06/26"],
+      "ongoing": ["**On hold** pending the carrier's feasibility response"],
+      "next": ["Order as soon as the quote is received", "Site-by-site cutover"],
+      "risks": "Saturation observed at peak times; degraded asset synchronisation in Bordeaux.",
+      "decisions": [
+        {
+          "question": "Arbitrate the funding (€20k) so the order can be placed as soon as the quote is received?",
+          "decider": "Management"
+        }
+      ],
+      "milestones": [
+        {
+          "label": "Audit",
+          "date": "2026-05-15",
+          "done": true
+        },
+        {
+          "label": "Carrier response",
+          "date": "2026-08-31",
+          "done": false
+        },
+        {
+          "label": "Cutover",
+          "date": "2026-11-30",
+          "done": false
+        }
+      ],
+      "sheet": "auto",
+      "updatedOn": "2026-09-01",
+      "author": "T. NGUYEN"
+    },
+    {
+      "id": "P-07",
+      "name": "Email migration to the collaboration suite",
+      "categoryId": "services",
+      "priority": "P2",
+      "stage": "inProgress",
+      "onHold": false,
+      "health": "watch",
+      "progress": 50,
+      "lead": "C. HADDAD",
+      "scope": "≈ 620 individual and shared mailboxes",
+      "goal": "Move the internally hosted email system to the online collaboration suite, without losing any archives.",
+      "budget": "n/a",
+      "start": "2026-02-02",
+      "targetEnd": "2026-11-27",
+      "done": ["Directory clean-up — 90 dormant mailboxes closed", "Pilot on 25 mailboxes"],
+      "ongoing": ["Team-by-team migration — 3 of 5 waves done"],
+      "next": ["Waves 4 and 5 — last floors", "Shared mailbox cutover"],
+      "risks": "Large local archives for a few users; individual assistance required.",
+      "decisions": [],
+      "milestones": [
+        {
+          "label": "Pilot",
+          "date": "2026-04-10",
+          "done": true
+        },
+        {
+          "label": "Wave 3",
+          "date": "2026-08-21",
+          "done": true
+        },
+        {
+          "label": "Wave 5",
+          "date": "2026-11-27",
+          "done": false
+        }
+      ],
+      "sheet": "auto",
+      "updatedOn": "2026-08-31",
+      "author": "C. HADDAD"
+    },
+    {
+      "id": "P-08",
+      "name": "Request portal and service catalogue",
+      "categoryId": "services",
+      "stage": "toScope",
+      "onHold": false,
+      "scope": "Single point of entry for requests",
+      "goal": "Provide a single point of entry for requests, with a catalogue users can actually read.",
+      "done": [],
+      "ongoing": [],
+      "next": ["Scoping note once a project lead is appointed"],
+      "decisions": [
+        {
+          "question": "Appoint the project lead?",
+          "decider": "CIO"
+        }
+      ],
+      "milestones": [],
+      "sheet": "auto",
+      "updatedOn": "2026-07-02"
+    },
+    {
+      "id": "P-09",
+      "name": "Fixed telephony move to VoIP",
+      "categoryId": "telephonie",
+      "priority": "P1",
+      "stage": "inProgress",
+      "onHold": false,
+      "health": "watch",
+      "progress": 70,
+      "lead": "L. TREMBLAY",
+      "sponsor": "Management",
+      "scope": "Head office + 2 sites — 540 lines, 41 on-call numbers",
+      "goal": "Move all fixed telephony to IP before the copper switch-off, keeping every published number, the operations on-call lines and the switchboard overflow to the support provider.",
+      "budget": "Carrier contract — hardware included",
+      "start": "2025-11-03",
+      "targetEnd": "2026-12-11",
+      "done": [
+        "**Head office cut over** — 380 lines",
+        "Number porting validated with the carrier — 100% of numbers",
+        "On-call phones duplicated during the transition — 41 lines",
+        "Reception staff trained on the new phones — 7 people",
+        "Gateway monitoring integrated into the network team's tool"
+      ],
+      "ongoing": [
+        "Network audit of the Bordeaux studio — report expected 18/09",
+        "Preparation of the warehouse cutover",
+        "Inventory of analogue lines and edge cases — lifts, alarms"
+      ],
+      "next": [
+        "Warehouse cutover — 30/09",
+        "Bordeaux studio cutover — depending on the audit",
+        "Replacement of the 12 technical analogue lines — 11/26",
+        "Termination of the copper circuits — 12/26"
+      ],
+      "risks": "Bordeaux network link possibly insufficient (see P-06); switchboard overflow not tested under real load; a few technical devices (alarms, lifts) still depend on analogue lines.",
+      "decisions": [
+        {
+          "question": "Approve postponing the Bordeaux cutover if the network audit confirms the link must be upgraded?",
+          "decider": "CIO"
+        }
+      ],
+      "milestones": [
+        {
+          "label": "Scoping",
+          "date": "2025-11-03",
+          "done": true
+        },
+        {
+          "label": "Head office",
+          "date": "2026-03-27",
+          "done": true
+        },
+        {
+          "label": "Bordeaux audit",
+          "date": "2026-09-18",
+          "done": false
+        },
+        {
+          "label": "Warehouse",
+          "date": "2026-09-30",
+          "done": false
+        },
+        {
+          "label": "Bordeaux studio",
+          "date": "2026-12-11",
+          "done": false
+        },
+        {
+          "label": "Copper termination",
+          "date": "2026-12-18",
+          "done": false
+        }
+      ],
+      "sheet": "auto",
+      "updatedOn": "2026-09-02",
+      "author": "L. TREMBLAY"
+    },
+    {
+      "id": "P-10",
+      "name": "Phone reception revamp",
+      "categoryId": "telephonie",
+      "priority": "P3",
+      "stage": "ready",
+      "onHold": false,
+      "health": "onTrack",
+      "lead": "L. TREMBLAY",
+      "scope": "Switchboard — greeting menu tree",
+      "goal": "Simplify the voice server menu tree and record new greeting messages.",
+      "start": "2026-10-05",
+      "targetEnd": "2026-12-18",
+      "done": ["Target menu tree approved by the reception team"],
+      "ongoing": [],
+      "next": ["Recording of the messages", "Cutover on a Friday evening, rollback possible"],
+      "decisions": [],
+      "milestones": [
+        {
+          "label": "Messages",
+          "date": "2026-10-30",
+          "done": false
+        },
+        {
+          "label": "Cutover",
+          "date": "2026-12-04",
+          "done": false
+        }
+      ],
+      "sheet": "auto",
+      "updatedOn": "2026-08-20"
+    },
+    {
+      "id": "P-11",
+      "name": "Production tracking tool migration to SaaS",
+      "categoryId": "applications",
+      "priority": "P2",
+      "stage": "inProgress",
+      "onHold": false,
+      "health": "watch",
+      "progress": 80,
+      "lead": "E. MORETTI",
+      "sponsor": "Production management",
+      "scope": "1 in-house tool — 60 users",
+      "goal": "Replace the in-house tracking tool with the vendor's SaaS version, including data migration.",
+      "start": "2026-01-19",
+      "targetEnd": "2026-10-31",
+      "done": ["Data migration tested — 2 defects fixed", "Key users trained"],
+      "ongoing": ["**User acceptance testing** — 25/09"],
+      "next": ["Go-live — 31/10", "Decommissioning of the in-house tool"],
+      "risks": "User availability for UAT during the crunch period.",
+      "decisions": [
+        {
+          "question": "Confirm the 31/10 go-live or postpone it to late November?",
+          "decider": "Production management"
+        }
+      ],
+      "milestones": [
+        {
+          "label": "Data migration",
+          "date": "2026-06-12",
+          "done": true
+        },
+        {
+          "label": "UAT",
+          "date": "2026-09-25",
+          "done": false
+        },
+        {
+          "label": "Go-live",
+          "date": "2026-10-31",
+          "done": false
+        }
+      ],
+      "sheet": "auto",
+      "updatedOn": "2026-09-01",
+      "author": "E. MORETTI"
+    },
+    {
+      "id": "P-12",
+      "name": "Multi-factor authentication rollout",
+      "categoryId": "ssi",
+      "priority": "P1",
+      "stage": "inProgress",
+      "onHold": false,
+      "health": "onTrack",
+      "progress": 55,
+      "lead": "N. VIRTANEN",
+      "sponsor": "CISO",
+      "scope": "All users — remote access first, then workstations",
+      "goal": "Roll out two-factor authentication to everyone, starting with remote access.",
+      "start": "2026-03-02",
+      "targetEnd": "2027-02-26",
+      "done": ["Remote access covered — 100%", "June awareness campaign"],
+      "ongoing": ["Rollout in team waves"],
+      "next": ["Wave 3 — 15/10", "Fallback solution for users without a smartphone"],
+      "risks": "Some users have no company smartphone.",
+      "decisions": [
+        {
+          "question": "Approve the fallback solution (hardware token) for users without a company smartphone?",
+          "decider": "CISO"
+        }
+      ],
+      "milestones": [
+        {
+          "label": "Remote access",
+          "date": "2026-05-29",
+          "done": true
+        },
+        {
+          "label": "Wave 3",
+          "date": "2026-10-15",
+          "done": false
+        },
+        {
+          "label": "Full coverage",
+          "date": "2027-02-26",
+          "done": false
+        }
+      ],
+      "sheet": "auto",
+      "updatedOn": "2026-09-02",
+      "author": "N. VIRTANEN"
+    },
+    {
+      "id": "P-13",
+      "name": "Internal AI assistant pilot",
+      "categoryId": "ia",
+      "priority": "P2",
+      "stage": "inProgress",
+      "onHold": false,
+      "health": "onTrack",
+      "progress": 30,
+      "lead": "S. LINDQVIST",
+      "scope": "3 use cases — 20 testers — 6 months",
+      "goal": "Evaluate an internally hosted AI assistant on three use cases: level 1 support, documentation, translation.",
+      "budget": "Existing shared instance — no additional cost",
+      "start": "2026-06-01",
+      "targetEnd": "2026-12-18",
+      "done": ["Scoping note approved — scope and testers", "Accounts opened — 20 testers"],
+      "ongoing": ["Onboarding workshops — 2 of 4 held"],
+      "next": ["Mid-point checkpoint — 10/26", "Final review and security opinion — 12/26"],
+      "decisions": [
+        {
+          "question": "Approve the pilot scope (3 use cases, 20 testers, 6 months)?",
+          "decider": "Management",
+          "taken": {
+            "text": "Scope approved as proposed",
+            "when": "2026-07-02"
+          }
+        }
+      ],
+      "milestones": [
+        {
+          "label": "Scoping",
+          "date": "2026-06-15",
+          "done": true
+        },
+        {
+          "label": "Mid-point",
+          "date": "2026-10-16",
+          "done": false
+        },
+        {
+          "label": "Final review",
+          "date": "2026-12-18",
+          "done": false
+        }
+      ],
+      "sheet": "auto",
+      "updatedOn": "2026-08-29",
+      "author": "S. LINDQVIST"
+    },
+    {
+      "id": "P-17",
+      "name": "Industrialisation of the project review",
+      "categoryId": "organisation",
+      "priority": "P3",
+      "stage": "inProgress",
+      "onHold": false,
+      "health": "onTrack",
+      "progress": 40,
+      "lead": "K. TANAKA",
+      "sponsor": "CIO",
+      "scope": "Monthly process — collection, project sheets, slide deck",
+      "goal": "Tool up the monthly review: single collection point, generated project sheets and slide deck, printing without manual rework.",
+      "done": [
+        "Mock-up of the single deliverable approved",
+        "Project sheet template stabilised — 20 sheets migrated"
+      ],
+      "ongoing": ["Automatic slide deck generation"],
+      "next": ["Automated printing — 11/26", "Review after three cycles — 01/27"],
+      "decisions": [],
+      "milestones": [
+        {
+          "label": "Mock-up",
+          "date": "2026-07-15",
+          "done": true
+        },
+        {
+          "label": "Auto slide deck",
+          "date": "2026-10-01",
+          "done": false
+        },
+        {
+          "label": "Review",
+          "date": "2027-01-08",
+          "done": false
+        }
+      ],
+      "sheet": "auto",
+      "updatedOn": "2026-09-01",
+      "author": "K. TANAKA"
+    },
+    {
+      "id": "P-18",
+      "name": "Joiner / leaver process",
+      "categoryId": "organisation",
+      "priority": "P2",
+      "stage": "inProgress",
+      "onHold": false,
+      "health": "watch",
+      "progress": 30,
+      "lead": "A. FERREIRA",
+      "scope": "Accounts, hardware, access — all teams",
+      "goal": "Formalise the equipment process for joiners and the return process for leavers, with a single target lead time.",
+      "done": ["Mapping of the current process", "Joiner/leaver checklist written"],
+      "ongoing": ["Testing the checklist on September's moves"],
+      "next": ["Adjustments after the test — 10/26", "Move to routine operation — 11/26"],
+      "risks": "Requests still come in through three different channels.",
+      "decisions": [
+        {
+          "question": "Approve the 5-working-day target lead time to equip a new joiner?",
+          "decider": "CIO"
+        }
+      ],
+      "milestones": [
+        {
+          "label": "Mapping",
+          "date": "2026-06-30",
+          "done": true
+        },
+        {
+          "label": "September test",
+          "date": "2026-09-30",
+          "done": false
+        },
+        {
+          "label": "Routine",
+          "date": "2026-11-30",
+          "done": false
+        }
+      ],
+      "sheet": "auto",
+      "updatedOn": "2026-09-01",
+      "author": "A. FERREIRA"
+    },
+    {
+      "id": "P-19",
+      "name": "Asset and licence inventory",
+      "categoryId": "organisation",
+      "priority": "P3",
+      "stage": "ready",
+      "onHold": false,
+      "lead": "T. NGUYEN",
+      "scope": "Hardware, creative licences, subscriptions",
+      "goal": "Make the inventory in the asset management tool reliable and set up a quarterly licence review.",
+      "done": ["Scope and tool selected"],
+      "ongoing": [],
+      "next": ["Physical inventory campaign — 11/26"],
+      "decisions": [],
+      "milestones": [
+        {
+          "label": "Inventory campaign",
+          "date": "2026-11-15",
+          "done": false
+        },
+        {
+          "label": "First quarterly review",
+          "date": "2027-02-15",
+          "done": false
+        }
+      ],
+      "sheet": "auto",
+      "updatedOn": "2026-08-25",
+      "author": "T. NGUYEN"
+    },
+    {
+      "id": "P-20",
+      "name": "Operations documentation base",
+      "categoryId": "organisation",
+      "priority": "P3",
+      "stage": "inProgress",
+      "onHold": false,
+      "health": "onTrack",
+      "progress": 25,
+      "lead": "A. FERREIRA",
+      "scope": "Operating procedures and quick-response sheets",
+      "goal": "Gather all procedures in a single space, each document dated and reviewed at least once a year.",
+      "done": [
+        "Documentation space structured — 6 sections",
+        "15 procedures migrated — 40 identified"
+      ],
+      "ongoing": ["Migration of the network procedures"],
+      "next": ["Incident quick-response sheets — 12/26"],
+      "decisions": [],
+      "milestones": [
+        {
+          "label": "Structure",
+          "date": "2026-06-30",
+          "done": true
+        },
+        {
+          "label": "Full migration",
+          "date": "2026-12-20",
+          "done": false
+        }
+      ],
+      "sheet": "auto",
+      "updatedOn": "2026-08-30",
+      "author": "A. FERREIRA"
+    },
+    {
+      "id": "P-14",
+      "name": "Merger of the two buildings' reception desks",
+      "categoryId": "organisation",
+      "stage": "closed",
+      "onHold": false,
+      "progress": 100,
+      "lead": "CIO",
+      "goal": "Merge the physical reception desks of the two head office buildings and adjust phone cover shifts.",
+      "actualEnd": "2026-06-30",
+      "done": ["New shared reception desk opened — 06/26"],
+      "ongoing": [],
+      "next": [],
+      "decisions": [
+        {
+          "question": "Merge the two buildings' reception desks?",
+          "decider": "Management",
+          "taken": {
+            "text": "Merger approved",
+            "when": "2026-05-05"
+          }
+        }
+      ],
+      "milestones": [],
+      "sheet": "auto",
+      "updatedOn": "2026-07-02"
+    },
+    {
+      "id": "P-15",
+      "name": "Virtualisation of the build servers",
+      "categoryId": "infra",
+      "stage": "closed",
+      "onHold": false,
+      "progress": 100,
+      "lead": "E. MORETTI",
+      "goal": "Consolidate the physical build servers onto the virtualisation cluster.",
+      "actualEnd": "2024-06-30",
+      "done": ["46 VMs migrated, old servers decommissioned"],
+      "ongoing": [],
+      "next": [],
+      "decisions": [],
+      "milestones": [],
+      "sheet": "auto",
+      "updatedOn": "2026-01-06"
+    },
+    {
+      "id": "P-16",
+      "name": "Intranet overhaul",
+      "categoryId": "services",
+      "stage": "abandoned",
+      "onHold": false,
+      "lead": "C. HADDAD",
+      "goal": "Modernise the internal intranet.",
+      "done": [],
+      "ongoing": [],
+      "next": [],
+      "risks": "Abandoned in favour of the collaboration suite's spaces (see P-07).",
+      "decisions": [],
+      "milestones": [],
+      "sheet": "auto",
+      "updatedOn": "2026-05-15"
+    }
+  ],
+  "freeSlides": [
+    {
+      "id": "sl-01",
+      "anchor": {
+        "type": "opening"
+      },
+      "title": "IT department news",
+      "blocks": [
+        [
+          "**Team**: 2 new joiners on the support team — 01/09",
+          "**Contracts**: graphics workstation framework contract signed — 07/26",
+          "**Coming up**: business continuity exercise — 14/10"
+        ]
+      ]
+    }
+  ]
+}
