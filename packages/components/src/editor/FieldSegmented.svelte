@@ -26,15 +26,17 @@
 
 <div class="mb-4 flex flex-col gap-[7px] last:mb-0">
   {#if label}<span class="text-(--txt2) text-[12.5px] font-semibold">{label}</span>{/if}
+  <!-- `flex-wrap`: below md a long scale (stages) folds onto a second row
+       instead of clipping — every value stays visible and tappable. -->
   <div
-    class="border-input inline-flex max-w-full self-start overflow-hidden rounded-md border bg-white"
+    class="border-input bg-background inline-flex max-w-full self-start overflow-hidden rounded-md border max-md:flex-wrap"
     role="group"
     aria-label={ariaLabel ?? label}
   >
     {#each options as option (String(option.value))}
       <button
         type="button"
-        class="border-input text-(--txt2) aria-pressed:bg-accent aria-pressed:text-accent-foreground focus-visible:outline-ring cursor-pointer border-r bg-white px-[11px] py-[7px] text-xs whitespace-nowrap last:border-r-0 focus-visible:-outline-offset-2 focus-visible:outline-2 aria-pressed:font-bold"
+        class="border-input text-(--txt2) aria-pressed:bg-accent aria-pressed:text-accent-foreground focus-visible:outline-ring bg-background cursor-pointer border-r px-[11px] py-[7px] text-xs whitespace-nowrap last:border-r-0 focus-visible:-outline-offset-2 focus-visible:outline-2 aria-pressed:font-bold max-lg:min-h-11"
         aria-pressed={option.value === value}
         title={option.title}
         onclick={() => {

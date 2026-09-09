@@ -34,7 +34,7 @@
   <h2 class="text-primary mb-3 text-xs font-bold tracking-[0.06em] uppercase">
     {te('editor.sheet.narrative', language)}
   </h2>
-  <div class="grid grid-cols-3 gap-5">
+  <div class="grid grid-cols-1 gap-5 lg:grid-cols-3">
     {#each ['done', 'ongoing', 'next'] as const as list (list)}
       <div>
         <FieldText

@@ -141,7 +141,7 @@
     {/if}
   {/if}
   <Textarea
-    class="text-(--txt2) field-sizing-fixed bg-[#fafafa] font-mono text-xs leading-[1.55]"
+    class="text-(--txt2) field-sizing-fixed bg-[#fafafa] font-mono text-xs leading-[1.55] dark:bg-white/5"
     rows={9}
     readonly
     aria-label={te('editor.io.export', language)}

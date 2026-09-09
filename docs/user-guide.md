@@ -178,16 +178,31 @@ when a non-bundled font family is chosen.
 - **Reset the settings** — back to the default theme and display; language and
   identity are kept. Undoable.
 
+## On a phone or tablet
+
+The editor adapts below desktop widths: the sidebar becomes a drawer behind
+the ☰ button, forms stack, and the wide tables (the portfolio, the
+milestones) scroll sideways inside their own frame — the page itself never
+scrolls horizontally. The slideshow scales its 16:9 slides to fit the screen,
+and its exit bar stays visible on touch screens. Everything works on a phone;
+a desktop simply stays the more comfortable place to edit.
+
 ## Appearance
 
-<img src="images/en-settings.png" width="720" alt="Settings view: identity, theme, categories, free slides, aggregate slides and data">
+<img src="images/en-settings.png" width="720" alt="Settings view: identity, appearance with the interface-theme picker, categories, free slides, aggregate slides and data">
 
 **Settings > Language & palette**:
 
-- **Theme** — Flat (default) or Classic.
+- **Theme** — Flat (default) or Classic. This styles the slides.
+- **Interface theme** — System (default), Light or Dark. A preference of the
+  device, stored outside the portfolio file: the editor chrome flips, the
+  slides stay light (they are the artifact). The same three states sit next
+  to the FR | EN switch in the top bar.
 - **Palette** — Material (default), Tailwind or DSFR.
 - **Font** — Roboto ships inside the app and is the default. Marianne is used
-  when its font files are deployed next to the app. Any other Google Fonts
+  when its font files are deployed next to the app; with «Marianne» in the
+  field, the card lists the expected files and shows a live status — served,
+  or not found and falling back to the system stack. Any other Google Fonts
   family name loads from the network when one is available.
 - **Language** — French or English; switching redraws the app at runtime. The
   language can also be switched from the FR | EN switch in the top bar.

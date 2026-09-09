@@ -40,9 +40,19 @@ ever edited by hand.
 - **Bilingual by construction** — French or English auto-detected on first
   launch, switchable live from the top bar; entered content is never
   translated.
+- **Works on a phone** — below desktop widths the sidebar becomes a drawer,
+  forms stack and wide tables scroll inside their own frame; the slideshow
+  scales to the screen with a touch-visible exit bar.
+- **Accessibility as a target** — WCAG 2.1 AA aimed for and checked by an
+  axe-core pass (zero serious/critical across every screen, both schemes) and
+  a scripted keyboard walk; motion honours `prefers-reduced-motion`. No
+  formal RGAA audit.
+- **Light and dark editor** — System/Light/Dark reader preference, stored on
+  the device, never in the portfolio file; the slides are the artifact and
+  stay light in both schemes.
 - **Print-perfect A4** — the deck prints one page per slide through the
   browser's dialog; PDF is a print, not an export pipeline.
-- **Visual contract** — 59 Storybook stories covering every slide, widget and
+- **Visual contract** — 63 Storybook stories covering every slide, widget and
   screen, including a fully playable in-memory editor.
 
 ## Architecture
@@ -92,6 +102,7 @@ bun run build    # all deliverables into dist/
 | `bun run dev`       | Vite dev server                            |
 | `bun run test`      | Vitest suite (four projects)               |
 | `bun run smoke`     | Playwright `file://` smoke (after a build) |
+| `bun run a11y`      | axe-core pass on the built deliverables    |
 | `bun run check`     | svelte-check + tsc, per package            |
 | `bun run lint`      | ESLint (incl. boundary rules)              |
 | `bun run format`    | Prettier, write mode                       |

@@ -89,7 +89,7 @@
   }
 </script>
 
-<div class="grid grid-cols-2 items-start gap-5">
+<div class="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
   <div class="flex min-w-0 flex-col gap-4">
     <section class="bg-background border-border rounded-lg border p-4">
       <h2

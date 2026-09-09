@@ -12,11 +12,16 @@
  *   1. empty boot in fr AND en (browser locale decides the first language);
  *   2. `?sample` boots the 20-project demo set;
  *   3. hash navigation: #/projects → #/sheet/P-01 → back;
- *   4. the FR | EN top-bar switch relabels the shell and <html lang>;
+ *   4. the FR | EN top-bar switch relabels the shell and <html lang>; its
+ *      scheme-toggle twin stamps (and removes) the `dark` class on <html>;
  *   5. « Générer le diaporama » boots reveal with the 34 derived slides;
  *   6. « Enregistrer » downloads the standalone deck; the saved file carries
- *      the CSP <meta> and re-opens from file:// without a single console
- *      error, reveal booted.
+ *      the CSP <meta>, embarks NO `.dark` rule (the editor's reader scheme
+ *      must not travel), and re-opens from file:// without a single console
+ *      error, reveal booted;
+ *   7. the 390×844 touch pass: boot, nav drawer, a sheet opened from the
+ *      table, the slideshow scaled to fit with its exit bar pinned (no hover
+ *      on touch), the standalone export — and never a horizontal body scroll.
  */
 
 import { access, mkdtemp, readFile, rm } from 'node:fs/promises'
@@ -129,6 +134,23 @@ async function main() {
     await page.getByRole('button', { name: 'FR', exact: true }).click()
     await settle(page)
 
+    // 4b. the top-bar scheme toggle (FR|EN's twin, same store as Settings):
+    // Sombre stamps the `dark` class, Système removes it (headless prefers
+    // light) — the editor flips, the slides stay pinned light.
+    const schemeGroup = page.getByRole('group', { name: /Thème de l/ })
+    await schemeGroup.getByRole('button', { name: 'Sombre' }).click()
+    await settle(page)
+    check(
+      await page.evaluate(() => document.documentElement.classList.contains('dark')),
+      'scheme toggle: Sombre stamps the dark class on <html>',
+    )
+    await schemeGroup.getByRole('button', { name: 'Système' }).click()
+    await settle(page)
+    check(
+      await page.evaluate(() => !document.documentElement.classList.contains('dark')),
+      'scheme toggle: back to Système removes it',
+    )
+
     // 5. the slideshow: reveal boots on the 34 derived sections.
     await page.getByRole('button', { name: /Générer le diaporama/ }).click()
     await page.waitForSelector('.reveal.ready', { timeout: 20_000 })
@@ -151,6 +173,10 @@ async function main() {
     check(
       html.includes('http-equiv="Content-Security-Policy"') && html.includes("script-src 'nonce-"),
       'export: the standalone file carries the nonce CSP <meta>',
+    )
+    check(
+      !/\.dark\b/.test(html),
+      'export: no `.dark` rule embarked — the reader scheme stays with the editor',
     )
 
     check(
@@ -175,6 +201,95 @@ async function main() {
       `export: standalone file:// run, zero console errors${standaloneErrors.length ? ` — ${standaloneErrors[0]}` : ''}`,
     )
     await standaloneContext.close()
+
+    /* ---- 7. the mobile pass: 390×844, touch, French sample ---- */
+    const mobile = await browser.newContext({
+      locale: 'fr-FR',
+      viewport: { width: 390, height: 844 },
+      isMobile: true,
+      hasTouch: true,
+    })
+    const mp = await mobile.newPage()
+    const mobileErrors = []
+    watchErrors(mp, mobileErrors)
+    const noBodyScroll = async (label) =>
+      check(
+        await mp.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+        `mobile: no horizontal body scroll on ${label}`,
+      )
+
+    await mp.goto(`${APP_URL}?sample`)
+    await settle(mp)
+    check(
+      await mp.getByRole('button', { name: 'Ouvrir la navigation' }).isVisible(),
+      'mobile: boot shows the hamburger (drawer mode)',
+    )
+    await noBodyScroll('review')
+
+    // Drawer: open from the hamburger, navigate to Projects, drawer closes.
+    await mp.getByRole('button', { name: 'Ouvrir la navigation' }).click()
+    await settle(mp)
+    const drawerLink = mp.getByRole('dialog').getByRole('link', { name: 'Projets' })
+    check(await drawerLink.isVisible(), 'mobile: the nav drawer opens with the full nav')
+    await drawerLink.click()
+    await settle(mp)
+    check(mp.url().endsWith('#/projects'), 'mobile: drawer navigation lands on #/projects')
+    check(
+      (await mp.getByRole('dialog').count()) === 0,
+      'mobile: the drawer closes after navigating',
+    )
+    await noBodyScroll('projects (the table scrolls inside its own container)')
+
+    // Open the P-01 sheet from the table: the edit control sits at the far
+    // right of the 11-column grid — Playwright scrolls it into view inside
+    // the internal scroller, exactly like a finger would.
+    await mp.getByRole('button', { name: 'Modifier P-01' }).click()
+    await settle(mp)
+    check(
+      (await mp.getByRole('textbox', { name: 'ID', exact: true }).inputValue()) === 'P-01',
+      'mobile: the sheet P-01 opens from the table',
+    )
+    await noBodyScroll('sheet')
+
+    // Slideshow: reveal boots, the 1280-wide canvas is SCALED to fit (no
+    // reflow), and the exit bar is pinned visible — touch knows no hover.
+    await mp.getByRole('button', { name: /Générer le diaporama/ }).click()
+    await mp.waitForSelector('.reveal.ready', { timeout: 20_000 })
+    await mp.waitForTimeout(400)
+    const scaledWidth = await mp.evaluate(() => {
+      const slides = document.querySelector('.reveal .slides')
+      return slides ? slides.getBoundingClientRect().width : Number.NaN
+    })
+    check(
+      scaledWidth > 0 && scaledWidth <= 390,
+      `mobile: the deck is dezoomed to fit 390 px (canvas ${Math.round(scaledWidth)} px)`,
+    )
+    const barVisible = await mp.evaluate(() => {
+      const bar = document.querySelector('.exit-bar')
+      return bar !== null && getComputedStyle(bar).opacity === '1'
+    })
+    check(barVisible, 'mobile: the exit bar is pinned visible on touch screens')
+
+    // Export from the phone: the same standalone download.
+    const [mobileDownload] = await Promise.all([
+      mp.waitForEvent('download'),
+      mp.getByRole('button', { name: 'Enregistrer' }).click(),
+    ])
+    const mobileExport = join(downloads, `mobile-${mobileDownload.suggestedFilename()}`)
+    await mobileDownload.saveAs(mobileExport)
+    const mobileHtml = await readFile(mobileExport, 'utf8')
+    check(
+      mobileHtml.includes('http-equiv="Content-Security-Policy"'),
+      'mobile: the export downloads the standalone deck',
+    )
+    await mp.getByRole('button', { name: '✕ Fermer' }).click()
+    await settle(mp)
+
+    check(
+      mobileErrors.length === 0,
+      `mobile: zero console errors${mobileErrors.length ? ` — ${mobileErrors[0]}` : ''}`,
+    )
+    await mobile.close()
   } finally {
     await browser.close()
     await rm(downloads, { recursive: true, force: true })

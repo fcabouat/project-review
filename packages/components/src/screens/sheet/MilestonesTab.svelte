@@ -58,7 +58,7 @@
   <h2 class="text-primary mb-3 text-xs font-bold tracking-[0.06em] uppercase">
     {te('editor.sheet.timeAndMilestones', language)}
   </h2>
-  <div class="grid grid-cols-3 gap-3.5">
+  <div class="grid grid-cols-1 gap-3.5 md:grid-cols-3">
     <FieldText
       {language}
       label={t('sheet.start', language)}
@@ -82,75 +82,80 @@
     />
   </div>
 
-  <div class="mt-3.5 mb-3">
-    <div
-      class="{MROW} border-border text-muted-foreground border-b px-0.5 pb-[7px] text-[10.5px] font-bold tracking-[0.04em] uppercase"
-    >
-      <span>{te('editor.sheet.milestoneLabel', language)}</span>
-      <span>{te('editor.sheet.milestoneDate', language)}</span>
-      <span>{te('editor.sheet.milestoneDisplay', language)}</span>
-      <span class="text-center">{te('editor.sheet.milestoneDone', language)}</span>
-      <span></span>
-    </div>
-    {#each sortedMilestones as entry (entry.index)}
-      <div class="{MROW} border-border border-b px-0.5 py-[7px] last:border-b-0">
-        <!-- Wholesale-replacement rule again: commit at blur ONLY on a real
+  <!-- The milestone rows keep their five columns everywhere: on narrow
+       screens the LIST scrolls sideways inside this container (same rule as
+       the Projects table — the body never scrolls horizontally). -->
+  <div class="mt-3.5 mb-3 overflow-x-auto overscroll-x-contain">
+    <div class="min-w-[560px]">
+      <div
+        class="{MROW} border-border text-muted-foreground border-b px-0.5 pb-[7px] text-[10.5px] font-bold tracking-[0.04em] uppercase"
+      >
+        <span>{te('editor.sheet.milestoneLabel', language)}</span>
+        <span>{te('editor.sheet.milestoneDate', language)}</span>
+        <span>{te('editor.sheet.milestoneDisplay', language)}</span>
+        <span class="text-center">{te('editor.sheet.milestoneDone', language)}</span>
+        <span></span>
+      </div>
+      {#each sortedMilestones as entry (entry.index)}
+        <div class="{MROW} border-border border-b px-0.5 py-[7px] last:border-b-0">
+          <!-- Wholesale-replacement rule again: commit at blur ONLY on a real
                    change — `decide` cannot dedup a whole milestones list, so a
                    plain focus/blur would spend the redo stack. -->
-        <Input
-          class="h-8 text-[13px]"
-          value={entry.milestone.label}
-          aria-label={te('editor.sheet.milestoneLabel', language)}
-          onblur={(e) => {
-            const next = e.currentTarget.value
-            if (next !== entry.milestone.label) patchMilestone(entry.index, { label: next })
-          }}
-        />
-        <Input
-          class="h-8 text-[13px]"
-          value={entry.milestone.date}
-          placeholder={te('editor.review.dateHint', language)}
-          aria-label={te('editor.sheet.milestoneDate', language)}
-          onblur={(e) => {
-            const next = isoDate(e.currentTarget.value)
-            if (next === undefined) e.currentTarget.value = entry.milestone.date
-            else if (next !== entry.milestone.date) patchMilestone(entry.index, { date: next })
-          }}
-        />
-        <Input
-          class="h-8 text-[13px]"
-          value={entry.milestone.display ?? ''}
-          placeholder="—"
-          aria-label={te('editor.sheet.milestoneDisplay', language)}
-          onblur={(e) => {
-            const next = e.currentTarget.value || undefined
-            if (next !== entry.milestone.display) patchMilestone(entry.index, { display: next })
-          }}
-        />
-        <span class="flex justify-center">
-          <Checkbox
-            checked={entry.milestone.done}
-            aria-label={te('editor.sheet.milestoneDone', language)}
-            onCheckedChange={(done) => patchMilestone(entry.index, { done })}
+          <Input
+            class="h-8 text-[13px]"
+            value={entry.milestone.label}
+            aria-label={te('editor.sheet.milestoneLabel', language)}
+            onblur={(e) => {
+              const next = e.currentTarget.value
+              if (next !== entry.milestone.label) patchMilestone(entry.index, { label: next })
+            }}
           />
-        </span>
-        <span class="flex justify-end gap-0.5">
-          <Button
-            variant="ghost"
-            size="icon-xs"
-            class="text-muted-foreground"
-            title={te('editor.projects.delete', language)}
-            aria-label={te('editor.projects.delete', language)}
-            onclick={() => setMilestones(project.milestones.filter((_, i) => i !== entry.index))}
-            ><Icon name="close-line" /></Button
-          >
-        </span>
-      </div>
-    {:else}
-      <p class="text-muted-foreground pt-2 text-[11.5px]">
-        {te('editor.sheet.noMilestone', language)}
-      </p>
-    {/each}
+          <Input
+            class="h-8 text-[13px]"
+            value={entry.milestone.date}
+            placeholder={te('editor.review.dateHint', language)}
+            aria-label={te('editor.sheet.milestoneDate', language)}
+            onblur={(e) => {
+              const next = isoDate(e.currentTarget.value)
+              if (next === undefined) e.currentTarget.value = entry.milestone.date
+              else if (next !== entry.milestone.date) patchMilestone(entry.index, { date: next })
+            }}
+          />
+          <Input
+            class="h-8 text-[13px]"
+            value={entry.milestone.display ?? ''}
+            placeholder="—"
+            aria-label={te('editor.sheet.milestoneDisplay', language)}
+            onblur={(e) => {
+              const next = e.currentTarget.value || undefined
+              if (next !== entry.milestone.display) patchMilestone(entry.index, { display: next })
+            }}
+          />
+          <span class="flex justify-center">
+            <Checkbox
+              checked={entry.milestone.done}
+              aria-label={te('editor.sheet.milestoneDone', language)}
+              onCheckedChange={(done) => patchMilestone(entry.index, { done })}
+            />
+          </span>
+          <span class="flex justify-end gap-0.5">
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              class="text-muted-foreground"
+              title={te('editor.projects.delete', language)}
+              aria-label={te('editor.projects.delete', language)}
+              onclick={() => setMilestones(project.milestones.filter((_, i) => i !== entry.index))}
+              ><Icon name="close-line" /></Button
+            >
+          </span>
+        </div>
+      {:else}
+        <p class="text-muted-foreground pt-2 text-[11.5px]">
+          {te('editor.sheet.noMilestone', language)}
+        </p>
+      {/each}
+    </div>
   </div>
 
   {#if project.milestones.length < 6}

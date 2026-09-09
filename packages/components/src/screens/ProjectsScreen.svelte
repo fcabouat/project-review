@@ -192,7 +192,9 @@
         ? te('editor.projects.noProgressBeforeLaunch', language)
         : undefined}
     >
-      <span class="h-1.5 w-[52px] flex-none overflow-hidden rounded-full bg-[#e6e6e6]">
+      <span
+        class="h-1.5 w-[52px] flex-none overflow-hidden rounded-full bg-[#e6e6e6] dark:bg-white/15"
+      >
         {#if gauge.type === 'value'}
           <span
             class="block h-full min-w-1 rounded-full"
@@ -213,7 +215,7 @@
       {decisions > 0 ? '✓' : ''}
     </span>
     <span
-      class="border-input inline-flex h-[19px] w-[52px] overflow-hidden rounded-[5px] border text-[9px] font-bold text-[#adadad]"
+      class="border-input text-muted-foreground inline-flex h-[19px] w-[52px] overflow-hidden rounded-[5px] border text-[9px] font-bold"
       title={te('editor.field.sheet', language)}
     >
       {#each SHEET_MODES as mode (mode)}
@@ -259,8 +261,10 @@
 {/snippet}
 
 <section class="bg-background border-border min-w-0 flex-1 overflow-hidden rounded-lg border">
-  <div class="border-border flex items-center justify-between gap-4 border-b px-4 py-3.5">
-    <div class="relative w-[520px] max-w-full flex-none">
+  <div
+    class="border-border flex items-center justify-between gap-4 border-b px-4 py-3.5 max-md:flex-wrap max-md:px-3"
+  >
+    <div class="relative w-[520px] max-w-full flex-none max-md:w-full">
       <svg
         class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 -translate-y-1/2"
         viewBox="0 0 24 24"
@@ -304,80 +308,94 @@
     </span>
   </div>
 
-  <div
-    class="{ROW_GRID} bg-secondary text-muted-foreground border-border h-8 border-b text-[10.5px] font-bold tracking-[0.05em] uppercase"
-  >
-    <span></span>
-    <span class="overflow-hidden whitespace-nowrap">{te('editor.projects.col.id', language)}</span>
-    <span class="overflow-hidden whitespace-nowrap"
-      >{te('editor.projects.col.project', language)}</span
-    >
-    <span class="overflow-hidden whitespace-nowrap">{te('editor.field.stage', language)}</span>
-    <span class="overflow-hidden whitespace-nowrap">{te('editor.field.health', language)}</span>
-    <span class="overflow-hidden whitespace-nowrap"
-      >{te('editor.projects.col.priority', language)}</span
-    >
-    <span class="overflow-hidden whitespace-nowrap">{te('editor.field.progress', language)}</span>
-    <span class="overflow-hidden whitespace-nowrap"
-      >{te('editor.projects.col.decision', language)}</span
-    >
-    <span
-      class="overflow-hidden whitespace-nowrap"
-      title={te('editor.projects.col.slideTitle', language)}
-      >{te('editor.projects.col.slide', language)}</span
-    >
-    <span></span>
-    <span></span>
-  </div>
-
-  {#each groups as group (group.category.id)}
-    <div class="border-secondary border-b-[5px] last-of-type:border-b-0">
-      <div class="border-border flex h-9 items-center gap-2 border-b bg-white px-3.5 text-[13px]">
-        <span
-          class="inline-block size-2.5 flex-none rounded-full"
-          style="background:{catColor(group.category.color)}"
-          aria-hidden="true"
-        ></span>
-        <span class="text-foreground font-bold">{categoryName(group.category, language)}</span>
-        <span class="text-muted-foreground ml-0.5 text-[11.5px]"
-          >{countLabel(group.projects.length)}</span
-        >
-      </div>
-      {#each group.projects as project (project.id)}
-        {@render row(project, group.projects)}
-      {/each}
-    </div>
-  {/each}
-
-  {#if archived.length > 0}
-    <details class="border-secondary group border-b-[5px] last-of-type:border-b-0">
-      <summary
-        class="border-border flex h-9 cursor-pointer list-none items-center gap-2 border-b bg-white px-3.5 text-[13px] [&::-webkit-details-marker]:hidden"
+  <!-- The 11-column grid keeps its full metrics on every screen: below its
+       natural width the TABLE scrolls sideways inside this container — the
+       page body itself never scrolls horizontally. -->
+  <div class="overflow-x-auto overscroll-x-contain">
+    <div class="min-w-[860px]">
+      <div
+        class="{ROW_GRID} bg-secondary text-muted-foreground border-border h-8 border-b text-[10.5px] font-bold tracking-[0.05em] uppercase"
       >
-        <span
-          class="text-muted-foreground inline-block w-2.5 text-[10px] transition-transform duration-[120ms] group-open:rotate-90"
-          aria-hidden="true">▸</span
+        <span></span>
+        <span class="overflow-hidden whitespace-nowrap"
+          >{te('editor.projects.col.id', language)}</span
+        >
+        <span class="overflow-hidden whitespace-nowrap"
+          >{te('editor.projects.col.project', language)}</span
+        >
+        <span class="overflow-hidden whitespace-nowrap">{te('editor.field.stage', language)}</span>
+        <span class="overflow-hidden whitespace-nowrap">{te('editor.field.health', language)}</span>
+        <span class="overflow-hidden whitespace-nowrap"
+          >{te('editor.projects.col.priority', language)}</span
+        >
+        <span class="overflow-hidden whitespace-nowrap"
+          >{te('editor.field.progress', language)}</span
+        >
+        <span class="overflow-hidden whitespace-nowrap"
+          >{te('editor.projects.col.decision', language)}</span
         >
         <span
-          class="inline-block size-2.5 flex-none rounded-full"
-          style="background:var(--av-na)"
-          aria-hidden="true"
-        ></span>
-        <span class="text-(--txt2) font-bold">{te('editor.projects.archived', language)}</span>
-        <span class="text-muted-foreground ml-0.5 text-[11.5px]">{countLabel(archived.length)}</span
+          class="overflow-hidden whitespace-nowrap"
+          title={te('editor.projects.col.slideTitle', language)}
+          >{te('editor.projects.col.slide', language)}</span
         >
-      </summary>
-      {#each archived as project (project.id)}
-        {@render row(project, archived)}
-      {/each}
-    </details>
-  {/if}
+        <span></span>
+        <span></span>
+      </div>
 
-  {#if groups.length === 0 && archived.length === 0}
-    <p class="text-muted-foreground px-4 py-[26px] text-center text-[13px]">
-      {searching ? te('editor.projects.none', language) : te('editor.projects.empty', language)}
-    </p>
-  {/if}
+      {#each groups as group (group.category.id)}
+        <div class="border-secondary border-b-[5px] last-of-type:border-b-0">
+          <div
+            class="border-border bg-background flex h-9 items-center gap-2 border-b px-3.5 text-[13px]"
+          >
+            <span
+              class="inline-block size-2.5 flex-none rounded-full"
+              style="background:{catColor(group.category.color)}"
+              aria-hidden="true"
+            ></span>
+            <span class="text-foreground font-bold">{categoryName(group.category, language)}</span>
+            <span class="text-muted-foreground ml-0.5 text-[11.5px]"
+              >{countLabel(group.projects.length)}</span
+            >
+          </div>
+          {#each group.projects as project (project.id)}
+            {@render row(project, group.projects)}
+          {/each}
+        </div>
+      {/each}
+
+      {#if archived.length > 0}
+        <details class="border-secondary group border-b-[5px] last-of-type:border-b-0">
+          <summary
+            class="border-border bg-background flex h-9 cursor-pointer list-none items-center gap-2 border-b px-3.5 text-[13px] [&::-webkit-details-marker]:hidden"
+          >
+            <span
+              class="text-muted-foreground inline-block w-2.5 text-[10px] transition-transform duration-[120ms] group-open:rotate-90"
+              aria-hidden="true">▸</span
+            >
+            <span
+              class="inline-block size-2.5 flex-none rounded-full"
+              style="background:var(--av-na)"
+              aria-hidden="true"
+            ></span>
+            <span class="text-(--txt2) font-bold">{te('editor.projects.archived', language)}</span>
+            <span class="text-muted-foreground ml-0.5 text-[11.5px]"
+              >{countLabel(archived.length)}</span
+            >
+          </summary>
+          {#each archived as project (project.id)}
+            {@render row(project, archived)}
+          {/each}
+        </details>
+      {/if}
+
+      {#if groups.length === 0 && archived.length === 0}
+        <p class="text-muted-foreground px-4 py-[26px] text-center text-[13px]">
+          {searching ? te('editor.projects.none', language) : te('editor.projects.empty', language)}
+        </p>
+      {/if}
+    </div>
+  </div>
 </section>
 
 <!-- Mounted only while a deletion is pending: Confirm dispatches, anything

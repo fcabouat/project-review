@@ -68,9 +68,12 @@
     padding: 0 5px;
   }
 
-  /* Modifier suffixes are Stage values: French, part of the data contract. */
+  /* Modifier suffixes are Stage values: French, part of the data contract.
+     The two plain-grey chips ride --chip-plain-* (tokens.css) so the dark
+     editor can restate them; inside a slide the pin freezes the historic
+     values, byte for byte. */
   .chip--toScope {
-    background: #eee;
+    background: var(--chip-plain-bg);
     color: var(--txt2);
   }
   .chip--ready {
@@ -87,8 +90,8 @@
     color: var(--ok);
   }
   .chip--closed {
-    background: #eee;
-    color: #666;
+    background: var(--chip-plain-bg);
+    color: var(--chip-plain-txt);
   }
   .chip--abandoned {
     background: var(--err-bg);

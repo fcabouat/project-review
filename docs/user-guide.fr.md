@@ -192,18 +192,34 @@ une police non embarquée est choisie.
 - **Réinitialiser les réglages** — retour au thème et à l'affichage par
   défaut ; langue et identité sont conservées. Annulable.
 
+## Sur téléphone ou tablette
+
+L'éditeur s'adapte sous les largeurs de bureau : la barre latérale devient un
+tiroir derrière le bouton ☰, les formulaires s'empilent, et les tableaux
+larges (le portefeuille, les jalons) défilent latéralement dans leur propre
+cadre — la page, elle, ne défile jamais horizontalement. Le diaporama réduit
+ses slides 16:9 à la taille de l'écran, et sa barre de sortie reste visible
+sur écran tactile. Tout fonctionne sur téléphone ; un poste de travail reste
+simplement plus confortable pour saisir.
+
 ## Apparence
 
-<img src="images/fr-settings.png" width="720" alt="Vue Paramètres : identité, thème, catégories, slides libres, slides d’agrégat et données">
+<img src="images/fr-settings.png" width="720" alt="Vue Paramètres : identité, apparence avec le sélecteur de thème d’interface, catégories, slides libres, slides d’agrégat et données">
 
 **Paramètres > Langue & palette** :
 
-- **Thème** — Flat (défaut) ou Classique.
+- **Thème** — Flat (défaut) ou Classique. Il habille les slides.
+- **Thème de l'interface** — Système (défaut), Clair ou Sombre. Une
+  préférence de l'appareil, rangée hors du fichier de portefeuille :
+  l'éditeur bascule, les slides restent claires (elles sont l'artefact). Les
+  trois mêmes états sont à côté du commutateur FR | EN de la barre du haut.
 - **Palette** — Material (défaut), Tailwind ou DSFR.
 - **Police** — Roboto est embarquée dans l'application et sert de défaut.
   Marianne est utilisée si ses fichiers de police sont déployés à côté de
-  l'application. Tout autre nom de famille Google Fonts se charge par le
-  réseau quand il y en a un.
+  l'application ; avec « Marianne » dans le champ, la carte liste les
+  fichiers attendus et affiche un statut vivant — servie, ou introuvable avec
+  repli sur la pile système. Tout autre nom de famille Google Fonts se charge
+  par le réseau quand il y en a un.
 - **Langue** — français ou anglais ; le changement redessine l'application à
   chaud. La langue se change aussi par le commutateur FR | EN de la barre du
   haut.

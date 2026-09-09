@@ -4,7 +4,7 @@
  * document.
  */
 import { describe, expect, it } from 'vitest'
-import { applyFont, fontLinkId, fontStack, googleFontsUrl } from '../src/fonts'
+import { applyFont, fontLinkId, fontStack, googleFontsUrl, probeFont } from '../src/fonts'
 
 describe('font service', () => {
   it('fontStack: Roboto (default) and empty fall back, others are prepended quoted', () => {
@@ -44,5 +44,65 @@ describe('font service', () => {
     expect(links).toHaveLength(1)
     expect(links[0]!.id).toBe(fontLinkId('IBM Plex Sans'))
     expect(() => applyFont('Anything', undefined)).not.toThrow()
+  })
+
+  /** A doc exposing exactly the Font Loading surface the probe touches. */
+  const fontsDoc = (
+    load: (probe: string) => Promise<unknown[]>,
+    check: (probe: string) => boolean,
+  ) => ({ fonts: { load, check } }) as unknown as Document
+
+  it('probeFont: a face the load resolves is served', async () => {
+    const doc = fontsDoc(
+      async () => [{ family: 'Marianne' }],
+      () => true,
+    )
+    await expect(probeFont('Marianne', doc)).resolves.toBe('served')
+  })
+
+  it('probeFont: an empty load answered by check() still counts as served', async () => {
+    // Some engines resolve load() with [] yet render the face — check() is
+    // the tie-breaker, asked only AFTER the forced load (before it, check
+    // reports unloaded declared faces as unavailable).
+    const doc = fontsDoc(
+      async () => [],
+      () => true,
+    )
+    await expect(probeFont('Marianne', doc)).resolves.toBe('served')
+  })
+
+  it('probeFont: nothing loads, check refuses — missing', async () => {
+    const doc = fontsDoc(
+      async () => [],
+      () => false,
+    )
+    await expect(probeFont('Marianne', doc)).resolves.toBe('missing')
+  })
+
+  it('probeFont: a rejecting load degrades to missing, never a throw', async () => {
+    const doc = fontsDoc(
+      () => Promise.reject(new Error('network')),
+      () => true,
+    )
+    await expect(probeFont('Marianne', doc)).resolves.toBe('missing')
+  })
+
+  it('probeFont: no document or no Font Loading API — unknown (no way to ask)', async () => {
+    await expect(probeFont('Marianne', undefined)).resolves.toBe('unknown')
+    await expect(probeFont('Marianne', {} as unknown as Document)).resolves.toBe('unknown')
+  })
+
+  it('probeFont: a blank family is missing by definition; quotes are stripped', async () => {
+    const probes: string[] = []
+    const doc = fontsDoc(
+      async (probe) => {
+        probes.push(probe)
+        return []
+      },
+      () => false,
+    )
+    await expect(probeFont('   ', doc)).resolves.toBe('missing')
+    await probeFont('"Marianne"', doc)
+    expect(probes).toEqual(['16px "Marianne"'])
   })
 })

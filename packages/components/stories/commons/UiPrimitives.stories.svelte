@@ -12,6 +12,7 @@
   import * as RadioGroup from '../../src/commons/ui/radio-group'
   import * as Select from '../../src/commons/ui/select'
   import { Separator } from '../../src/commons/ui/separator'
+  import * as Sheet from '../../src/commons/ui/sheet'
   import { Switch } from '../../src/commons/ui/switch'
   import * as Tabs from '../../src/commons/ui/tabs'
   import { Textarea } from '../../src/commons/ui/textarea'
@@ -138,6 +139,40 @@
           <DropdownMenu.Item variant="destructive">Destructive action</DropdownMenu.Item>
         </DropdownMenu.Content>
       </DropdownMenu.Root>
+
+      <!-- The sheet primitive — the mobile shell mounts its nav in exactly
+           this drawer (side="left", the sidebar's dark ground). -->
+      <Sheet.Root>
+        <Sheet.Trigger>
+          {#snippet child({ props })}
+            <Button variant="outline" {...props}>Open a drawer</Button>
+          {/snippet}
+        </Sheet.Trigger>
+        <Sheet.Content
+          side="left"
+          class="gap-0 border-r-0 bg-[#1b1b35] p-0 text-white data-[side=left]:w-[280px] [&_[data-slot=sheet-close]]:text-white"
+        >
+          <Sheet.Title class="px-[18px] pt-4 pb-2 text-sm font-extrabold text-white">
+            A drawer
+          </Sheet.Title>
+          <Sheet.Description class="px-[18px] pb-3 text-[11.5px] text-white/60">
+            Escape and the overlay close it; focus is trapped inside.
+          </Sheet.Description>
+          <nav class="flex flex-col" aria-label="Drawer sample">
+            {#each ['First entry', 'Second entry', 'Third entry'] as entry, i (entry)}
+              <button
+                type="button"
+                class="flex min-h-11 w-full cursor-pointer items-center border-l-[3px] px-[18px] text-left text-[13.5px] no-underline {i ===
+                0
+                  ? 'border-l-(--accent-main) bg-(--accent-main)/20 font-bold text-white'
+                  : 'border-transparent font-semibold text-white/70 hover:bg-white/5 hover:text-white'}"
+              >
+                {entry}
+              </button>
+            {/each}
+          </nav>
+        </Sheet.Content>
+      </Sheet.Root>
     </section>
   </div>
 </Story>

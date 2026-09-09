@@ -4,11 +4,17 @@
    * The package SVG already carries `fill="currentColor"`; the stylesheet below
    * restates it so we survive any variation of the package.
    * Each icon must earn its place: five on the sheets, `eye-line` for the
-   * editor's "preview this slide" affordance, and the last five are the
-   * indicator glyphs of the vendored ui primitives (commons/ui) — this catalog
-   * is the single icon source, Remix everywhere.
+   * editor's "preview this slide" affordance, `menu-line` for the mobile nav
+   * drawer trigger, `contrast-line`/`sun-line`/`moon-line` for the top bar's
+   * scheme toggle, and the last five are the indicator glyphs of the vendored
+   * ui primitives (commons/ui) — this catalog is the single icon source,
+   * Remix everywhere.
    */
   import checkLine from 'remixicon/icons/System/check-line.svg?raw'
+  import menuLine from 'remixicon/icons/System/menu-line.svg?raw'
+  import contrastLine from 'remixicon/icons/Design/contrast-line.svg?raw'
+  import sunLine from 'remixicon/icons/Weather/sun-line.svg?raw'
+  import moonLine from 'remixicon/icons/Weather/moon-line.svg?raw'
   import timeLine from 'remixicon/icons/System/time-line.svg?raw'
   import arrowRightLine from 'remixicon/icons/Arrows/arrow-right-line.svg?raw'
   import alertLine from 'remixicon/icons/System/alert-line.svg?raw'
@@ -22,6 +28,10 @@
 
   export const ICONS = {
     'check-line': checkLine,
+    'menu-line': menuLine,
+    'contrast-line': contrastLine,
+    'sun-line': sunLine,
+    'moon-line': moonLine,
     'time-line': timeLine,
     'arrow-right-line': arrowRightLine,
     'alert-line': alertLine,

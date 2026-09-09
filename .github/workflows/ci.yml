@@ -16,12 +16,16 @@ jobs:
       - run: bun run check
       - run: bun run test
       - run: bun run build
-      # The full ceremony — browser install + file:// smoke on the freshly
-      # built deliverable — runs on milestone branches only; pull requests
-      # keep the fast lane (lint/format/check/test/build).
+      # The full ceremony — browser install + file:// smoke + axe pass on the
+      # freshly built deliverables — runs on milestone branches only; pull
+      # requests keep the fast lane (lint/format/check/test/build).
       - if: github.event_name != 'pull_request'
         run: npx playwright install --with-deps chromium
       - if: github.event_name != 'pull_request'
         run: bun run smoke
+      - if: github.event_name != 'pull_request'
+        run: bun run docs:site
+      - if: github.event_name != 'pull_request'
+        run: bun run a11y
       - run: bun audit
         continue-on-error: true # advisories inform, they do not gate

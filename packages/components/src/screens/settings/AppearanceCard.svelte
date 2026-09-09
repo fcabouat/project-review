@@ -1,5 +1,10 @@
 <script lang="ts">
-  /** Appearance card: theme style, palette family, font and interface language. */
+  /**
+   * Appearance card: slide theme style, reader scheme, palette family, font
+   * and interface language. The scheme picker is the ONE control here that
+   * does not dispatch: the scheme is a reader preference the host wires in
+   * (`AppearanceControl`), never a portfolio setting — see the contract.
+   */
   import type { Portfolio } from '@project-review/core/model/portfolio'
   import type { Language, PaletteFamily, ThemeStyle } from '@project-review/core/model/theme'
   import { LANGUAGES, PALETTES, THEME_STYLES } from '@project-review/core/model/theme'
@@ -9,14 +14,26 @@
   import FieldText from '../../editor/FieldText.svelte'
   import FieldSegmented from '../../editor/FieldSegmented.svelte'
   import * as RadioGroup from '../../commons/ui/radio-group'
-  import type { Dispatch } from '../contracts'
+  import type { AppearanceControl, ColorScheme, Dispatch, FontStatus } from '../contracts'
 
   interface Props {
     readonly portfolio: Portfolio
     readonly dispatch: Dispatch
+    /** Reader scheme picker; absent (a bare story) → the row is not shown. */
+    readonly appearance?: AppearanceControl
+    /** Live verdict on the locally served font — the host probes, the card
+     * only tells; absent, the card stays on the calm `unknown` wording. */
+    readonly fontStatus?: FontStatus
   }
 
-  let { portfolio, dispatch }: Props = $props()
+  let { portfolio, dispatch, appearance, fontStatus }: Props = $props()
+
+  const SCHEMES: readonly ColorScheme[] = ['system', 'light', 'dark']
+
+  /** The one family served from the deployment rather than bundled/fetched:
+   * only for it do the expected files and the live verdict appear. */
+  const marianne = $derived(portfolio.settings.theme.font.trim() === 'Marianne')
+  const probeState = $derived(fontStatus ?? 'unknown')
 
   const settings = $derived(portfolio.settings)
   const language = $derived(settings.language)
@@ -58,6 +75,19 @@
     commit={setStyle}
   />
 
+  {#if appearance}
+    <FieldSegmented
+      label={te('editor.setting.scheme', language)}
+      value={appearance.scheme}
+      options={SCHEMES.map((candidate) => ({
+        value: candidate,
+        label: te(`editor.scheme.${candidate}`, language),
+      }))}
+      hint={te('editor.settings.schemeHint', language)}
+      commit={(next) => appearance?.setScheme(next)}
+    />
+  {/if}
+
   <div class="mb-4 flex flex-col gap-[7px]">
     <span class="text-(--txt2) text-[12.5px] font-semibold"
       >{te('editor.setting.palette', language)}</span
@@ -73,7 +103,7 @@
         <label
           class="{checked
             ? 'border-primary bg-accent'
-            : 'border-input bg-white'} has-[:focus-visible]:outline-ring relative flex cursor-pointer items-center gap-[9px] rounded-[7px] border px-2.5 py-2 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-1"
+            : 'border-input bg-background'} has-[:focus-visible]:outline-ring relative flex cursor-pointer items-center gap-[9px] rounded-[7px] border px-2.5 py-2 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-1"
         >
           <RadioGroup.Item value={family} class="sr-only" />
           <!-- The dots preview THIS family, not the active one: the local
@@ -108,6 +138,26 @@
       hint={te('editor.settings.fontHint', language)}
       commit={setFont}
     />
+    {#if marianne}
+      <!-- Marianne is served from the deployment: name the exact files, then
+           TELL THE TRUTH — the host's document.fonts probe says whether the
+           faces are actually there. aria-live announces the settled verdict
+           without stealing focus. -->
+      <span class="text-muted-foreground text-[11.5px]">
+        {te('editor.settings.marianneFiles', language)}
+      </span>
+      <span class="text-[11.5px] font-semibold" aria-live="polite">
+        {#if probeState === 'served'}
+          <span class="text-(--ok)">{te('editor.settings.fontProbe.served', language)}</span>
+        {:else if probeState === 'missing'}
+          <span class="text-(--vig-txt)">{te('editor.settings.fontProbe.missing', language)}</span>
+        {:else}
+          <span class="text-muted-foreground"
+            >{te('editor.settings.fontProbe.unknown', language)}</span
+          >
+        {/if}
+      </span>
+    {/if}
   </div>
 
   <FieldSegmented

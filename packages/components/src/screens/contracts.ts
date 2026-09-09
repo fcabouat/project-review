@@ -27,3 +27,26 @@ export interface PersistenceControl {
   readonly lastError: string | null
   readonly toggle: (enabled: boolean) => void
 }
+
+/**
+ * Reader-side color scheme of the EDITOR chrome — `system` follows the OS.
+ * A reader preference, not a portfolio setting: it never travels with the
+ * file, so it is no domain event either (the host keeps it app-side, next to
+ * the local-save flag). The slides are an artifact and stay light throughout.
+ */
+export type ColorScheme = 'system' | 'light' | 'dark'
+
+/** UI contract of the scheme picker (Settings ▸ Appearance), host-wired. */
+export interface AppearanceControl {
+  readonly scheme: ColorScheme
+  readonly setScheme: (next: ColorScheme) => void
+}
+
+/**
+ * Live verdict on the locally served font (today: Marianne, the one family
+ * deployed ALONGSIDE the app). Probing is a browser affair — the host wires
+ * the infrastructure's `document.fonts` probe in and passes the verdict down;
+ * `unknown` covers "still probing" and "no way to ask" alike, so the card
+ * never flashes a wrong «not found».
+ */
+export type FontStatus = 'unknown' | 'served' | 'missing'

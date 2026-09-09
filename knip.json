@@ -17,8 +17,8 @@
       "project": ["src/**", "tests/**"]
     },
     "app": {
-      "entry": ["tests/**/*.test.ts"],
-      "project": ["src/**", "tests/**", "scripts/**"]
+      "entry": ["tests/**/*.test.ts", "tests-smoke/*.mjs"],
+      "project": ["src/**", "tests/**", "tests-smoke/**", "scripts/**"]
     }
   }
 }

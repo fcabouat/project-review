@@ -34,6 +34,11 @@ export const STANDALONE_REVEAL_OPTIONS = {
   center: false,
   embedded: false,
   touch: true,
+  // One paradigm at every width: reveal would otherwise swap to its scroll
+  // view under 435 px (controls hidden, drawers flattened into one scroll).
+  // The deck keeps its scaled 16:9 canvas, swipe navigation and deck-tree
+  // drawers on phones instead — 0 disables the automatic activation.
+  scrollActivationWidth: 0,
   navigationMode: 'default',
   transition: 'slide',
   backgroundTransition: 'fade',

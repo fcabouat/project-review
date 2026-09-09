@@ -140,7 +140,14 @@ ${parts.slidesHtml}
 ${escapeScriptClose(parts.revealSource)}
 </script>
 <script nonce="${nonce}">
-new window.Reveal(document.querySelector('.reveal'), ${JSON.stringify(parts.revealOptions)}).initialize().then(function () {
+var options = ${JSON.stringify(parts.revealOptions)};
+// Same motion check as the live host: reveal animates with inline transforms
+// no reduced-motion stylesheet can reach — ask for no transition outright.
+if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  options.transition = 'none';
+  options.backgroundTransition = 'none';
+}
+new window.Reveal(document.querySelector('.reveal'), options).initialize().then(function () {
   // Same fix as the live host: the inlined Tailwind preflight hides [hidden]
   // with !important, while reveal drives non-present sections through inline
   // styles. reveal keeps aria-hidden; the boolean attribute must go.
@@ -233,9 +240,43 @@ const fetchAsDataUri: UriFetcher = async (url) => {
 }
 
 /**
+ * One rule's text with the editor's dark scheme STRIPPED: any style rule whose
+ * selector references `.dark` — the reader-scheme token block of tokens.css
+ * and the compiled `dark:` variants of the vendored primitives — is dropped.
+ * The exported deck has no editor, so it must not embark the editor's dark
+ * mode (its slides are pinned light in any case). Grouping rules (`@media`,
+ * `@supports`, `@layer`) are rebuilt around their surviving children so the
+ * filter reaches any depth; every kept leaf stays `cssText`-verbatim.
+ */
+function lightRuleText(rule: CSSRule): string | null {
+  if (rule instanceof CSSStyleRule) {
+    return /\.dark\b/.test(rule.selectorText) ? null : rule.cssText
+  }
+  const kept = (rules: CSSRuleList): string[] =>
+    Array.from(rules)
+      .map(lightRuleText)
+      .filter((text): text is string => text !== null)
+  if (rule instanceof CSSMediaRule) {
+    const inner = kept(rule.cssRules)
+    return inner.length === 0 ? null : `@media ${rule.conditionText} {\n${inner.join('\n')}\n}`
+  }
+  if (rule instanceof CSSSupportsRule) {
+    const inner = kept(rule.cssRules)
+    return inner.length === 0 ? null : `@supports ${rule.conditionText} {\n${inner.join('\n')}\n}`
+  }
+  if (typeof CSSLayerBlockRule !== 'undefined' && rule instanceof CSSLayerBlockRule) {
+    const inner = kept(rule.cssRules)
+    if (inner.length === 0) return null
+    return `@layer${rule.name === '' ? '' : ` ${rule.name}`} {\n${inner.join('\n')}\n}`
+  }
+  return rule.cssText
+}
+
+/**
  * Every rule of every stylesheet of the document — Svelte component styles,
  * `slideshow.css`, the theme — EXCEPT the reveal base sheet the host injected
  * (`data-owner="slideshow"`): the caller prepends the same text itself, once.
+ * Every `.dark`-scoped rule is stripped on the way ({@link lightRuleText}).
  * Cross-origin sheets (Google Fonts) throw on `cssRules` and are skipped: the
  * font comes back through the `<link>` of the pure half.
  *
@@ -248,7 +289,10 @@ export function collectDocumentStyles(doc: Document): string {
     const owner = sheet.ownerNode
     if (owner instanceof HTMLElement && owner.dataset['owner'] === 'slideshow') continue
     try {
-      for (const rule of Array.from(sheet.cssRules)) chunks.push(rule.cssText)
+      for (const rule of Array.from(sheet.cssRules)) {
+        const text = lightRuleText(rule)
+        if (text !== null) chunks.push(text)
+      }
     } catch {
       // Cross-origin stylesheet — unreadable, relinked instead of inlined.
     }

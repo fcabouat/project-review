@@ -31,11 +31,14 @@
   import Shell from '@project-review/components/screens/Shell.svelte'
   import { defaultStorage } from '@project-review/infrastructure/local-storage'
   import { timeoutScheduler } from '@project-review/infrastructure/scheduler'
-  import { applyFont } from '@project-review/infrastructure/fonts'
+  import { applyFont, probeFont } from '@project-review/infrastructure/fonts'
   import { saveStandalone } from '@project-review/infrastructure/dom-export'
+  import { MediaQuery } from 'svelte/reactivity'
   import { createStore } from './bindings/runtime.svelte'
   import { createRouter } from './bindings/route.svelte'
   import { createPersistenceControl } from './bindings/persistence-control.svelte'
+  import { createAppearance } from './bindings/appearance.svelte'
+  import { createFontStatus } from './bindings/font-status.svelte'
   import { bundledSample, shouldBootSample } from './sample-boot'
 
   const storage = defaultStorage()
@@ -95,6 +98,9 @@
   const store = createStore(initial.portfolio, initial.log)
   const router = createRouter()
   const persistence = createPersistenceControl(store, storage, persistEnabled, timeoutScheduler)
+  const appearance = createAppearance(storage)
+  const systemDark = new MediaQuery('(prefers-color-scheme: dark)')
+  const fontStatus = createFontStatus((family) => probeFont(family))
 
   /**
    * The reveal.js UMD source (`window.Reveal`), fetched lazily as raw text.
@@ -123,9 +129,20 @@
     persistence.scheduleHistory({ past: store.past, future: store.future })
   })
 
-  // Live font: reacts to settings.theme.font — Google Fonts on demand.
+  // Live font: reacts to settings.theme.font — Google Fonts on demand — and
+  // re-probes the locally served family for the Settings card's live status.
   $effect(() => {
     applyFont(store.present.settings.theme.font)
+    fontStatus.watch(store.present.settings.theme.font)
+  })
+
+  // Reader scheme → the `dark` class on <html> (tokens.css flips the editor
+  // chrome; the slides pin their light values). `system` follows the OS live.
+  // `?print` opts out: printing is a slides affair, light by construction.
+  $effect(() => {
+    const dark =
+      appearance.scheme === 'dark' || (appearance.scheme === 'system' && systemDark.current)
+    document.documentElement.classList.toggle('dark', dark && !printMode)
   })
 
   // Live slide style: the templates scope their 'flat' rules under this root
@@ -178,6 +195,8 @@
     navigate={router.navigate}
     replaceRoute={router.replace}
     persistence={persistence.control}
+    {appearance}
+    fontStatus={fontStatus.status}
     {exportStandalone}
   />
 {/if}

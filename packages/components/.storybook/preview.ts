@@ -43,6 +43,22 @@ const preview: Preview = {
         dynamicTitle: true,
       },
     },
+    // The editor's reader scheme: the app stamps a `dark` class on <html>
+    // (tokens.css flips the chrome tokens; slides pin their light values).
+    // The toolbar mirrors that, so EVERY story can be read in both schemes —
+    // and the slide stories prove the artifact stays light under `dark`.
+    scheme: {
+      description: 'Editor scheme (`dark` class on <html>)',
+      toolbar: {
+        title: 'Scheme',
+        icon: 'contrast',
+        items: [
+          { value: 'light', title: 'Light' },
+          { value: 'dark', title: 'Dark' },
+        ],
+        dynamicTitle: true,
+      },
+    },
     // The category colors are CSS custom properties scoped under data-palette
     // (palettes.css) — the app stamps the attribute on <html>, the toolbar
     // mirrors that so every story can be read under each family.
@@ -66,12 +82,14 @@ const preview: Preview = {
         context.globals['style'] === 'classic' ? 'classic' : 'flat'
       document.documentElement.dataset.palette =
         typeof context.globals['palette'] === 'string' ? context.globals['palette'] : 'material'
+      document.documentElement.classList.toggle('dark', context.globals['scheme'] === 'dark')
       return story()
     },
   ],
   initialGlobals: {
     backgrounds: { value: 'slide' },
     style: 'flat',
+    scheme: 'light',
     palette: 'material',
   },
 }

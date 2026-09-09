@@ -140,24 +140,24 @@
   </p>
 {:else}
   <div
-    class="border-border flex flex-col items-stretch gap-2.5 rounded-t-lg border border-b-0 bg-white px-[22px] py-4"
+    class="border-border bg-background flex flex-col items-stretch gap-2.5 rounded-t-lg border border-b-0 px-[22px] py-4 max-md:px-3"
   >
-    <nav class="text-muted-foreground text-xs">
+    <nav class="text-muted-foreground text-xs" aria-label={te('editor.sheet.breadcrumb', language)}>
       <Button variant="link" class="h-auto p-0 text-xs underline" onclick={back}>
         {te('editor.sheet.breadcrumb', language)}
       </Button>
-      <span class="mx-1.5 text-[#b9b9bc]">/</span>
+      <span class="text-muted-foreground mx-1.5" aria-hidden="true">/</span>
       <span class="text-(--txt2) font-semibold">{project.id}</span>
     </nav>
-    <div class="flex items-end gap-[18px]">
-      <div class="flex min-w-0 flex-1 gap-4">
-        <label class="flex w-32 flex-none flex-col">
+    <div class="flex items-end gap-[18px] max-md:flex-col max-md:items-stretch max-md:gap-3">
+      <div class="flex min-w-0 flex-1 gap-4 max-md:flex-col max-md:gap-3">
+        <label class="flex w-32 flex-none flex-col max-md:w-full">
           <span class="text-(--txt2) mb-[5px] text-[12.5px] font-semibold"
             >{te('editor.field.id', language)}</span
           >
           <span class="flex items-center gap-1.5">
             <Input
-              class="read-only:text-(--txt2) read-only:bg-[#fafafa]"
+              class="read-only:text-(--txt2) read-only:bg-[#fafafa] dark:read-only:bg-white/5"
               value={project.id}
               readonly
               title={te('editor.sheet.idLocked', language)}
@@ -184,7 +184,7 @@
           />
         </div>
 
-        <div class="flex w-[210px] flex-none flex-col">
+        <div class="flex w-[210px] flex-none flex-col max-md:w-full">
           <span class="text-(--txt2) mb-[5px] text-[12.5px] font-semibold"
             >{te('editor.field.categoryId', language)}</span
           >
@@ -217,7 +217,7 @@
 
   <Tabs.Root value={tab} onValueChange={(v) => (tab = v as Tab)}>
     <Tabs.List
-      class="border-border h-auto w-full justify-start gap-0.5 rounded-none border-x border-b bg-white p-0 px-[22px]"
+      class="border-border bg-background h-auto w-full justify-start gap-0.5 overflow-x-auto rounded-none border-x border-b p-0 px-[22px] max-md:px-3"
     >
       {#each TABS as entry (entry.id)}
         <Tabs.Trigger value={entry.id} class={tabTrigger}>{te(entry.key, language)}</Tabs.Trigger>

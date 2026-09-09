@@ -18,6 +18,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "smoke": "node app/tests-smoke/smoke.mjs",
+    "a11y": "node app/tests-smoke/a11y.mjs",
     "storybook": "bun run --cwd packages/components storybook",
     "build-storybook": "bun run --cwd packages/components build-storybook",
     "lint": "eslint .",

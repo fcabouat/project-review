@@ -48,6 +48,11 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
   'editor.nav.aria': { fr: "Navigation de l'application", en: 'Application navigation' },
   'editor.nav.collapse': { fr: 'Replier le panneau', en: 'Collapse the panel' },
   'editor.nav.expand': { fr: 'Déplier le panneau', en: 'Expand the panel' },
+  'editor.nav.open': { fr: 'Ouvrir la navigation', en: 'Open the navigation' },
+  'editor.nav.skip': { fr: 'Aller au contenu', en: 'Skip to content' },
+  /* Screen name for assistive tech (the shell's visually hidden h1); the four
+     route names reuse their nav labels, the sheet composes its own. */
+  'editor.screen.sheet': { fr: 'Fiche projet {id}', en: 'Project sheet {id}' },
   'editor.foot.counts': {
     fr: `{tracked} suivis${NBSP}· {archived} archivés`,
     en: '{tracked} tracked · {archived} archived',
@@ -241,9 +246,37 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
     fr: `«${NBSP}Marianne${NBSP}» (servie si déployée à côté${NBSP}; jamais téléchargée) ou toute famille Google Fonts — défaut${NBSP}: Roboto.`,
     en: '"Marianne" (served if deployed alongside; never fetched) or any Google Fonts family — default: Roboto.',
   },
+  /* Marianne only: the expected deployment files, then the LIVE verdict of
+     the host's document.fonts probe (screens/contracts, `FontStatus`). */
+  'editor.settings.marianneFiles': {
+    fr: `Fichiers attendus sous fonts/marianne/${NBSP}: Marianne-Regular.woff2 (400), Marianne-Medium.woff2 (500–600), Marianne-Bold.woff2 (700–800).`,
+    en: 'Expected files under fonts/marianne/: Marianne-Regular.woff2 (400), Marianne-Medium.woff2 (500–600), Marianne-Bold.woff2 (700–800).',
+  },
+  'editor.settings.fontProbe.unknown': {
+    fr: 'Vérification de la police…',
+    en: 'Checking the font…',
+  },
+  'editor.settings.fontProbe.served': {
+    fr: 'Marianne servie par ce déploiement.',
+    en: 'Marianne is served by this deployment.',
+  },
+  'editor.settings.fontProbe.missing': {
+    fr: 'Marianne introuvable — repli sur la pile système.',
+    en: 'Marianne not found — falling back to the system stack.',
+  },
   'editor.setting.style': { fr: 'Thème', en: 'Theme' },
   'editor.style.flat': { fr: 'Flat', en: 'Flat' },
   'editor.style.classic': { fr: 'Classique', en: 'Classic' },
+  /* Reader scheme (Settings ▸ Appearance) — an app-side preference, never a
+     domain event: see `AppearanceControl` (screens/contracts). */
+  'editor.setting.scheme': { fr: `Thème de l'interface`, en: 'Interface theme' },
+  'editor.scheme.system': { fr: 'Système', en: 'System' },
+  'editor.scheme.light': { fr: 'Clair', en: 'Light' },
+  'editor.scheme.dark': { fr: 'Sombre', en: 'Dark' },
+  'editor.settings.schemeHint': {
+    fr: `Préférence de cet appareil — ne voyage pas avec le fichier${NBSP}; les slides restent claires.`,
+    en: 'A preference of this device — it does not travel with the file; slides stay light.',
+  },
   'editor.settings.logo': { fr: 'Logo', en: 'Logo' },
   'editor.settings.logoImport': { fr: 'Importer un logo…', en: 'Import a logo…' },
   'editor.settings.logoReset': { fr: 'Logo par défaut', en: 'Default logo' },

@@ -161,10 +161,15 @@
     // One option set for the live host AND the standalone export (see the
     // TSDoc on `STANDALONE_REVEAL_OPTIONS`): the spread keeps them from
     // drifting apart; the canvas is pinned explicitly as the host's only say.
+    // Motion preference: reveal animates slides with inline transforms the
+    // global reduced-motion CSS rule cannot reach — ask for no transition
+    // outright (the standalone export's boot script does the same check).
+    const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const instance = new engine.default(el, {
       ...STANDALONE_REVEAL_OPTIONS,
       width: SLIDE_WIDTH,
       height: SLIDE_HEIGHT,
+      ...(still ? { transition: 'none' as const, backgroundTransition: 'none' as const } : {}),
     })
 
     await instance.initialize()

@@ -117,7 +117,7 @@
   <div
     class="{dragging
       ? 'border-primary bg-accent text-accent-foreground'
-      : 'text-muted-foreground bg-secondary border-[#c7c7cc]'} mb-3 rounded-lg border-[1.5px] border-dashed p-5 text-center text-[13px]"
+      : 'text-muted-foreground bg-secondary border-[#c7c7cc] dark:border-(--border)'} mb-3 rounded-lg border-[1.5px] border-dashed p-5 text-center text-[13px]"
     role="presentation"
     ondragover={(e) => {
       e.preventDefault()
@@ -143,7 +143,7 @@
   </div>
 
   <Textarea
-    class="text-(--txt2) field-sizing-fixed bg-[#fafafa] font-mono text-xs leading-[1.55]"
+    class="text-(--txt2) field-sizing-fixed bg-[#fafafa] font-mono text-xs leading-[1.55] dark:bg-white/5"
     rows={6}
     aria-label={te('editor.io.paste', language)}
     value={source}

@@ -15,7 +15,7 @@
    * lays them out on the two-column grid.
    */
   import type { Portfolio } from '@project-review/core/model/portfolio'
-  import type { Dispatch, PersistenceControl } from './contracts'
+  import type { AppearanceControl, Dispatch, FontStatus, PersistenceControl } from './contracts'
   import IdentityCard from './settings/IdentityCard.svelte'
   import AppearanceCard from './settings/AppearanceCard.svelte'
   import AggregateSlidesCard from './settings/AggregateSlidesCard.svelte'
@@ -28,15 +28,19 @@
     readonly dispatch: Dispatch
     /** Local-save switch; absent → the row is not shown. */
     readonly persistence?: PersistenceControl
+    /** Reader scheme picker; absent → the row is not shown. */
+    readonly appearance?: AppearanceControl
+    /** Live verdict on the locally served font (Appearance card). */
+    readonly fontStatus?: FontStatus
   }
 
-  let { portfolio, dispatch, persistence }: Props = $props()
+  let { portfolio, dispatch, persistence, appearance, fontStatus }: Props = $props()
 </script>
 
-<div class="grid grid-cols-2 items-start gap-5">
+<div class="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
   <div class="flex min-w-0 flex-col gap-4">
     <IdentityCard {portfolio} {dispatch} />
-    <AppearanceCard {portfolio} {dispatch} />
+    <AppearanceCard {portfolio} {dispatch} {appearance} {fontStatus} />
     <AggregateSlidesCard {portfolio} {dispatch} />
     <DataCard {portfolio} {dispatch} {persistence} />
   </div>

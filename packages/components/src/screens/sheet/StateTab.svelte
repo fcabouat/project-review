@@ -29,7 +29,7 @@
 
   const CHIP =
     'has-[:focus-visible]:outline-ring border-input text-(--txt2) relative inline-flex ' +
-    'cursor-pointer items-center gap-1.5 rounded-full border bg-white px-[11px] py-[5px] ' +
+    'cursor-pointer items-center gap-1.5 rounded-full border bg-background px-[11px] py-[5px] ' +
     'text-[12.5px] font-semibold has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2'
 
   /** Checked chip tones — literal class lists so the scanner sees them. */
@@ -50,7 +50,7 @@
   }
 </script>
 
-<div class="grid grid-cols-2 items-start gap-5">
+<div class="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
   <section class="bg-background border-border rounded-lg border p-4">
     <h2 class="text-primary mb-3 text-xs font-bold tracking-[0.06em] uppercase">
       {te('editor.sheet.status', language)}

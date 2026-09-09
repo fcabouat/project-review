@@ -74,12 +74,14 @@
         hint={te('editor.hint.decider', language)}
         commit={(v) => patchDecision(index, { decider: v })}
       />
-      <div class="bg-secondary mt-2 rounded-md border border-dashed border-[#c7c7cc] p-3">
+      <div
+        class="bg-secondary mt-2 rounded-md border border-dashed border-[#c7c7cc] p-3 dark:border-(--border)"
+      >
         <span
           class="text-muted-foreground mb-[9px] block text-[10px] font-bold tracking-[0.05em] uppercase"
           >{te('editor.sheet.taken', language)}</span
         >
-        <div class="grid grid-cols-[2fr_1fr] gap-3.5">
+        <div class="grid grid-cols-[2fr_1fr] gap-3.5 max-md:grid-cols-1">
           <FieldText
             {language}
             label={te('editor.sheet.takenText', language)}

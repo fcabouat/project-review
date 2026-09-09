@@ -130,9 +130,19 @@
     transform: translateY(0);
   }
 
+  /* No hover, no reveal: on touch screens the bar stays pinned — otherwise
+     leaving the slideshow would depend on a hover that cannot happen. */
+  @media (hover: none) {
+    .exit-bar {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   .exit-right {
     display: flex;
     gap: 22px;
+    overflow-x: auto;
   }
 
   .exit-btn {
@@ -145,6 +155,9 @@
     color: inherit;
     cursor: pointer;
     white-space: nowrap;
+    /* Invisible on screen (the button paints nothing), decisive under a
+       finger: a ≥ 44 px hit box inside the 48 px bar. */
+    min-height: 44px;
   }
   .exit-btn:hover {
     text-decoration: underline;

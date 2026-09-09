@@ -11,7 +11,9 @@
         --accent-dark: #1a237e;
         --ink: #212121;
         --ink2: #455a64;
-        --muted: #78909c;
+        /* AA-checked: 4.62:1 on the lightest tinted ground it sits on
+           (the .shot-bar chrome), ≥ 4.9:1 on paper. */
+        --muted: #5e6d78;
         --paper: #ffffff;
         --paper-alt: #f5f5f5;
         --rule: #cfd8dc;
@@ -439,6 +441,19 @@
           font-size: 15px;
         }
       }
+      /* Motion is a preference (WCAG 2.3.3): the smooth anchor scroll is the
+         page's one movement — stilled under prefers-reduced-motion. */
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+        *,
+        ::before,
+        ::after {
+          transition-duration: 0.01ms !important;
+          animation-duration: 0.01ms !important;
+        }
+      }
     </style>
   </head>
   <body>
@@ -463,115 +478,121 @@
       </div>
     </header>
 
-    <div class="hero">
-      <div class="wrap hero-in">
-        <div>
-          <div class="kicker">%KICKER%</div>
-          <h1>%H1%</h1>
-          <p class="sub">%HERO_SUB%</p>
-          <div class="cta">
-            <a class="btn btn-solid" href="demo/project-review.html?sample">%CTA_TRY%</a>
-            <a class="btn btn-ghost" href="demo/project-review.html" download="project-review.html"
-              >%CTA_DL%</a
-            >
+    <main>
+      <div class="hero">
+        <div class="wrap hero-in">
+          <div>
+            <div class="kicker">%KICKER%</div>
+            <h1>%H1%</h1>
+            <p class="sub">%HERO_SUB%</p>
+            <div class="cta">
+              <a class="btn btn-solid" href="demo/project-review.html?sample">%CTA_TRY%</a>
+              <a
+                class="btn btn-ghost"
+                href="demo/project-review.html"
+                download="project-review.html"
+                >%CTA_DL%</a
+              >
+            </div>
+            <div class="hero-note">%HERO_NOTE%</div>
           </div>
-          <div class="hero-note">%HERO_NOTE%</div>
-        </div>
-        <figure class="shot">
-          <div class="shot-bar"><i></i><i></i><i></i><span>file:///project-review.html</span></div>
-          <img src="images/en-slide.png" alt="%ALT1%" width="1280" height="720" />
-        </figure>
-      </div>
-    </div>
-
-    <div class="proof">
-      <div class="wrap proof-in">
-        <div><b>%P1B%</b><span>%P1S%</span></div>
-        <div><b>%P2B%</b><span>%P2S%</span></div>
-        <div><b>%P3B%</b><span>%P3S%</span></div>
-        <div><b>%P4B%</b><span>%P4S%</span></div>
-      </div>
-    </div>
-
-    <section>
-      <div class="wrap">
-        <div class="sec-kicker">%S1_KICKER%</div>
-        <h2>%S1_H2%</h2>
-        <p class="lede">%S1_LEDE%</p>
-        <div class="grid3">
-          <div class="card" style="--card: var(--accent)">
-            <h3>%C1H%</h3>
-            <p>%C1P%</p>
-          </div>
-          <div class="card" style="--card: var(--teal)">
-            <h3>%C2H%</h3>
-            <p>%C2P%</p>
-          </div>
-          <div class="card" style="--card: var(--green)">
-            <h3>%C3H%</h3>
-            <p>%C3P%</p>
-          </div>
-          <div class="card" style="--card: var(--amber)">
-            <h3>%C4H%</h3>
-            <p>%C4P%</p>
-          </div>
-          <div class="card" style="--card: var(--purple)">
-            <h3>%C5H%</h3>
-            <p>%C5P%</p>
-          </div>
-          <div class="card" style="--card: var(--ink2)">
-            <h3>%C6H%</h3>
-            <p>%C6P%</p>
-          </div>
+          <figure class="shot">
+            <div class="shot-bar">
+              <i></i><i></i><i></i><span>file:///project-review.html</span>
+            </div>
+            <img src="images/en-slide.png" alt="%ALT1%" width="1280" height="720" />
+          </figure>
         </div>
       </div>
-    </section>
 
-    <section class="band">
-      <div class="wrap">
-        <div class="sec-kicker">%S2_KICKER%</div>
-        <h2>%S2_H2%</h2>
-        <div class="steps">
-          <div class="step">
-            <b>1</b>
-            <h3>%ST1H%</h3>
-            <p>%ST1P%</p>
-          </div>
-          <div class="step">
-            <b>2</b>
-            <h3>%ST2H%</h3>
-            <p>%ST2P%</p>
-          </div>
-          <div class="step">
-            <b>3</b>
-            <h3>%ST3H%</h3>
-            <p>%ST3P%</p>
-          </div>
+      <div class="proof">
+        <div class="wrap proof-in">
+          <div><b>%P1B%</b><span>%P1S%</span></div>
+          <div><b>%P2B%</b><span>%P2S%</span></div>
+          <div><b>%P3B%</b><span>%P3S%</span></div>
+          <div><b>%P4B%</b><span>%P4S%</span></div>
         </div>
-        <figure class="shot">
-          <div class="shot-bar">
-            <i></i><i></i><i></i><span>file:///project-review.html#/projects</span>
-          </div>
-          <img src="images/en-projects.png" alt="%ALT2%" width="1280" height="860" />
-        </figure>
       </div>
-    </section>
 
-    <section>
-      <div class="wrap arch">
-        <div>
-          <div class="sec-kicker">%S3_KICKER%</div>
-          <h2>%S3_H2%</h2>
-          <ul>
-            <li>%A1%</li>
-            <li>%A2%</li>
-            <li>%A3%</li>
-          </ul>
-          <p style="margin-top: 18px">
-            <a href="overview.html"><strong>%A_LINK%</strong></a>
-          </p>
+      <section>
+        <div class="wrap">
+          <div class="sec-kicker">%S1_KICKER%</div>
+          <h2>%S1_H2%</h2>
+          <p class="lede">%S1_LEDE%</p>
+          <div class="grid3">
+            <div class="card" style="--card: var(--accent)">
+              <h3>%C1H%</h3>
+              <p>%C1P%</p>
+            </div>
+            <div class="card" style="--card: var(--teal)">
+              <h3>%C2H%</h3>
+              <p>%C2P%</p>
+            </div>
+            <div class="card" style="--card: var(--green)">
+              <h3>%C3H%</h3>
+              <p>%C3P%</p>
+            </div>
+            <div class="card" style="--card: var(--amber)">
+              <h3>%C4H%</h3>
+              <p>%C4P%</p>
+            </div>
+            <div class="card" style="--card: var(--purple)">
+              <h3>%C5H%</h3>
+              <p>%C5P%</p>
+            </div>
+            <div class="card" style="--card: var(--ink2)">
+              <h3>%C6H%</h3>
+              <p>%C6P%</p>
+            </div>
+          </div>
         </div>
-        <pre>            ┌─────────────────────────┐
+      </section>
+
+      <section class="band">
+        <div class="wrap">
+          <div class="sec-kicker">%S2_KICKER%</div>
+          <h2>%S2_H2%</h2>
+          <div class="steps">
+            <div class="step">
+              <b>1</b>
+              <h3>%ST1H%</h3>
+              <p>%ST1P%</p>
+            </div>
+            <div class="step">
+              <b>2</b>
+              <h3>%ST2H%</h3>
+              <p>%ST2P%</p>
+            </div>
+            <div class="step">
+              <b>3</b>
+              <h3>%ST3H%</h3>
+              <p>%ST3P%</p>
+            </div>
+          </div>
+          <figure class="shot">
+            <div class="shot-bar">
+              <i></i><i></i><i></i><span>file:///project-review.html#/projects</span>
+            </div>
+            <img src="images/en-projects.png" alt="%ALT2%" width="1280" height="860" />
+          </figure>
+        </div>
+      </section>
+
+      <section>
+        <div class="wrap arch">
+          <div>
+            <div class="sec-kicker">%S3_KICKER%</div>
+            <h2>%S3_H2%</h2>
+            <ul>
+              <li>%A1%</li>
+              <li>%A2%</li>
+              <li>%A3%</li>
+            </ul>
+            <p style="margin-top: 18px">
+              <a href="overview.html"><strong>%A_LINK%</strong></a>
+            </p>
+          </div>
+          <pre>            ┌─────────────────────────┐
             │           <span class="hl">app</span>           │  wiring only
             └────┬───────────────┬────┘
                  │               │
@@ -583,19 +604,22 @@
             ┌────▼───────────────▼────┐
             │          <span class="hl">core</span>           │  pure domain
             └─────────────────────────┘  zero deps</pre>
-      </div>
-    </section>
-
-    <section class="cta-final">
-      <div class="wrap">
-        <h2>%F_H2%</h2>
-        <p class="lede">%F_LEDE%</p>
-        <div class="cta" style="justify-content: center">
-          <a class="btn btn-solid" href="demo/project-review.html?sample">%F_TRY%</a>
-          <a class="btn btn-ghost" href="https://github.com/REPLACE_ME/project-review">%F_STAR%</a>
         </div>
-      </div>
-    </section>
+      </section>
+
+      <section class="cta-final">
+        <div class="wrap">
+          <h2>%F_H2%</h2>
+          <p class="lede">%F_LEDE%</p>
+          <div class="cta" style="justify-content: center">
+            <a class="btn btn-solid" href="demo/project-review.html?sample">%F_TRY%</a>
+            <a class="btn btn-ghost" href="https://github.com/REPLACE_ME/project-review"
+              >%F_STAR%</a
+            >
+          </div>
+        </div>
+      </section>
+    </main>
 
     <footer>
       <div class="wrap foot-in">

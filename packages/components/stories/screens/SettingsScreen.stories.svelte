@@ -13,7 +13,7 @@
       docs: {
         description: {
           component:
-            'Identity, appearance, aggregate slides, categories, free slides, data administration. PLAYABLE on the in-memory loop; the local-save switch is a story-local mock (no browser storage is touched).',
+            'Identity, appearance, aggregate slides, categories, free slides, data administration. PLAYABLE on the in-memory loop; the local-save switch and the scheme picker are story-local mocks (no browser storage is touched — the scheme picker stamps the `dark` class exactly as the app does).',
         },
       },
     },
@@ -34,16 +34,37 @@
       persistEnabled = next
     },
   }
+
+  /** Story-local mock of the app's appearance control — same contract, and it
+   * stamps the `dark` class as the app's wiring does. */
+  let scheme = $state<'system' | 'light' | 'dark'>('light')
+  const appearance = {
+    get scheme() {
+      return scheme
+    },
+    setScheme: (next: 'system' | 'light' | 'dark') => {
+      scheme = next
+      const dark =
+        next === 'dark' ||
+        (next === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+      document.documentElement.classList.toggle('dark', dark)
+    },
+  }
 </script>
 
 <!-- The screen renders in a `.editor` root: the chrome stylesheet is scoped to it. -->
 <Story name="Playable" asChild>
   <div class="editor" style="padding:24px">
-    <SettingsScreen portfolio={store.present} dispatch={store.dispatch} {persistence} />
+    <SettingsScreen
+      portfolio={store.present}
+      dispatch={store.dispatch}
+      {persistence}
+      {appearance}
+    />
   </div>
 </Story>
 
-<Story name="Without local-save row" asChild>
+<Story name="Without host-wired rows" asChild>
   <div class="editor" style="padding:24px">
     <SettingsScreen portfolio={store.present} dispatch={store.dispatch} />
   </div>

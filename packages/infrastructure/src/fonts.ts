@@ -45,6 +45,40 @@ export function googleFontsUrl(family: string): string | null {
   return `https://fonts.googleapis.com/css2?family=${encoded}:wght@${WEIGHTS}&display=swap`
 }
 
+/** Verdict of {@link probeFont}: `unknown` while probing (or when the
+ * browser exposes no Font Loading API), then `served` or `missing`. */
+export type FontProbeStatus = 'unknown' | 'served' | 'missing'
+
+/**
+ * Live probe of a locally SERVED face — the Settings card asks it about
+ * Marianne, the one family whose files are deployed alongside the app rather
+ * than bundled or fetched. `document.fonts.check()` alone would lie before
+ * any load attempt (an unloaded but declared face reports unavailable, and
+ * nothing has reason to load a face nobody displays yet), so the probe first
+ * FORCES a targeted load, then asks. TOTAL: any refusal — rejected load,
+ * missing files, no Font Loading API result — degrades to a calm verdict,
+ * never a throw. `unknown` only when the API itself is absent: with no way
+ * to ask, claiming `missing` would slander a working deployment.
+ */
+export async function probeFont(
+  family: string,
+  doc: Document | undefined = typeof document === 'undefined' ? undefined : document,
+): Promise<FontProbeStatus> {
+  const clean = family.trim().replace(/['"]/g, '')
+  if (clean === '') return 'missing'
+  const fonts = doc?.fonts
+  if (!fonts || typeof fonts.load !== 'function' || typeof fonts.check !== 'function') {
+    return 'unknown'
+  }
+  const probe = `16px "${clean}"`
+  try {
+    const faces = await fonts.load(probe)
+    return faces.length > 0 || fonts.check(probe) ? 'served' : 'missing'
+  } catch {
+    return 'missing'
+  }
+}
+
 /** Stable element id so the same family is never loaded twice. */
 export function fontLinkId(family: string): string {
   return `rp-font-${family

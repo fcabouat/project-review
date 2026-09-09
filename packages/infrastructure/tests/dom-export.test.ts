@@ -36,9 +36,16 @@ describe('buildStandaloneHtml', () => {
   })
 
   it('boots reveal with the injected options, serialised verbatim', () => {
+    expect(html).toContain(`var options = ${JSON.stringify(REVEAL_OPTIONS)};`)
     expect(html).toContain(
-      `new window.Reveal(document.querySelector('.reveal'), ${JSON.stringify(REVEAL_OPTIONS)}).initialize()`,
+      "new window.Reveal(document.querySelector('.reveal'), options).initialize()",
     )
+  })
+
+  it("lets the reader's reduced-motion preference cancel the slide transition", () => {
+    expect(html).toContain("window.matchMedia('(prefers-reduced-motion: reduce)').matches")
+    expect(html).toContain("options.transition = 'none';")
+    expect(html).toContain("options.backgroundTransition = 'none';")
   })
 
   it('re-emits the chosen font as a :root rule, AFTER the collected styles', () => {

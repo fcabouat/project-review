@@ -83,7 +83,7 @@
   {#if rows}
     <Textarea
       class={monospace
-        ? 'text-(--txt2) field-sizing-fixed bg-[#fafafa] font-mono text-xs leading-[1.55]'
+        ? 'text-(--txt2) field-sizing-fixed bg-[#fafafa] font-mono text-xs leading-[1.55] dark:bg-white/5'
         : 'field-sizing-fixed text-sm leading-[1.4]'}
       {rows}
       {placeholder}
@@ -94,7 +94,7 @@
     ></Textarea>
   {:else}
     <Input
-      class="read-only:text-(--txt2) read-only:bg-[#fafafa]"
+      class="read-only:text-(--txt2) read-only:bg-[#fafafa] dark:read-only:bg-white/5"
       type="text"
       {placeholder}
       {readonly}

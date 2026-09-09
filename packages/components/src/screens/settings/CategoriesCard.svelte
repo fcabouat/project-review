@@ -193,7 +193,7 @@
             >
               <span
                 class="relative size-5 rounded-full {category.color === color
-                  ? 'shadow-[0_0_0_2px_#fff,0_0_0_3.5px_var(--accent)]'
+                  ? 'shadow-[0_0_0_2px_var(--bg),0_0_0_3.5px_var(--accent)]'
                   : 'shadow-[0_0_0_1px_rgb(0_0_0/0.06)]'}"
                 style="background:{catColor(color)}"
               >

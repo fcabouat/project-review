@@ -52,7 +52,7 @@ const restrict = (...patterns) => ({
 export default tseslint.config(
   {
     ignores: [
-      'app/dist/',
+      'dist/',
       'app/dist-single/',
       'coverage/',
       'packages/components/storybook-static/',

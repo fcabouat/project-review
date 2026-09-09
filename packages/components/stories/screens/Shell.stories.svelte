@@ -12,7 +12,7 @@
       docs: {
         description: {
           component:
-            'The whole editor, PLAYABLE in Storybook: sidebar, top bar, the five screens behind an in-memory route (the sidebar links call `navigate`, no hash is touched), undo/redo, import/export, slideshow. The top bar’s FR | EN switch dispatches the same `ChangeSetting` command as Settings — click it and the whole shell relabels (undoable, like any edit). The « Enregistrer » export button is inert — the standalone export is the app’s injection.',
+            'The whole editor, PLAYABLE in Storybook: sidebar, top bar, the five screens behind an in-memory route (the sidebar links call `navigate`, no hash is touched), undo/redo, import/export, slideshow. The top bar’s FR | EN switch dispatches the same `ChangeSetting` command as Settings — click it and the whole shell relabels (undoable, like any edit). Its neighbour, the scheme toggle (Système/Clair/Sombre), drives the same `AppearanceControl` as Settings ▸ Appearance — here a story-local mock that stamps the `dark` class exactly as the app does. Below the `lg` breakpoint the sidebar becomes the vendored sheet drawer behind the hamburger — narrow the canvas to play it. The « Enregistrer » export button is inert — the standalone export is the app’s injection.',
         },
       },
     },
@@ -40,6 +40,23 @@
       persistEnabled = next
     },
   }
+
+  /** Story-local mock of the app's appearance control: same contract, and it
+   * stamps the `dark` class exactly as the app's wiring does (`system` reads
+   * the OS preference once per change — enough for a story). */
+  let scheme = $state<'system' | 'light' | 'dark'>('light')
+  const appearance = {
+    get scheme() {
+      return scheme
+    },
+    setScheme: (next: 'system' | 'light' | 'dark') => {
+      scheme = next
+      const dark =
+        next === 'dark' ||
+        (next === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+      document.documentElement.classList.toggle('dark', dark)
+    },
+  }
 </script>
 
 <Story name="Playable" asChild>
@@ -56,5 +73,6 @@
     {navigate}
     replaceRoute={navigate}
     {persistence}
+    {appearance}
   />
 </Story>
