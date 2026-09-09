@@ -12,7 +12,7 @@
       docs: {
         description: {
           component:
-            'D2: health breakdown (8 / 5 / 1 / 1 / 2) with the overdue-milestone inset stuck to it, then the 7 pending decisions. Alert borders on P-04 (alert) and P-06 (critical).',
+            'The health dashboard: health breakdown (8 / 5 / 1 / 1 / 2) with the overdue-milestone inset stuck to it, then the 7 pending decisions. Alert borders on P-04 (alert) and P-06 (critical).',
         },
       },
     },

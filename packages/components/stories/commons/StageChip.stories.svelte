@@ -12,7 +12,7 @@
       docs: {
         description: {
           component:
-            'Six life-cycle stages, plus the "en attente" mention stuck alongside. The `color-mix(currentColor 25%)` hairline is mandatory (pitfall n° 13): without it the pale grounds vanish on zebra rows and in print.',
+            'Six life-cycle stages, plus the "en attente" mention stuck alongside. The `color-mix(currentColor 25%)` hairline is mandatory: without it the pale grounds vanish on zebra rows and in print.',
         },
       },
     },

@@ -1,6 +1,6 @@
 <script lang="ts">
   /**
-   * Bar of one category (D1 dashboard): three segments in life-cycle order —
+   * Bar of one category (portfolio dashboard): three segments in life-cycle order —
    * pre-project (tint at 25 %), in progress (full tint), done (white with a tint
    * outline). The scale is shared by every bar: 1 project = `pxPerProject`,
    * otherwise comparing two categories makes no sense any more.
@@ -10,7 +10,7 @@
 
   interface Props {
     readonly bar: CategoryBar
-    /** 489 px for 4 projects in the mockup. */
+    /** The shared dashboard scale: 122.25 px per project — 4 projects = 489 px. */
     readonly pxPerProject?: number
   }
 
@@ -50,7 +50,7 @@
   .sg-en {
     background: var(--tint);
   }
-  /* tint at 25 % on white — equivalent to the mockup's rgba(tint,.25) */
+  /* tint at 25 % on white — the pre-project segment reads lighter */
   .sg-av {
     background: color-mix(in srgb, var(--tint) 25%, #fff);
   }

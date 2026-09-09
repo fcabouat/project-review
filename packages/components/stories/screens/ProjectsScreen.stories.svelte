@@ -13,7 +13,7 @@
       docs: {
         description: {
           component:
-            'E1/E1bis — the portfolio table, grouped by category, fuzzy search included. PLAYABLE: reorder, delete and add run real commands on the in-memory loop; `open` (the pencil) is inert here — the sheet is its own story.',
+            'The portfolio table, grouped by category, fuzzy search included. PLAYABLE: reorder, delete and add run real commands on the in-memory loop; `open` (the pencil) is inert here — the sheet is its own story.',
         },
       },
     },

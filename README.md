@@ -112,8 +112,8 @@ format; a display language is data:
 1. `packages/core/src/model/theme.ts` — extend the `Language` union and
    `LANGUAGES`.
 2. `packages/core/src/data/catalog.<lang>.ts` — the generated-labels table
-   (copy `catalog.en.ts`; the index pins all key sets together at compile
-   time).
+   (copy `catalog.en.ts`; `services/i18n.ts` pins all key sets together at
+   compile time with `CoversExactly`).
 3. `packages/components/src/i18n.ts` — the editor-chrome catalog (same keys,
    one more column).
 4. `packages/core/samples/sample-portfolio.<lang>.json` — a sample set, validated

@@ -1,6 +1,6 @@
 <script lang="ts">
   /**
-   * Decisions (canonical mockup, frame 12): today's table, calibrated for
+   * Decisions: today's table, calibrated for
    * handwriting — the two right-hand columns are 52 px writing zones.
    * Paginated by 7; the "page i / n" mention only shows when there is more than
    * one page.
@@ -102,7 +102,7 @@
 </SlideChrome>
 
 <style>
-  /* the two measures the mockup carries inline on this slide alone */
+  /* two measures this slide alone carries */
   .today {
     margin-top: 10px;
   }

@@ -1,6 +1,6 @@
 /**
  * The flat deck folded into slideshow groups — the drawer navigation of the
- * canonical mockup `mockups/slides-demo.html`.
+ * slideshow (→ walks the groups, ↓ opens a group's drawer).
  */
 import type { Portfolio } from '../model/portfolio'
 import type { Slide } from './slide'
@@ -22,7 +22,7 @@ export type DeckGroup =
  * `deck(p)` slide for slide, same references — the print mode, the page
  * numbers and the previews all keep reading the flat deck.
  *
- * Grouping (canon `slides-demo.html`):
+ * Grouping:
  * - title, free slides, decisions, archives, previous decisions → singles;
  * - the overview block — portfolio dashboard, then the health dashboard and
  *   the recap pages when the display settings emit them — → ONE stack;

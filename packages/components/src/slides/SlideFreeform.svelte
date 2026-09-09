@@ -1,6 +1,6 @@
 <script lang="ts">
   /**
-   * Free slide (canonical mockup, frame 02): the entered title, then 1 to 3
+   * Free slide: the entered title, then 1 to 3
    * blocks of bullets in the micro-format, read at arm's length (17 px), the
    * whole vertically centered in the body.
    * Nothing here is derived: the content is exactly what was typed.
@@ -10,6 +10,7 @@
   import { categoryOf } from '@project-review/core/projections'
   import TextLine from '../commons/TextLine.svelte'
   import SlideChrome from './SlideChrome.svelte'
+  import { displayLabel } from '../commons/display'
   import { categoryName, railText } from './labels'
 
   interface Props {
@@ -45,7 +46,7 @@
   bodyClass="slide-body--centered"
 >
   {#snippet heading()}
-    <h2 class="slide-heading">{slide?.title ?? ''}</h2>
+    <h2 class="slide-heading">{displayLabel(slide?.title)}</h2>
   {/snippet}
   <div class="freeform-blocks">
     {#each slide?.blocks ?? [] as block, i (i)}

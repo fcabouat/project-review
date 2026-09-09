@@ -10,8 +10,10 @@ import rawFr from '../../../samples/sample-portfolio.fr.json'
 import rawEn from '../../../samples/sample-portfolio.en.json'
 import schema from '../../../samples/portfolio.schema.json'
 import {
+  IMPORT_MAX_CHARS,
   PARSE_ERROR_CODES,
   parsePortfolio,
+  readPortfolioJson,
   type ParseResult,
 } from '../../../src/services/parse/index'
 import { deck } from '../../../src/projections/index'
@@ -109,10 +111,10 @@ describe('refusal — structure', () => {
     ).toEqual(['projects[0].colour unknownKey'])
   })
 
-  it('a legacy French-keyed file is refused as unknown structure, not migrated', () => {
-    const r = parsePortfolio({ version: 2, revue: { titre: 't', dateRevue: '2026-01-01' } })
+  it('a file whose top-level keys are not the schema’s is refused — no repair, no guessing', () => {
+    const r = parsePortfolio({ version: 2, agenda: { heading: 't', day: '2026-01-01' } })
     expect(r.ok).toBe(false)
-    expect(faults(r)).toContain('revue unknownKey')
+    expect(faults(r)).toContain('agenda unknownKey')
     expect(faults(r)).toContain('review missingKey')
     expect(faults(r)).toContain('version invalidVersion')
   })
@@ -356,6 +358,30 @@ describe('refusal — rows and slides', () => {
       'projects[0].milestones[1].label missingKey',
       'projects[0].milestones[1].date invalidDate',
     ])
+  })
+
+  it('readPortfolioJson: size cap BEFORE JSON.parse, badJson under it, parse result through', () => {
+    // A brace repeated a hair past the cap: the refusal must be the size one —
+    // JSON.parse is never reached.
+    const oversized = '{'.repeat(IMPORT_MAX_CHARS + 1)
+    expect(readPortfolioJson(oversized)).toEqual({ ok: false, refusal: 'tooLarge' })
+    expect(readPortfolioJson('{ not json')).toEqual({ ok: false, refusal: 'badJson' })
+    const r = readPortfolioJson(JSON.stringify(rawPortfolio()))
+    expect(r.ok).toBe(true)
+  })
+
+  it('accepts an empty milestone label and an empty free-slide title — the display owns the dash', () => {
+    const r = parsePortfolio(
+      rawPortfolio({
+        projects: [rawProject({ milestones: [{ label: '', date: '2026-03-01', done: false }] })],
+        freeSlides: [{ id: 'sl-1', title: '', anchor: { type: 'closing' }, blocks: [['l']] }],
+      }),
+    )
+    expect(r.ok).toBe(true)
+    if (r.ok) {
+      expect(r.portfolio.projects[0]?.milestones[0]?.label).toBe('')
+      expect(r.portfolio.freeSlides[0]?.title).toBe('')
+    }
   })
 
   it('refuses a block that is not an array, and a line that is not a string', () => {

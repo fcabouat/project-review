@@ -1,6 +1,6 @@
 <script lang="ts">
   /**
-   * E4 exit bar, copied from the canonical mockup `mockups/editeur.html`
+   * Slideshow exit bar
    * (`.ss-exitbar`): a dark translucent overlay pinned to the top edge, invisible
    * until the pointer reaches the top ~60 px of the stage — or until a keyboard
    * user focuses one of its buttons.
@@ -15,7 +15,7 @@
    * not a reveal one — tracked on `fullscreenchange` so the label follows
    * reality whatever toggled it (F11 aside: that is browser chrome, invisible
    * to the API). That is what keeps it storybook-able while `SlideshowHost`
-   * is not (pitfall n° 12).
+   * is not.
    */
   import type { Language } from '@project-review/core/model/theme'
   import { te } from '../i18n'
@@ -103,7 +103,7 @@
     z-index: 20;
   }
 
-  /* canon: 48 px, rgba(22,22,24,.82), blur 6, 0 18px, 13px/600, white */
+  /* 48 px bar, rgba(22,22,24,.82), blur 6, 0 18px padding, 13px/600, white */
   .exit-bar {
     height: 48px;
     display: flex;

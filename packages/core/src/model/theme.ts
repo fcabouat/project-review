@@ -14,7 +14,7 @@ export type Language = 'fr' | 'en'
  * family re-themes the whole deck without touching the data. */
 export type PaletteFamily = 'dsfr' | 'tailwind' | 'material'
 
-/** Layout family: 'flat' (V2 default, Material spirit) or 'classic' (V1). */
+/** Layout family: 'flat' (the default, Material spirit) or 'classic'. */
 export type ThemeStyle = 'flat' | 'classic'
 
 /** Every {@link Language}, default first. */

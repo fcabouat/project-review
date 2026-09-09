@@ -1,9 +1,10 @@
 /**
- * « Enregistrer » — a STANDALONE .html of the slideshow alone: reveal.js
- * inlined, every stylesheet of the running document inlined, the rendered
- * sections copied as-is, the images embedded as data URIs. The file opens from
- * `file://` with zero network request (Google Fonts excepted, when the theme
- * asks for a family that is not bundled — Roboto, Inter and Marianne are).
+ * The save action (`editor.slideshow.save`) — a STANDALONE .html of the
+ * slideshow alone: reveal.js inlined, every stylesheet of the running document
+ * inlined, the rendered sections copied as-is, the images embedded as data
+ * URIs. The file opens from `file://` with ZERO network request — no Google
+ * Fonts link either: a theme family that is not embedded falls back to the
+ * reader's system stack (the live app keeps its own on-demand loading).
  *
  * Two halves, deliberately separated:
  * - the PURE half (`buildStandaloneHtml`, `exportFileName`, `embedStyleAssets`)
@@ -21,7 +22,7 @@
  */
 
 import type { Portfolio } from '@project-review/core/model/portfolio'
-import { fontStack, googleFontsUrl } from './fonts'
+import { fontStack } from './fonts'
 
 /* ------------------------------- pure half ------------------------------ */
 
@@ -51,8 +52,6 @@ export interface StandaloneParts {
   /** Reveal option set the standalone deck boots with, serialised verbatim —
    * the caller passes the components' `STANDALONE_REVEAL_OPTIONS`. */
   readonly revealOptions: Record<string, unknown>
-  /** Google Fonts stylesheet URL, or null for the bundled families. */
-  readonly fontHref?: string | null
   /** CSP nonce for the two emitted `<script>` elements — one fresh value per
    * export ({@link generateNonce}); tests pass a fixed one. */
   readonly nonce: string
@@ -103,20 +102,18 @@ export function exportFileName(reviewDate: string | undefined): string {
  * `.rp-stage` in `slideshow.css` applies identically from `file://`.
  */
 export function buildStandaloneHtml(parts: StandaloneParts): string {
-  const fontLink =
-    parts.fontHref == null ? '' : `<link rel="stylesheet" href="${escapeHtml(parts.fontHref)}">\n`
   const styleAttr =
     parts.slideStyle === undefined ? '' : ` data-slide-style="${escapeHtml(parts.slideStyle)}"`
   const paletteAttr =
     parts.palette === undefined ? '' : ` data-palette="${escapeHtml(parts.palette)}"`
   const nonce = escapeHtml(parts.nonce)
-  // The file's whole diet: its own nonced scripts, inline styles plus the one
-  // Google Fonts stylesheet, data: images and fonts (plus gstatic, where the
-  // Google stylesheet points) — and no connection at all.
+  // The file's whole diet: its own nonced scripts, inline styles, data: images
+  // and fonts — no external host at all, so the policy PROVES the "zero
+  // network" promise instead of merely hoping for it.
   const csp =
     `default-src 'none'; script-src 'nonce-${nonce}'; ` +
-    `style-src 'unsafe-inline' https://fonts.googleapis.com; img-src data:; ` +
-    `font-src data: https://fonts.gstatic.com; connect-src 'none'`
+    `style-src 'unsafe-inline'; img-src data:; ` +
+    `font-src data:; connect-src 'none'`
   // `escapeHtml` on the font stack: `<style>` is a raw-text context where
   // `</style` would end the element — the parse refuses such names upstream
   // (invalidFont), this escape is the belt to that brace. HTML entities are
@@ -129,7 +126,7 @@ export function buildStandaloneHtml(parts: StandaloneParts): string {
 <meta http-equiv="Content-Security-Policy" content="${csp}">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${escapeHtml(parts.title)}</title>
-${fontLink}<style>
+<style>
 ${parts.styles}
 /* Chosen font — emitted LAST so it wins over the collected theme defaults. */
 :root{--font:${escapeHtml(fontStack(parts.fontFamily ?? ''))}}
@@ -297,7 +294,7 @@ export async function inlineImages(root: HTMLElement): Promise<void> {
 }
 
 /**
- * The whole « Enregistrer » flow. The app injects it into the components'
+ * The whole save-standalone flow (`editor.slideshow.save`). The app injects it into the components'
  * SlideshowHost with the reveal options AND the engine-source loader bound:
  * `(el, p) => saveStandalone(el, p, STANDALONE_REVEAL_OPTIONS, loadEngine)` —
  * the raw UMD build lives behind Vite's `?raw` escape hatch, which only the
@@ -332,7 +329,6 @@ export async function saveStandalone(
     slidesHtml: clone.innerHTML,
     revealSource: engineSource,
     revealOptions,
-    fontHref: googleFontsUrl(portfolio.settings.theme.font),
     nonce: generateNonce(),
   })
 

@@ -14,7 +14,7 @@
       docs: {
         description: {
           component:
-            'The reference template, "v2.1 bands": goal band + merged facts block on row A, three narrative cards in strict thirds, risks and decision bands in equal halves, dated timeline. Three cases only — median, dense, minimal — because they are the ones that decide the layout; then the reference plate of the five tones of the risks band.',
+            'The reference template, a banded composition: goal band + merged facts block on row A, three narrative cards in strict thirds, risks and decision bands in equal halves, dated timeline. Three cases only — median, dense, minimal — because they are the ones that decide the layout; then the reference plate of the five tones of the risks band.',
         },
       },
     },
@@ -26,7 +26,7 @@
   const tones = ['P-12', 'P-09', 'P-04', 'P-06', 'P-03'].map(project)
 </script>
 
-<!-- P-04, median case: the reference frame of the canon. -->
+<!-- P-04, median case: the reference frame. -->
 <Story name="P-04 — median" args={{ projectId: 'P-04', page: 12 }} />
 
 <!-- P-09, dense case: 5 + 3 + 4 bullets, a 240-character goal, 6 milestones

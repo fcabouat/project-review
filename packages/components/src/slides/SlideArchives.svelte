@@ -1,6 +1,6 @@
 <script lang="ts">
   /**
-   * Archives (canonical mockup, frame 13): closed and abandoned projects. They
+   * Archives: closed and abandoned projects. They
    * leave the tracking but stay readable — hence the closing note, which is the
    * whole point of the slide.
    */
@@ -24,11 +24,12 @@
 
   const language = $derived(portfolio.settings.language)
 
-  /* Dedicated catalog key since the 04/09 wording arbitration. */
+  /* The archives table has its own column-header catalog key — its wording
+     is not shared with the recap table. */
   const headers = $derived(columns('archives.columns', language))
 
   /* Declaration order, not portfolio order: archives leave the categories
-     behind — the canon lists them as they were entered (P-14, P-15, P-16). */
+     behind — they are listed as they were entered (P-14, P-15, P-16). */
   const rows = $derived(
     portfolio.projects.filter(isArchived).map((project) => {
       const category = categoryOf(portfolio, project.categoryId)

@@ -1,20 +1,20 @@
 <script lang="ts">
   /**
-   * E2ter — preview of THE slide bound to the editing context: the sheet of the
-   * project being edited, the divider of a category, the title slide, a free
-   * slide. One slide, rendered by the real `SlideView` — no second rendering
-   * path, so what the preview shows is what the deck will show.
+   * Slide preview dialog — preview of THE slide bound to the editing context:
+   * the sheet of the project being edited, the divider of a category, the title
+   * slide, a free slide. One slide, rendered by the real `SlideView` — no
+   * second rendering path, so what the preview shows is what the deck will
+   * show.
    *
-   * MOUNT SEMANTICS, imposed by the canon's own footnote: the render is computed
-   * WHEN THE MODAL OPENS and keeps recomputing WHILE IT IS DISPLAYED (plain
-   * reactivity). The caller must therefore mount this component only while the
-   * preview is open — `{#if}`, never `hidden` — so an unmounted dialog renders
-   * exactly zero slides in the background. That is also why the deck position is
-   * derived here rather than passed in: it costs nothing while open, and nothing
-   * at all while closed.
+   * MOUNT SEMANTICS: the render is computed WHEN THE MODAL OPENS and keeps
+   * recomputing WHILE IT IS DISPLAYED (plain reactivity). The caller must
+   * therefore mount this component only while the preview is open — `{#if}`,
+   * never `hidden` — so an unmounted dialog renders exactly zero slides in the
+   * background. That is also why the deck position is derived here rather than
+   * passed in: it costs nothing while open, and nothing at all while closed.
    *
    * The slide is 1280 × 720 by contract; the stage shows it at `SCALE` inside a
-   * 16:9 frame, on the dark ground of the mockup.
+   * 16:9 frame, on a dark ground.
    */
   import type { Portfolio } from '@project-review/core/model/portfolio'
   import type { Slide } from '@project-review/core/projections/slide'
@@ -27,7 +27,7 @@
   /**
    * Published by the editor shell. `undefined` outside it (a story), in which
    * case the button stays disabled rather than pretending — a story must never
-   * be able to mount reveal.js (pitfall n° 12).
+   * be able to mount reveal.js.
    */
   const openSlideshow = useSlideshow()
 
@@ -42,7 +42,7 @@
 
   let { portfolio, slide, subject, close }: Props = $props()
 
-  /** Slide canvas, fixed by the templates (plan § 5). */
+  /** Slide canvas, fixed by the slide templates. */
   const SLIDE_WIDTH = 1280
   const SLIDE_HEIGHT = 720
   const SCALE = 0.62

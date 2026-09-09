@@ -1,7 +1,8 @@
 <script lang="ts">
   /**
-   * Health: dot + label. Two shapes, same colors —
-   * `text` (recap table, `.health`) and `chip` (sheet banner, `.level--<level>`).
+   * Health: dot + label. Three shapes, same colors —
+   * `text` (recap table, `.health`), `chip` (sheet banner, `.level--<level>`)
+   * and `dot` (projects table: the dot alone, the label as its tooltip).
    * Not being assessed is a state of its own: "Non évalué", grey.
    */
   import type { HealthLevel } from '@project-review/core/model/project'
@@ -12,7 +13,7 @@
     /** `undefined` = not assessed. */
     readonly health?: HealthLevel
     readonly language: Language
-    readonly shape?: 'text' | 'chip'
+    readonly shape?: 'text' | 'chip' | 'dot'
   }
 
   let { health, language, shape = 'text' }: Props = $props()
@@ -22,8 +23,12 @@
   const label = $derived(t(`level.${key}`, language))
 </script>
 
-<span class="health level--{key}" class:chip={shape === 'chip'}>
-  <i class="dot"></i>{label}
+<span
+  class="health level--{key}"
+  class:chip={shape === 'chip'}
+  title={shape === 'dot' ? label : undefined}
+>
+  <i class="dot"></i>{#if shape !== 'dot'}{label}{/if}
 </span>
 
 <style>
@@ -44,7 +49,7 @@
     background: var(--dot);
   }
 
-  /* chip shape: the text takes the level hue, hairline included (pitfall n° 13) */
+  /* chip shape: the text takes the level hue, hairline included */
   .chip {
     height: 24px;
     padding: 0 9px;

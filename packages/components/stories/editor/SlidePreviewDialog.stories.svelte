@@ -17,14 +17,14 @@
       docs: {
         description: {
           component:
-            'E2ter — one slide, rendered by the real `SlideView` at 0.62 on the dark stage. The component is mounted only while the preview is open, so a closed preview renders exactly zero slides in the background; the deck position in the header comes from the same `deck()` as every other counter.',
+            'One slide, rendered by the real `SlideView` at 0.62 on the dark stage. The component is mounted only while the preview is open, so a closed preview renders exactly zero slides in the background; the deck position in the header comes from the same `deck()` as every other counter.',
         },
       },
     },
   })
 </script>
 
-<!-- The sheet of the project being edited: the E2ter frame of the mockup. -->
+<!-- The sheet of the project being edited. -->
 <Story name="Project sheet" asChild>
   <div class="editor">
     <SlidePreviewDialog

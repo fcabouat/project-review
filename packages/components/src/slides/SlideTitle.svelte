@@ -1,6 +1,6 @@
 <script lang="ts">
   /**
-   * Title slide (canonical mockup, frame 01): white column 489 + blue block
+   * Title slide: white column 489 + blue block
    * 791. No rail, no foot — it is the cover.
    * The four KPIs are derived, never entered; the low signature carries the
    * long directorate / service, with the contact box as a sub-line.
@@ -30,7 +30,7 @@
   const longDate = $derived(formatLongDate(review.reviewDate, language))
   const k = $derived(kpis(portfolio))
 
-  /** The four figures the cover carries — the other two belong to D1. */
+  /** The four figures the cover carries — the other two belong to the portfolio dashboard. */
   const indicators = $derived<readonly { value: number; key: CatalogKey }[]>([
     { value: k.tracked, key: 'kpi.tracked' },
     { value: k.active, key: 'kpi.active' },
@@ -45,11 +45,30 @@
     identityLine(' — ', identity.orgLong ?? identity.org, identity.unitLong ?? identity.unit),
   )
 
-  /** 'flat' (canon F-01): full indigo field, no white column. */
+  /** 'flat': full indigo field, no white column. */
   const flat = $derived(portfolio.settings.theme.style === 'flat')
   /** The subtitle becomes the spaced-capitals kicker; the date stays below. */
   const flatKicker = $derived(review.subtitle ?? t('sidebar.review', language))
 </script>
+
+<!-- The KPI row and the signature block are the SAME content in both arms —
+     only the class names change, so each is a local snippet. -->
+{#snippet kpiList(itemClass?: string)}
+  {#each indicators as indicator (indicator.key)}
+    <div class={itemClass}>
+      <b>{indicator.value}</b><span>{t(indicator.key, language)}</span>
+    </div>
+  {/each}
+{/snippet}
+
+{#snippet signBlock(signClass: string, contactClass: string)}
+  {#if signature || identity.contact}
+    <div class={signClass}>
+      {signature}
+      {#if identity.contact}<span class={contactClass}>{identity.contact}</span>{/if}
+    </div>
+  {/if}
+{/snippet}
 
 {#if flat}
   <section class="slide slide--flat-title">
@@ -63,18 +82,9 @@
       <div class="flat-title-sub">{longDate}</div>
     </div>
     <div class="flat-title-kpis">
-      {#each indicators as indicator (indicator.key)}
-        <div>
-          <b>{indicator.value}</b><span>{t(indicator.key, language)}</span>
-        </div>
-      {/each}
+      {@render kpiList()}
     </div>
-    {#if signature || identity.contact}
-      <div class="flat-title-sign">
-        {signature}
-        {#if identity.contact}<span class="flat-title-contact">{identity.contact}</span>{/if}
-      </div>
-    {/if}
+    {@render signBlock('flat-title-sign', 'flat-title-contact')}
   </section>
 {:else}
   <section class="slide">
@@ -89,18 +99,9 @@
       <h1>{review.title}</h1>
       <div class="title-sub">{subtitle}</div>
       <div class="kpis">
-        {#each indicators as indicator (indicator.key)}
-          <div class="kpi">
-            <b>{indicator.value}</b><span>{t(indicator.key, language)}</span>
-          </div>
-        {/each}
+        {@render kpiList('kpi')}
       </div>
-      {#if signature || identity.contact}
-        <div class="title-sign">
-          {signature}
-          {#if identity.contact}<span class="title-contact">{identity.contact}</span>{/if}
-        </div>
-      {/if}
+      {@render signBlock('title-sign', 'title-contact')}
     </div>
   </section>
 {/if}

@@ -1,12 +1,10 @@
 /*
- * Editor chrome — values copied from the canonical mockup `mockups/editeur.html`
- * (sections 2 to 10), which is the visual contract. Class names are kept
- * IDENTICAL to the mockup's so the two can be diffed side by side; everything is
- * scoped under `.editor` so these deliberately generic names (`.card`, `.input`,
- * `.chip`) can never leak onto the slide templates.
+ * Editor chrome — the visual contract of the editing screens. Everything is
+ * scoped under `.editor` so these deliberately generic names (`.card`,
+ * `.input`, `.btn`) can never leak onto the slide templates.
  *
- * Colours are the Tailwind-family tokens already declared in `app.css`
- * (`--accent`, `--txt2`, `--vig-dot`…): the mockup's own `:root` block is NOT copied.
+ * Colours are the Tailwind-family tokens declared in `tokens.css`
+ * (`--accent`, `--txt2`, `--vig-dot`…) — no second `:root` block here.
  * A global sheet rather than Svelte-scoped blocks: this is one coherent chrome
  * shared by six views, and splitting it per component would duplicate it six
  * times.
@@ -143,7 +141,7 @@
 .editor .input:focus {
   outline: none;
   border-color: var(--accent-main);
-  box-shadow: 0 0 0 3px rgb(106 106 244 / 22%);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-main) 22%, transparent);
 }
 .editor .input[readonly] {
   background: #fafafa;
@@ -175,7 +173,7 @@
 .editor .textarea:focus {
   outline: none;
   border-color: var(--accent-main);
-  box-shadow: 0 0 0 3px rgb(106 106 244 / 22%);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-main) 22%, transparent);
 }
 .editor .textarea.code {
   font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
@@ -231,11 +229,6 @@
 .editor .field-group:last-child {
   margin-bottom: 0;
 }
-.editor .field-group.inline {
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-}
 .editor .field-group > .label {
   font-size: 12.5px;
   font-weight: 600;
@@ -286,13 +279,6 @@
   display: inline-block;
   flex: 0 0 auto;
 }
-.editor .health-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 999px;
-  display: inline-block;
-  flex: 0 0 auto;
-}
 .editor .health-ne {
   background: var(--ne);
 }
@@ -309,44 +295,8 @@
   background: var(--err);
 }
 
-/* Pitfall n° 13: a chip always carries a currentColor hairline. */
-.editor .chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 9px;
-  border-radius: 999px;
-  font-size: 11.5px;
-  font-weight: 600;
-  white-space: nowrap;
-  line-height: 1.3;
-  border: 1px solid transparent;
-  border-color: color-mix(in srgb, currentcolor 25%, transparent);
-}
-.editor .chip-toScope {
-  background: #e5e7eb;
-  color: #374151;
-}
-.editor .chip-ready {
-  background: var(--accent-925);
-  color: var(--accent);
-}
-.editor .chip-inProgress {
-  background: var(--accent-975);
-  color: var(--accent);
-  font-weight: 700;
-}
-.editor .chip-residuals {
-  background: var(--ok-bg);
-  color: var(--ok);
-}
-.editor .chip-closed {
-  background: #e5e7eb;
-  color: #6b7280;
-}
-.editor .chip-abandoned {
-  background: var(--err-bg);
-  color: var(--err);
-}
+/* Stage chips in the table are the shared `StageChip` atom (compact) — the
+   editor has no chip dialect of its own. */
 .editor .switch {
   position: relative;
   display: inline-flex;
@@ -565,7 +515,7 @@
   color: var(--txt2);
 }
 
-/* Row "⋯" menu — replaces the decorative drag handle of the mockup. */
+/* Row "⋯" menu — one control for move up / move down / delete. */
 .editor .row-menu {
   position: relative;
   display: inline-flex;
@@ -613,7 +563,7 @@
   color: var(--err);
 }
 
-/* Free slide card with its ↑/↓ reorder rail (E0). */
+/* Free slide card with its ↑/↓ reorder rail (review screen). */
 .editor .freeslide-row {
   display: grid;
   grid-template-columns: 26px minmax(0, 1fr);
@@ -1527,7 +1477,7 @@
 }
 
 /* ---------------------------------------------------------------- */
-/* 7bis. E2ter — slide preview modal                                */
+/* 7bis. Slide preview modal                                */
 /* ---------------------------------------------------------------- */
 .editor .modal--apercu {
   width: 860px;
@@ -1698,7 +1648,7 @@
   color: #fff;
 }
 .editor .appnav-item.active {
-  background: rgb(106 106 244 / 20%);
+  background: color-mix(in srgb, var(--accent-main) 20%, transparent);
   color: #fff;
   border-left-color: var(--accent-main);
   font-weight: 700;
@@ -1842,12 +1792,6 @@
 .editor .hist-row:last-child {
   border-bottom: none;
 }
-.editor .hist-time {
-  flex: 0 0 34px;
-  font-size: 11px;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-}
 .editor .hist-label {
   flex: 1;
   min-width: 0;
@@ -1876,7 +1820,7 @@
   color: var(--muted);
 }
 
-/* ---- settings: inline logo (contract v2) ---- */
+/* ---- settings: inline logo ---- */
 .editor .logo-row {
   display: flex;
   align-items: center;
@@ -1898,7 +1842,7 @@
   gap: 6px;
 }
 
-/* ---- settings: data administration (contract v2) ---- */
+/* ---- settings: data administration ---- */
 .editor .data-actions {
   display: flex;
   flex-wrap: wrap;
@@ -1910,7 +1854,7 @@
   border-color: var(--err);
 }
 
-/* ---- import: keep-settings checkbox (contract v2) ---- */
+/* ---- import: keep-settings checkbox ---- */
 .editor .keep-settings {
   display: flex;
   align-items: center;

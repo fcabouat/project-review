@@ -1,7 +1,9 @@
 name: CI
 on:
-  push: { branches: [main] }
+  push:
+    branches: [main, develop]
   pull_request:
+  workflow_dispatch:
 jobs:
   ci:
     runs-on: ubuntu-latest
@@ -14,9 +16,12 @@ jobs:
       - run: bun run check
       - run: bun run test
       - run: bun run build
-      # file:// smoke on the deliverable the build just produced (precondition
-      # of `bun run smoke`: an up-to-date app/dist/).
-      - run: npx playwright install --with-deps chromium
-      - run: bun run smoke
+      # The full ceremony — browser install + file:// smoke on the freshly
+      # built deliverable — runs on milestone branches only; pull requests
+      # keep the fast lane (lint/format/check/test/build).
+      - if: github.event_name != 'pull_request'
+        run: npx playwright install --with-deps chromium
+      - if: github.event_name != 'pull_request'
+        run: bun run smoke
       - run: bun audit
         continue-on-error: true # advisories inform, they do not gate

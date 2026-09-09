@@ -24,7 +24,7 @@
   /* Zero box of our own around the slides: `print.css` gives each `.slide` its
      exact 1122 × 793 and its `break-after: page`; any padding, gap or border
      added here would push a slide over the page edge and bring back the blank
-     page of pitfall n° 10. */
+     page rule of print.css (1122 × 793). */
   .rp-print-root {
     display: block;
     gap: 0;
@@ -65,7 +65,7 @@
    three declarations that actually collide are restated here, at 0,4,1 — the
    geometry and the flex layout the templates are built on. DESCENDANT selectors
    on purpose: a slide sits either directly under `.slides` (single) or inside a
-   `section.stack` drawer (canon `slides-demo.html`). Everything else is left to
+   `section.stack` drawer. Everything else is left to
    reveal, INCLUDING the `display: none` that hides the slides one is not looking
    at: that is why `display` is set on `.present` only, never on the base
    selector. */
@@ -80,7 +80,7 @@
 }
 /* A vertical drawer is only a container: no size, no clipping of its own —
    reveal adds the `stack` class itself, and the markup writes it too so the
-   rule holds before boot (canon `slides-demo.html`). */
+   rule holds before boot. */
 .rp-stage .reveal .slides section.stack {
   width: auto;
   height: auto;
@@ -94,7 +94,7 @@
 .rp-stage .reveal .slides section.slide.present {
   display: flex !important;
 }
-/* Overview (Échap/O): reveal shows every slide with an inline `display: block`,
+/* Overview (Escape/O): reveal shows every slide with an inline `display: block`,
    which would stack each frame's rail and canvas; the grid transforms position
    ALL slides, so forcing the flex frame on every one of them is safe there. */
 .rp-stage .reveal.overview .slides section.slide {

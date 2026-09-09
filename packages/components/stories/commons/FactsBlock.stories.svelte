@@ -11,7 +11,7 @@
       docs: {
         description: {
           component:
-            'The merged facts block of the sheet’s row A, at its canonical width (338 px in 16:9). Three columns separated by hairlines — start, end, progress as the BAR ALONE — then the budget across the full width under a rule. The block is sized by its content; the row caps it at 104 px. Values come from the sample data set.',
+            'The merged facts block of the sheet’s row A, at its reference width (338 px in 16:9). Three columns separated by hairlines — start, end, progress as the BAR ALONE — then the budget across the full width under a rule. The block is sized by its content; the row caps it at 104 px. Values come from the sample data set.',
         },
       },
     },
@@ -34,7 +34,7 @@
 </Story>
 
 <!-- Not assessed: the em dash of the catalog for the missing values, and the
-     fully grey track — never a red bar at 0 % (pitfall n° 3). -->
+     fully grey track — never a red bar at 0 %. -->
 <Story name="Not assessed" asChild>
   <div class="row"><FactsBlock project={p08} {language} /></div>
 </Story>

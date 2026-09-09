@@ -59,7 +59,8 @@ export const moveById = <T extends Identified>(
 ): readonly T[] => {
   const i = list.findIndex((x) => x.id === id)
   const x = list[i]
-  if (i < 0 || x === undefined) return list
+  // `list[-1]` is undefined: the one test covers the not-found case too.
+  if (x === undefined) return list
   return insertAt([...list.slice(0, i), ...list.slice(i + 1)], to, x)
 }
 

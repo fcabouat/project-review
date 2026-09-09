@@ -1,9 +1,10 @@
 /**
  * The portfolio as a FILE — name and payload of the .json export, the exact
  * inverse of the strict parse (`parse/`): what `serializePortfolio` writes,
- * `parsePortfolio` accepts whole. Same JSON as the localStorage snapshot
- * (`services/persistence.ts`), pretty-printed for humans — the two stay
- * interchangeable. The download trigger itself (DOM) stays with the caller.
+ * `readPortfolioJson` (services/parse) accepts whole. Same JSON as the
+ * localStorage snapshot (`services/persistence.ts`), pretty-printed for
+ * humans — the two stay interchangeable. The download trigger itself (DOM)
+ * stays with the caller.
  */
 
 import type { Portfolio } from '../model/portfolio'

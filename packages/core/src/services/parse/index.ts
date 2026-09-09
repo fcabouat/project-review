@@ -6,9 +6,9 @@
  * fallback, no id dedup-suffix, no clamping. Unknown keys refuse too — the
  * contract is closed (`portfolio.schema.json` states the same rules).
  *
- * The parser reads the v3 (English-keyed) shape ONLY: no legacy detection, no
- * migration path — an old file is just an invalid file, refused with its
- * error list.
+ * The parser reads the `version: 3` shape ONLY: a file whose top-level keys
+ * are not the schema's is refused with its error list — no repair, no
+ * guessing.
  *
  * Errors are STRUCTURED: the domain names what happened, the editor renders it
  * through its catalog (`editor.error.*`), localized. No display string here.
@@ -26,6 +26,38 @@ import { parseFreeSlides } from './free-slides'
 export { PARSE_ERROR_CODES } from './errors'
 export type { ParseError, ParseErrorCode } from './errors'
 export { LOGO_MAX_CHARS } from './settings'
+
+/**
+ * Ceiling of an imported payload, in characters: ~10 MB. Orders of magnitude
+ * above any real portfolio (the samples weigh ~50 kB, an inline logo caps at
+ * `LOGO_MAX_CHARS`), and low enough that a mispasted archive never reaches
+ * `JSON.parse` — the length check costs nothing and runs FIRST.
+ */
+export const IMPORT_MAX_CHARS = 10_000_000
+
+/**
+ * What reading a would-be portfolio text can yield: the strict parse's own
+ * result, or one of the two PRE-PARSE refusals — text too large (checked
+ * before `JSON.parse`), text that is not JSON at all. Structured like the
+ * parse errors: the domain names what happened (`refusal`), the editor
+ * renders it through its catalog (`editor.error.*`).
+ */
+export type ReadOutcome =
+  ParseResult | { readonly ok: false; readonly refusal: 'tooLarge' | 'badJson' }
+
+/**
+ * The single reading path of an imported TEXT (file drop, pasted JSON): size
+ * cap, then `JSON.parse`, then the strict parse — in that order, so an
+ * oversized payload is refused without ever being scanned.
+ */
+export function readPortfolioJson(text: string): ReadOutcome {
+  if (text.length > IMPORT_MAX_CHARS) return { ok: false, refusal: 'tooLarge' }
+  try {
+    return parsePortfolio(JSON.parse(text))
+  } catch {
+    return { ok: false, refusal: 'badJson' }
+  }
+}
 
 /**
  * All-or-nothing: success hands over a valid portfolio; refusal hands over the

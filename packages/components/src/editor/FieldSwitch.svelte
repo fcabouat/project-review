@@ -1,5 +1,5 @@
 <script lang="ts">
-  /** Boolean toggle (mockup `.switch`) — one click, one event, no draft. */
+  /** Boolean toggle (`.switch`) — one click, one event, no draft. */
   interface Props {
     readonly label: string
     readonly checked: boolean

@@ -1,6 +1,6 @@
 <script lang="ts">
   /**
-   * Priority P1 / P2 / P3 — white chip with a grey hairline (mockup `.chip--prio`).
+   * Priority P1 / P2 / P3 — white chip with a grey hairline.
    * Missing priority: "—" (key `priority.none`), never an empty cell:
    * the sheet banner keeps its metrics.
    */

@@ -1,5 +1,6 @@
 /**
- * Client-side fuzzy search — hand-made, no library (plan § 0).
+ * Client-side fuzzy search — hand-made, no library: a subsequence match is
+ * small enough to own outright.
  *
  * The rule is a SUBSEQUENCE over accent-folded, case-folded text: every
  * character of the query must appear in the haystack, in order, but not

@@ -1,5 +1,6 @@
 /**
- * Dashboard figures — the D1 tiles and bars and the D2 counters.
+ * Dashboard figures — the portfolio-dashboard tiles and bars and the
+ * health-dashboard counters.
  * Every figure counts TRACKED projects only; archived ones are invisible here.
  */
 import type { HealthLevel, Project } from '../model/project'
@@ -9,7 +10,7 @@ import { isPreProject, isTracked, orphanProjects, projectsOfCategory } from './p
 import { milestoneState } from './milestones'
 import { pendingDecisions } from './decisions'
 
-/** The six figures of the D1 tiles — every one counts TRACKED projects
+/** The six figures of the portfolio-dashboard tiles — every one counts TRACKED projects
  * only; archived ones are invisible to all of them. */
 export interface Kpis {
   readonly tracked: number
@@ -52,7 +53,7 @@ export function kpis(p: Portfolio): Kpis {
 /** `notAssessed` mirrors the i18n key `level.notAssessed`: it is a catalog key, not a code name. */
 export type HealthBreakdown = Readonly<Record<HealthLevel | 'notAssessed', number>>
 
-/** D2's five counters, over tracked projects only; a project without a health
+/** The health dashboard's five counters, over tracked projects only; a project without a health
  * lands in `notAssessed`, so the five always sum to the tracked KPI. */
 export function healthBreakdown(p: Portfolio): HealthBreakdown {
   const r = { onTrack: 0, watch: 0, alert: 0, critical: 0, notAssessed: 0 }
@@ -63,7 +64,7 @@ export function healthBreakdown(p: Portfolio): HealthBreakdown {
   return r
 }
 
-/** One D1 bar — tracked projects of one category, split by stage group ('done'
+/** One portfolio-dashboard bar — tracked projects of one category, split by stage group ('done'
  * here = 'residuals': the only tracked "done" there is). */
 export interface CategoryBar {
   readonly categoryId: string
@@ -73,7 +74,7 @@ export interface CategoryBar {
 }
 
 /**
- * D1: counts per stage group, non-empty categories only, in order; tracked
+ * Counts per stage group, non-empty categories only, in order; tracked
  * orphans close the march under the implicit "À classer" bar, so the bars
  * always sum to the tracked KPI.
  */

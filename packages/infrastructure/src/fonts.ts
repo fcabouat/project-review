@@ -1,5 +1,5 @@
 /**
- * Runtime font service (plan § 8). The portfolio carries a font family name
+ * Runtime font service. The portfolio carries a font family name
  * (`settings.theme.font`); this module turns it into a CSS stack on `--font`
  * and, for any family that is not bundled, loads it from Google Fonts on
  * demand. TOTAL: never throws, always leaves a valid stack.

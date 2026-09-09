@@ -1,9 +1,9 @@
 <script lang="ts">
   /**
-   * D2 dashboard "For today's session" (canonical mockup, frame 04): health
+   * Health dashboard "For today's session": health
    * column 302 px with the overdue-milestone inset stuck to it, then the
    * pending decisions.
-   * Pitfall n° 4: the table caps at 8 rows and says "+n more" — a slide that
+   * The table caps at 8 rows and says "+n more" — a slide that
    * scrolls is a slide that lies.
    */
   import type { HealthLevel } from '@project-review/core/model/project'
@@ -22,6 +22,7 @@
   import { catColor } from '../commons/cat-color'
   import { formatShortDate, t } from '@project-review/core/services/i18n'
   import SlideChrome from './SlideChrome.svelte'
+  import { displayLabel } from '../commons/display'
   import { railText } from './labels'
 
   interface Props {
@@ -33,7 +34,7 @@
 
   let { portfolio, page, total, logo }: Props = $props()
 
-  /** The mockup shows 8 rows at most: beyond that the slide would overflow. */
+  /** 8 rows at most: beyond that the slide would overflow. */
   const MAX_ROWS = 8
 
   const language = $derived(portfolio.settings.language)
@@ -111,7 +112,7 @@
         {#each overdue as item (`${item.project.id}:${item.index}`)}
           <p>
             <b>{item.project.id}</b>
-            {item.milestone.label}
+            {displayLabel(item.milestone.label)}
             <span class="dim"
               >— {item.milestone.display ?? formatShortDate(item.milestone.date)}</span
             >

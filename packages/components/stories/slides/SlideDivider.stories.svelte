@@ -21,13 +21,14 @@
   }
 
   /* Orphan divider: two projects whose categoryId resolves to NO category —
-     the deck derives the implicit "À classer" group for them, and the divider
-     must show the LOCALIZED sentinel name (categoryName), never the raw
-     catalog key the sentinel carries in `name`. */
+     a GHOST id, exactly what a hand-edited file produces (never the sentinel's
+     own 'unsorted'). The deck derives the implicit "À classer" group for them;
+     the divider must LIST them (`projectsOfGroup`) and show the LOCALIZED
+     sentinel name (categoryName), never the raw catalog key. */
   const orphaned: Portfolio = {
     ...sample,
     projects: sample.projects.map((p, i) =>
-      i < 2 ? { ...p, categoryId: 'unsorted' as Project['categoryId'] } : p,
+      i < 2 ? { ...p, categoryId: 'ghost' as Project['categoryId'] } : p,
     ),
   }
 
@@ -47,15 +48,16 @@
   })
 </script>
 
-<!-- 3 projects: plain list (canonical mockup, frame 07). -->
+<!-- 3 projects: plain list. -->
 <Story name="Normal" args={{ categoryId: 'infra', number: 2 }} />
 
 <!-- 8 projects: the list goes to two columns rather than running past the floor. -->
 <Story name="Compact" args={{ portfolio: crowded, categoryId: 'infra', number: 2 }} />
 
-<!-- Orphan projects: the implicit "À classer" divider — the heading is the
-     LOCALIZED sentinel label, never the raw `category.unsorted` key. -->
+<!-- Orphan projects (ghost categoryId): the implicit "À classer" divider —
+     it lists the two orphans, and the heading is the LOCALIZED sentinel
+     label, never the raw `category.unsorted` key. -->
 <Story
-  name="À classer (orphelins)"
+  name="Unsorted (orphans)"
   args={{ portfolio: orphaned, categoryId: 'unsorted', number: 5 }}
 />

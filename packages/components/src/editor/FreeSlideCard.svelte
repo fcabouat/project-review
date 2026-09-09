@@ -20,6 +20,7 @@
   import FieldText from './FieldText.svelte'
   import Icon from '../commons/Icon.svelte'
   import SlidePreviewDialog from './SlidePreviewDialog.svelte'
+  import { displayLabel } from '../commons/display'
 
   interface Props {
     readonly portfolio: Portfolio
@@ -106,7 +107,9 @@
     <SlidePreviewDialog
       {portfolio}
       slide={{ type: 'freeform', slideId: slide.id }}
-      subject={te('editor.preview.subject.freeform', language, { title: slide.title })}
+      subject={te('editor.preview.subject.freeform', language, {
+        title: displayLabel(slide.title),
+      })}
       close={() => (previewing = false)}
     />
   {/if}
@@ -116,7 +119,7 @@
     label={te('editor.field.title', language)}
     value={slide.title}
     max={60}
-    commit={(v) => replace({ ...slide, title: v ?? '—' })}
+    commit={(v) => replace({ ...slide, title: v ?? '' })}
   />
 
   <div class="field">

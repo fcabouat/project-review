@@ -3,7 +3,7 @@
  * one stable key, one display string. Keys and wordings are part of the
  * FROZEN content contract: do not reword casually.
  * French typography: non-breaking spaces ( ) are ALLOWED here, in the catalog
- * strings — never applied to entered content (pitfall n° 7).
+ * strings — never applied to entered content.
  */
 
 const NBSP = ' '

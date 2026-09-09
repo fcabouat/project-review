@@ -13,7 +13,7 @@
       docs: {
         description: {
           component:
-            'E2 — the project sheet in five tabs. PLAYABLE: every field commits a real command on the in-memory loop (renumbering included — `decide` refuses a taken id). The two navigation callbacks are inert here; the full flow lives in the Shell story.',
+            'The project sheet in five tabs. PLAYABLE: every field commits a real command on the in-memory loop (renumbering included — `decide` refuses a taken id). The two navigation callbacks are inert here; the full flow lives in the Shell story.',
         },
       },
     },

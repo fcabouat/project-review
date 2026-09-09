@@ -1,6 +1,6 @@
 <script lang="ts">
   /**
-   * Application shell (mockup E0/E0b/E1/E2/EH): dark full-height sidebar, light
+   * Application shell: dark full-height sidebar, light
    * top bar, and one screen per route — `#/review`, `#/projects`, `#/sheet/{id}`,
    * `#/settings`, `#/history`.
    *
@@ -82,7 +82,7 @@
   /**
    * Slideshow: an OVERLAY, not a route (it covers the current screen and must
    * come back to it). `undefined` means "not mounted" — and while it is not
-   * mounted, reveal.js is not even downloaded (pitfall n° 1). The number is the
+   * mounted, reveal.js is not even downloaded. The number is the
    * 0-based deck position to open on.
    */
   let slideshowAt = $state<number | undefined>(undefined)
@@ -137,31 +137,33 @@
           </span>
         </div>
 
+        <!-- One anchor shape for the four routes; `activeOn` widens the
+             highlight where a route covers a sub-route (projects → sheet). -->
+        {#snippet navLink(target: Route, activeOn: readonly Route['name'][], label: string)}
+          {@const active = activeOn.includes(route.name)}
+          <a
+            class="appnav-item"
+            class:active
+            aria-current={active ? 'page' : undefined}
+            href="#/{target.name}"
+            onclick={(e) => follow(e, target)}
+          >
+            {label}
+            {#if target.name === 'history' && past.length > 0}
+              <span class="badge">{past.length}</span>
+            {/if}
+          </a>
+        {/snippet}
+
         <div class="appnav-group">
           <span class="appnav-label">{te('editor.nav.portfolio', language)}</span>
-          <a
-            class="appnav-item"
-            class:active={route.name === 'review'}
-            aria-current={route.name === 'review' ? 'page' : undefined}
-            href="#/review"
-            onclick={(e) => follow(e, { name: 'review' })}>{te('editor.nav.review', language)}</a
-          >
-          <a
-            class="appnav-item"
-            class:active={route.name === 'projects' || route.name === 'sheet'}
-            aria-current={route.name === 'projects' || route.name === 'sheet' ? 'page' : undefined}
-            href="#/projects"
-            onclick={(e) => follow(e, { name: 'projects' })}
-            >{te('editor.nav.projects', language)}</a
-          >
-          <a
-            class="appnav-item"
-            class:active={route.name === 'settings'}
-            aria-current={route.name === 'settings' ? 'page' : undefined}
-            href="#/settings"
-            onclick={(e) => follow(e, { name: 'settings' })}
-            >{te('editor.nav.settings', language)}</a
-          >
+          {@render navLink({ name: 'review' }, ['review'], te('editor.nav.review', language))}
+          {@render navLink(
+            { name: 'projects' },
+            ['projects', 'sheet'],
+            te('editor.nav.projects', language),
+          )}
+          {@render navLink({ name: 'settings' }, ['settings'], te('editor.nav.settings', language))}
         </div>
 
         <div class="appnav-group">
@@ -172,16 +174,7 @@
           <button type="button" class="appnav-item" onclick={() => (dialogTab = 'export')}>
             {te('editor.nav.export', language)}
           </button>
-          <a
-            class="appnav-item"
-            class:active={route.name === 'history'}
-            aria-current={route.name === 'history' ? 'page' : undefined}
-            href="#/history"
-            onclick={(e) => follow(e, { name: 'history' })}
-          >
-            {te('editor.nav.history', language)}
-            {#if past.length > 0}<span class="badge">{past.length}</span>{/if}
-          </a>
+          {@render navLink({ name: 'history' }, ['history'], te('editor.nav.history', language))}
         </div>
 
         <div class="appnav-foot">
@@ -269,7 +262,7 @@
             </button>
             <span class="appbar-sep"></span>
             <!-- Mounts the slideshow ON CLICK, never before: reveal.js is not part
-                 of the editor's bundle and is fetched here (pitfall n° 1). -->
+                 of the editor's bundle and is fetched here. -->
             <button
               class="btn btn-primary"
               type="button"

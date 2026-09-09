@@ -7,7 +7,7 @@
 import type { Identity, Settings } from '../model/portfolio'
 import type { CoversExactly } from '../values/refine'
 
-/** Every `Identity` field is editable on its own (settings side, contract v2). */
+/** Every `Identity` field is editable on its own, from the settings screen. */
 export type IdentityField = keyof Identity
 
 /** Runtime mirror of {@link IdentityField}, in form order — same compile-time

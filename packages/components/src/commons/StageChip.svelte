@@ -1,12 +1,13 @@
 <script lang="ts">
   /**
-   * Stage chip (mockup `.chip` + `.chip--*`). Pitfall n° 13: the
+   * Stage chip (`.chip` + `.chip--*`). The
    * `color-mix(currentColor 25%)` hairline is carried by `.chip`; without it the
    * pale backgrounds vanish on zebra rows and in print.
-   * "on hold" reads as a second chip stuck to the first (mockup, frame 06).
+   * "on hold" reads as a second chip stuck to the first.
    */
   import type { Language } from '@project-review/core/model/theme'
   import type { Project, Stage } from '@project-review/core/model/project'
+  import { ARCHIVED_STAGES } from '@project-review/core/model/project'
   import { isTracked } from '@project-review/core/projections'
   import { t } from '@project-review/core/services/i18n'
 
@@ -24,13 +25,9 @@
 
   const displayedStage = $derived<Stage>(project?.stage ?? stage ?? 'toScope')
   const held = $derived(project?.onHold ?? onHold ?? false)
-  // With a full project at hand it goes through as is; the stage-only variant
-  // still needs the narrowing cast because `isTracked` asks for a `Project`
-  // even though it only reads the stage (a `Pick` signature belongs to the
-  // domain, not to this call site).
-  const tracked = $derived(
-    project ? isTracked(project) : isTracked({ stage: displayedStage } as Project),
-  )
+  // Tracked = not archived. Over a bare stage the domain list says it
+  // directly — no `Project` to fabricate for `isTracked`.
+  const tracked = $derived(project ? isTracked(project) : !ARCHIVED_STAGES.includes(displayedStage))
 </script>
 
 <span class="group" class:compact>
@@ -56,7 +53,7 @@
     font-size: 12px;
     font-weight: 600;
     white-space: nowrap;
-    /* fallback: stable metrics, then a hairline in the text hue (pitfall n° 13) */
+    /* fallback: stable metrics, then a hairline in the text hue */
     border: 1px solid transparent;
     border-color: color-mix(in srgb, currentColor 25%, transparent);
   }

@@ -54,17 +54,13 @@ describe('buildStandaloneHtml', () => {
     expect(html).toContain(`:root{--font:${fontStack('')}}`)
   })
 
-  it('no font link for the bundled families, one for a Google family', () => {
-    // The CSP <meta> ALLOWS fonts.googleapis.com in every file; what a bundled
-    // family must not produce is the stylesheet <link> itself.
+  it('emits no stylesheet link and names no font host — the file fetches nothing', () => {
+    // A non-embedded family falls back to the reader's system stack: the
+    // exported file must not carry a Google Fonts link, nor allow the hosts
+    // in its CSP.
     expect(html).not.toContain('<link rel="stylesheet"')
-    const withFont = buildStandaloneHtml({
-      ...parts,
-      fontHref: 'https://fonts.googleapis.com/css2?family=Roboto',
-    })
-    expect(withFont).toContain(
-      '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto">',
-    )
+    expect(html).not.toContain('fonts.googleapis.com')
+    expect(html).not.toContain('fonts.gstatic.com')
   })
 
   it('escapes the title and neutralises </script> inside the inlined source', () => {
@@ -86,8 +82,8 @@ describe('buildStandaloneHtml — security', () => {
     expect(html).toContain(
       `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; ` +
         `script-src 'nonce-${NONCE}'; ` +
-        `style-src 'unsafe-inline' https://fonts.googleapis.com; img-src data:; ` +
-        `font-src data: https://fonts.gstatic.com; connect-src 'none'">`,
+        `style-src 'unsafe-inline'; img-src data:; ` +
+        `font-src data:; connect-src 'none'">`,
     )
   })
 

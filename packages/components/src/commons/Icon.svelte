@@ -3,7 +3,7 @@
    * Remix Icon icons **inlined** (never the icon font: its baseline floats).
    * The package SVG already carries `fill="currentColor"`; the stylesheet below
    * restates it so we survive any variation of the package.
-   * Six icons only — each one must earn its place (plan § 4): five on the
+   * Six icons only — each one must earn its place: five on the
    * sheets, plus `eye-line` for the editor's "preview this slide" affordance.
    */
   import checkLine from 'remixicon/icons/System/check-line.svg?raw'

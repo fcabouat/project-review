@@ -3,7 +3,7 @@
   import ExitBar from '../../src/slideshow/ExitBar.svelte'
 
   /* Only the BAR is on show here. `SlideshowHost` is never mounted in a story
-     (pitfall n° 12): a story that booted reveal.js would load the engine, take
+: a story that booted reveal.js would load the engine, take
      over the page and leave its stylesheet behind in the Storybook shell. */
   const { Story } = defineMeta({
     title: 'Slideshow/ExitBar',
@@ -14,7 +14,7 @@
       docs: {
         description: {
           component:
-            'Exit bar of screen E4: invisible over the slideshow, revealed by hovering the top 60 px of the stage or by focusing one of its buttons. `pinned` forces it open so the canon can be read here.',
+            'The slideshow exit bar: invisible over the slideshow, revealed by hovering the top 60 px of the stage or by focusing one of its buttons. `pinned` forces it open so the bar can be read here.',
         },
       },
     },

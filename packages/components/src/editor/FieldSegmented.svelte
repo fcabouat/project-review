@@ -1,6 +1,6 @@
 <script lang="ts" generics="T">
   /**
-   * Closed scale as a segmented control (mockup `.segmented`): every value of the
+   * Closed scale as a segmented control (`.segmented`): every value of the
    * ADT is visible at once, so the user reads the scale instead of discovering it
    * in a dropdown. A click = one event, immediately (there is no draft to lose).
    */

@@ -12,6 +12,7 @@
   import { milestoneState } from '@project-review/core/projections'
   import { formatShortDate, t } from '@project-review/core/services/i18n'
   import { needsStagger, withinScale, scaleOf, positionPct } from './time-scale'
+  import { displayLabel } from './display'
 
   interface Props {
     readonly milestones: readonly Milestone[]
@@ -60,7 +61,7 @@
         class:dn={staggered && i % 2 === 1}
         style:left="{p.left}%"
       >
-        <span class="tl-lab">{p.milestone.label}</span>
+        <span class="tl-lab">{displayLabel(p.milestone.label)}</span>
         <span class="tl-dot"></span>
         <span class="tl-date">{p.date}</span>
       </div>
@@ -83,7 +84,7 @@
        (distinct variable: "--cat: var(--cat, …)" would be a CSS cycle) */
     --tint: var(--cat, var(--accent));
   }
-  /* top hairline, height 78, axis at 40 — v3 sheet dimensions */
+  /* top hairline, height 78, axis at 40 — the sheet's timeline dimensions */
   .tl {
     position: relative;
     height: 78px;
@@ -127,7 +128,8 @@
   .state--done .tl-dot {
     background: var(--tint);
   }
-  /* lateness is flagged in red, in unison with the cursor and the D2 inset */
+  /* lateness is flagged in red, in unison with the cursor and the health
+     dashboard's late-milestone inset */
   .state--overdue .tl-dot {
     border-color: var(--err);
   }

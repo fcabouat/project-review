@@ -261,7 +261,7 @@ describe('global replacement (import) through the loop', () => {
   })
 })
 
-describe('hydrate — restored session (contract v2 hydration)', () => {
+describe('hydrate — restored session', () => {
   it('a hydrated past is undoable from the very first call', () => {
     const initial = testPortfolio()
     const e: DomainEvent = {

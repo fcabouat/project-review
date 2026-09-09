@@ -1,33 +1,30 @@
 /* ==========================================================================
-   Slide theme — the 16:9 template (1280 × 720), copied value for value from
-   the canonical mockup `mockups/slides.html`. Nothing is redrawn here.
+   Slide theme — the 16:9 template (1280 × 720), the reference values of the
+   whole deck. Nothing is redrawn here.
 
    Why one global stylesheet rather than per-component scoped styles: the
    frame, the tables and the sheet rows are ONE grid shared by ten templates,
    and `print.css` has to transpose that same grid to A4. A single sheet keeps
-   the canon in one readable place and gives the print sheet a single set of
-   selectors to override.
+   the reference in one readable place and gives the print sheet a single set
+   of selectors to override.
 
-   Semantic tokens (--accent, --ok, --av-*, …) come from `app.css`; only the
+   Semantic tokens (--accent, --ok, --av-*, …) come from `tokens.css`; only the
    geometry of the deck — and the type stack — is defined here.
    ========================================================================== */
 
 :root {
-  /* Inter by default; `settings.theme.font` overrides it from phase 7 on —
-     no web font is fetched at this stage. */
+  /* Inter by default; `settings.theme.font` overrides it at runtime
+     (`applyFont`) — this stylesheet itself fetches no web font. */
   --font: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-  /* golden-ratio grid of the canon: 27 · 44 · 71 · 115 … */
+  /* golden-ratio grid: 27 · 44 · 71 · 115 … */
   --slide-width: 1280px;
   --slide-height: 720px;
   --slide-rail: 71px;
   --slide-margin: 44px;
   --slide-gutter: 27px;
   --slide-step: 17px;
-  /* title slide: white column 489 + blue block 791 = 1280 */
+  /* title slide: white column 489 (the blue block takes the remaining 791) */
   --title-column: 489px;
-  --title-block: 791px;
-  /* 4 projects = 489 px: the scale is shared by every category bar (D1) */
-  --bar-px-per-project: 122.25;
 }
 
 /* ---------- frame -------------------------------------------------------- */
@@ -188,7 +185,7 @@
   color: var(--muted);
 }
 
-/* category pill and id chip: the tint at 12 % is the canon's rgba(cat, .12) */
+/* category pill and id chip: the category tint at 12 % over white */
 .pill {
   display: inline-flex;
   align-items: center;
@@ -200,7 +197,7 @@
   font-size: 12px;
   font-weight: 700;
   white-space: nowrap;
-  /* fallback: stable metrics, then a hairline in the text hue (pitfall n° 13) */
+  /* fallback: stable metrics, then a hairline in the text hue */
   border: 1px solid transparent;
   border-color: color-mix(in srgb, currentColor 25%, transparent);
 }
@@ -276,7 +273,7 @@
   text-align: center;
 }
 
-/* ---------- D1 — portfolio dashboard ------------------------------------- */
+/* ---------- portfolio dashboard ------------------------------------------ */
 
 .stats {
   flex: none;
@@ -342,7 +339,7 @@
   border: 1.5px solid var(--txt2);
 }
 
-/* ---------- D2 — health dashboard ---------------------------------------- */
+/* ---------- health dashboard --------------------------------------------- */
 
 .health-column {
   width: 302px;
@@ -781,7 +778,7 @@
   grid-column: 1 / -1;
 }
 
-/* ---------- project sheet — bands composition (v2.1) --------------------- */
+/* ---------- project sheet — bands composition ---------------------------- */
 /* logo box at 48 px (same ratio as the normalized 180 × 64 box): the header
    height is then given by the cartouche, unchanged — 48.6 px */
 .slide--sheet .head {
@@ -888,7 +885,7 @@
   display: flex;
   flex-direction: column;
 }
-/* v2.1: the bullets are centered in the leftover height of the card — the
+/* the bullets are centered in the leftover height of the card — the
    heading stays pinned to the top, the list floats on `margin: auto 0` */
 .narrative-card .col {
   flex: 1;
@@ -900,7 +897,7 @@
   margin: auto 0;
   padding: 4px 0 1px;
 }
-/* the sheet tightens the atom's bullets to the canon's metrics (12 px / 1.3);
+/* the sheet tightens the atom's bullets to its own metrics (12 px / 1.3);
    the extra `.slide` raises specificity above the component's scoped rule */
 .slide .narrative-card .line {
   font-size: 12px;
@@ -1006,7 +1003,7 @@
   align-items: stretch;
   width: 100%;
 }
-/* One block: an 800 px card flush with the left margin, as in the canon.
+/* One block: an 800 px card flush with the left margin.
    Two or three: they share the width and shrink, never wrap. */
 .freeform-card {
   flex: 0 1 800px;
@@ -1027,10 +1024,4 @@
 .slide .freeform-card .line.bullet::before {
   top: 0.52em;
   background: #b6b6b6;
-}
-.freeform-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--accent);
-  margin-bottom: 12px;
 }

@@ -8,6 +8,6 @@ in this repository. To enable it, drop the following files here:
 - `Marianne-Bold.woff2` (weights 700–800)
 
 They ship with the DSFR (`@gouvfr/dsfr`, `dist/fonts/`). Once deployed, setting
-the font to `Marianne` in the editor (Paramètres → Police) uses them; without
+the font to `Marianne` in the editor (Settings → Font) uses them; without
 the files, the stack silently falls back to Inter. Any other value in that
 field is treated as a Google Fonts family and loaded on demand.

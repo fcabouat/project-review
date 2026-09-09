@@ -13,7 +13,7 @@
       docs: {
         description: {
           component:
-            'E0b — identity, appearance, aggregate slides, categories, free slides, data administration. PLAYABLE on the in-memory loop; the local-save switch is a story-local mock (no browser storage is touched).',
+            'Identity, appearance, aggregate slides, categories, free slides, data administration. PLAYABLE on the in-memory loop; the local-save switch is a story-local mock (no browser storage is touched).',
         },
       },
     },

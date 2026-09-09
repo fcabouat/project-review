@@ -41,7 +41,7 @@ export interface Category {
  * The implicit "unsorted" category is a SENTINEL, not a `Category` of the data:
  * its color is the neutral grey no real category may claim, and `name` holds an
  * i18n catalog key — resolve it via `unsortedCategoryName(language)`
- * (catalog/), never display it raw.
+ * (the core catalog data, data/catalog.*.ts), never display it raw.
  */
 export interface UnsortedCategory {
   readonly id: string

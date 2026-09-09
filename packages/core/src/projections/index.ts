@@ -11,7 +11,7 @@
  *   milestones.ts  milestone state, next milestone     ← milestones, reviewDate
  *   gauges.ts      progress gauge, risks band          ← one project
  *   decisions.ts   pending/taken refs, decision pages  ← projects, reviewDate
- *   kpis.ts        D1 tiles and bars, D2 counters      ← tracked projects
+ *   kpis.ts        dashboard tiles, bars and counters  ← tracked projects
  *   recap.ts       recap pages                         ← tracked projects, settings
  *   deck.ts        THE deck (slide sequence)           ← the whole portfolio
  *   deck-tree.ts   deck folded into slideshow drawers  ← deck.ts

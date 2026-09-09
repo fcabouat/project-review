@@ -1,7 +1,7 @@
 import type { Preview } from '@storybook/svelte-vite'
 
-// Les atomes n'embarquent aucun token : ils lisent ceux du thème (tokens.css),
-// exactement comme dans l'application.
+// The atoms carry no tokens of their own: they read the theme's (tokens.css),
+// exactly as they do in the application.
 import '@fontsource/inter/400.css'
 import '@fontsource/inter/600.css'
 import '@fontsource/inter/700.css'
@@ -16,13 +16,13 @@ const preview: Preview = {
         date: /Date$/i,
       },
     },
-    // Les trois fonds sur lesquels un atome doit tenir : canevas de slide, ligne
-    // zébrée du récapitulatif, aplat de catégorie (piège n° 13).
+    // The three grounds an atom must hold on: slide canvas, the recap table's
+    // zebra row, a solid category plane.
     backgrounds: {
       options: {
-        slide: { name: 'Canevas de slide', value: '#FFFFFF' },
-        zebrure: { name: 'Ligne zébrée', value: '#F6F6F6' },
-        categorie: { name: 'Aplat de catégorie', value: '#009099' },
+        slide: { name: 'Slide canvas', value: '#FFFFFF' },
+        zebra: { name: 'Zebra row', value: '#F6F6F6' },
+        category: { name: 'Category plane', value: '#009099' },
       },
     },
   },
@@ -38,7 +38,7 @@ const preview: Preview = {
         icon: 'paintbrush',
         items: [
           { value: 'flat', title: 'Flat' },
-          { value: 'classique', title: 'Classique' },
+          { value: 'classic', title: 'Classic' },
         ],
         dynamicTitle: true,
       },
@@ -63,7 +63,7 @@ const preview: Preview = {
   decorators: [
     (story, context) => {
       document.documentElement.dataset.slideStyle =
-        context.globals['style'] === 'classique' ? 'classique' : 'flat'
+        context.globals['style'] === 'classic' ? 'classic' : 'flat'
       document.documentElement.dataset.palette =
         typeof context.globals['palette'] === 'string' ? context.globals['palette'] : 'material'
       return story()

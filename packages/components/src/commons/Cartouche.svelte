@@ -12,7 +12,7 @@
   import { identityLine } from './identity-line'
 
   interface Props {
-    /** Organization block (contract v2: settings side). */
+    /** Organization block, read from the portfolio settings. */
     readonly identity: Identity
     readonly review: Review
     readonly language: Language

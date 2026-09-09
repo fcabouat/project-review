@@ -5,7 +5,7 @@
   import { kpis } from '@project-review/core/projections'
   import { t, type CatalogKey } from '@project-review/core/services/i18n'
 
-  // The six indicators of the D1 dashboard, derived from the sample data set (17 / 11 / 2 / 1 / 7 / 1).
+  // The six indicators of the portfolio dashboard, derived from the sample data set (17 / 11 / 2 / 1 / 7 / 1).
   const k = kpis(sample)
   const INDICATORS: readonly { value: number; key: CatalogKey; tone: StatTone }[] = [
     { value: k.tracked, key: 'kpi.tracked', tone: 'neutral' },
@@ -39,7 +39,7 @@
 </Story>
 
 <style>
-  /* top row of the D1 dashboard: 6 chips, 14 gutter */
+  /* top row of the portfolio dashboard: 6 chips, 14 gutter */
   .stats {
     display: flex;
     gap: 14px;

@@ -1,6 +1,6 @@
 <script lang="ts">
   /**
-   * Category divider (canonical mockup, frames 07 and 09): "monument"
+   * Category divider: "monument"
    * composition — giant numeral anchored bottom-left and bleeding off both
    * edges, right-aligned content column under the cartouche.
    * Three modes, decided by `dividerMode` on the project count: a plain list up
@@ -11,7 +11,7 @@
     categoryOf,
     dividerMode,
     isTracked,
-    projectsOfCategory,
+    projectsOfGroup,
     showsSheet,
   } from '@project-review/core/projections'
   import { catColor } from '../commons/cat-color'
@@ -38,7 +38,9 @@
   const category = $derived(categoryOf(portfolio, categoryId))
   const color = $derived(catColor(category.color))
 
-  const tracked = $derived(projectsOfCategory(portfolio, categoryId).filter(isTracked))
+  // `projectsOfGroup`, not `projectsOfCategory`: the unsorted divider lists
+  // the real orphans (any ghost `categoryId`), like the deck that emitted it.
+  const tracked = $derived(projectsOfGroup(portfolio, categoryId).filter(isTracked))
   const sheets = $derived(tracked.filter(showsSheet).length)
   const mode = $derived(dividerMode(tracked.length))
   const shown = $derived(mode === 'truncated' ? tracked.slice(0, MAX_ITEMS) : tracked)
@@ -47,62 +49,58 @@
   /** Two-digit numeral: "02" reads as a section number, "2" as a page number. */
   const numeral = $derived(String(number).padStart(2, '0'))
 
-  /** 'flat' (canon F-02): bottom-anchored plate, translucent numeral in flow. */
+  /** 'flat': bottom-anchored plate, translucent numeral in flow. */
   const flat = $derived(portfolio.settings.theme.style === 'flat')
 </script>
 
+<!-- The two arms compose the SAME pieces (cartouche, heading + count, list) —
+     only the wrapper classes change, so each piece is a local snippet. -->
+{#snippet cartouche()}
+  <div class="divider-cartouche">
+    <Cartouche
+      identity={portfolio.settings.identity}
+      review={portfolio.review}
+      {language}
+      onColoredBackground
+    />
+  </div>
+{/snippet}
+
+{#snippet headingAndCount(countClass: string)}
+  <!-- categoryName, not .name: the unsorted sentinel carries a catalog KEY. -->
+  <h2>{categoryName(category, language)}</h2>
+  <div class={countClass}>
+    {t('divider.count', language, { n: tracked.length, m: sheets })}
+  </div>
+{/snippet}
+
+{#snippet projectList(base: string, moreClass: string)}
+  <ul class={mode !== 'normal' ? `${base} ${base}--compact` : base}>
+    {#each shown as project (project.id)}
+      <li><b>{project.id}</b>{project.name}</li>
+    {/each}
+    {#if hidden > 0}
+      <li class={moreClass}>{t('d2.more', language, { n: hidden })}</li>
+    {/if}
+  </ul>
+{/snippet}
+
 {#if flat}
   <section class="slide slide--divider slide--flat-divider" style:--cat={color}>
-    <div class="divider-cartouche">
-      <Cartouche
-        identity={portfolio.settings.identity}
-        review={portfolio.review}
-        {language}
-        onColoredBackground
-      />
-    </div>
+    {@render cartouche()}
     <div class="flat-divider-plate">
       <div class="flat-divider-num">{numeral}</div>
-      <!-- categoryName, not .name: the unsorted sentinel carries a catalog KEY. -->
-      <h2>{categoryName(category, language)}</h2>
-      <div class="flat-divider-count">
-        {t('divider.count', language, { n: tracked.length, m: sheets })}
-      </div>
-      <ul class="flat-divider-list" class:flat-divider-list--compact={mode !== 'normal'}>
-        {#each shown as project (project.id)}
-          <li><b>{project.id}</b>{project.name}</li>
-        {/each}
-        {#if hidden > 0}
-          <li class="flat-divider-more">{t('d2.more', language, { n: hidden })}</li>
-        {/if}
-      </ul>
+      {@render headingAndCount('flat-divider-count')}
+      {@render projectList('flat-divider-list', 'flat-divider-more')}
     </div>
   </section>
 {:else}
   <section class="slide slide--divider" style:--cat={color}>
-    <div class="divider-cartouche">
-      <Cartouche
-        identity={portfolio.settings.identity}
-        review={portfolio.review}
-        {language}
-        onColoredBackground
-      />
-    </div>
+    {@render cartouche()}
     <div class="divider-numeral">{numeral}</div>
     <div class="divider-block">
-      <!-- categoryName, not .name: the unsorted sentinel carries a catalog KEY. -->
-      <h2>{categoryName(category, language)}</h2>
-      <div class="divider-count">
-        {t('divider.count', language, { n: tracked.length, m: sheets })}
-      </div>
+      {@render headingAndCount('divider-count')}
     </div>
-    <ul class="divider-list" class:divider-list--compact={mode !== 'normal'}>
-      {#each shown as project (project.id)}
-        <li><b>{project.id}</b>{project.name}</li>
-      {/each}
-      {#if hidden > 0}
-        <li class="divider-more">{t('d2.more', language, { n: hidden })}</li>
-      {/if}
-    </ul>
+    {@render projectList('divider-list', 'divider-more')}
   </section>
 {/if}

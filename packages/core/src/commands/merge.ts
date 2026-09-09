@@ -51,7 +51,7 @@ const equal = (a: unknown, b: unknown): boolean => {
 /** The final projects array: homonyms swapped in place, new ids inserted at
  * the end of their category (at the very end when the category holds none). */
 const mergedProjects = (present: readonly Project[], incoming: readonly Project[]): Project[] => {
-  const arriving = new Map(incoming.map((x) => [x.id as string, x]))
+  const arriving = new Map(incoming.map((x) => [x.id, x]))
   const merged = present.map((x) => arriving.get(x.id) ?? x)
   for (const x of incoming) {
     if (present.some((y) => y.id === x.id)) continue
@@ -70,7 +70,7 @@ const mergedProjects = (present: readonly Project[], incoming: readonly Project[
 export const completeMerge = (p: Portfolio, c: MergeProjects): ProjectsMerged | undefined => {
   if (c.projects.length === 0) return undefined
 
-  const presentAt = new Map(p.projects.map((x, index) => [x.id as string, { value: x, index }]))
+  const presentAt = new Map(p.projects.map((x, index) => [x.id, { value: x, index }]))
   const replaced = c.projects.flatMap((x) => {
     const hit = presentAt.get(x.id)
     return hit === undefined ? [] : [hit]
@@ -92,7 +92,7 @@ export const completeMerge = (p: Portfolio, c: MergeProjects): ProjectsMerged | 
     .map((value, k) => ({ value, index: p.categories.length + k }))
 
   const final = mergedProjects(p.projects, c.projects)
-  const finalAt = new Map(final.map((x, i) => [x.id as string, i]))
+  const finalAt = new Map(final.map((x, i) => [x.id, i]))
   const after: MergeSlice = {
     projects: c.projects.map((value): Positioned<Project> => ({
       value,

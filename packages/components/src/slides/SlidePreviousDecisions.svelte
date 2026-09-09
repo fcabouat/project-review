@@ -1,6 +1,6 @@
 <script lang="ts">
   /**
-   * Record of the previous review (canonical mockup, frame 14): accountability
+   * Record of the previous review: accountability
    * appendix, entirely derived (decisions settled since `previousReviewDate`).
    * Nothing to fill in here — hence the airy rows and no writing zone.
    * Very last slide of the deck, apart from closing free slides.

@@ -1,10 +1,11 @@
 <script lang="ts">
   /**
-   * E0 — the review's own fields, plus the free slides anchored to it.
+   * Review screen — the review's own fields, plus the free slides anchored to
+   * it.
    *
-   * The mockup shows this card as a read-only key/value list; here every line is
-   * the editable field it stands for, since the editor is the only place these
-   * values can be typed. One field ↔ one `ChangeReviewField` command, at blur —
+   * The card reads as a key/value list where every line is the editable field
+   * it stands for, since the editor is the only place these values can be
+   * typed. One field ↔ one `ChangeReviewField` command, at blur —
    * `decide` reads the `before` and drops the no-ops.
    *
    * Pure screen: `portfolio` and `dispatch` in, nothing else — no store, no
@@ -55,16 +56,17 @@
     dispatch({ type: 'ChangeReviewField', field, after: next } as never)
   }
 
-  /** Mounted only while open: a closed preview renders no slide at all (E2ter). */
+  /** Mounted only while open: a closed preview renders no slide at all. */
   let previewingTitle = $state(false)
 
   const openings = $derived(portfolio.freeSlides.filter((s) => s.anchor.type === 'opening'))
 
   function addOpening(): void {
+    // Born empty: the display does the "—" fallback, the data stays honest.
     const slide: FreeSlide = {
       id: nextFreeSlideId(portfolio.freeSlides),
       anchor: { type: 'opening' },
-      title: te('editor.settings.newSlide', language),
+      title: '',
       blocks: [[]],
     }
     dispatch({ type: 'CreateFreeSlide', slide, index: portfolio.freeSlides.length })

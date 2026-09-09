@@ -13,7 +13,7 @@ import {
   type CatalogKey,
 } from '@project-review/core/services/i18n'
 
-/** French typography: a non-breaking space before the colon (pitfall n° 7). */
+/** French typography: a non-breaking space before the colon. */
 const NBSP = ' '
 
 /**

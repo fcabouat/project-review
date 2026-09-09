@@ -61,15 +61,15 @@ describe('save / loadRaw', () => {
 
   it('returns null on unreadable content rather than throwing', () => {
     const storage = createMemoryStorage()
-    storage.setItem(STORAGE_KEY, '{ ceci n’est pas du JSON')
+    storage.setItem(STORAGE_KEY, '{ this is not JSON')
     expect(() => loadRaw(storage)).not.toThrow()
     expect(loadRaw(storage)).toBeNull()
   })
 
   it('validates nothing: the total parse stays with the caller', () => {
     const storage = createMemoryStorage()
-    storage.setItem(STORAGE_KEY, '{"version":1,"nawak":true}')
-    expect(loadRaw(storage)).toStrictEqual({ version: 1, nawak: true })
+    storage.setItem(STORAGE_KEY, '{"version":1,"nonsense":true}')
+    expect(loadRaw(storage)).toStrictEqual({ version: 1, nonsense: true })
   })
 })
 

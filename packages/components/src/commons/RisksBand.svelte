@@ -1,6 +1,6 @@
 <script lang="ts">
   /**
-   * The risks band of the sheet's row C (v2.1 canon): a band with a left rule
+   * The risks band of the sheet's row C: a band with a left rule
    * whose TONE is the project's health, in five states — the derivation lives
    * in the domain (`risksLevel`), never here.
    *
@@ -45,6 +45,23 @@
 
 <style>
   .risks {
+    /* The band's tones are a LOCAL scale, pinned here and not mapped onto the
+       global health tokens (--ok, --ok-bg, …): the band reads at 12 px on a
+       grey card, so its greens and ambers are calibrated for that ground and
+       must not move when the chrome scale is retuned. Values identical to the
+       previous inline literals — tokenised, not re-tinted. */
+    --risks-rule: #9ca3af;
+    --risks-ok-bg: #f0fdf4;
+    --risks-ok-rule: #16a34a;
+    --risks-ok-ink: #166534;
+    --risks-watch-bg: #fffbeb;
+    --risks-watch-rule: #d97706;
+    --risks-watch-ink: #92400e;
+    --risks-alert-bg: #fff7ed;
+    --risks-alert-rule: #c2410c;
+    --risks-critical-bg: #fef2f2;
+    --risks-critical-rule: #dc2626;
+
     flex: 1;
     min-width: 0;
     border-radius: 4px;
@@ -52,23 +69,23 @@
     /* line-height 0 on the box: the inline label adds no leading of its own */
     line-height: 0;
     background: var(--bg-alt);
-    border-left: 4px solid #9ca3af;
+    border-left: 4px solid var(--risks-rule);
   }
   .risks--onTrack {
-    background: #f0fdf4;
-    border-left-color: #16a34a;
+    background: var(--risks-ok-bg);
+    border-left-color: var(--risks-ok-rule);
   }
   .risks--watch {
-    background: #fffbeb;
-    border-left-color: #d97706;
+    background: var(--risks-watch-bg);
+    border-left-color: var(--risks-watch-rule);
   }
   .risks--alert {
-    background: #fff7ed;
-    border-left-color: #c2410c;
+    background: var(--risks-alert-bg);
+    border-left-color: var(--risks-alert-rule);
   }
   .risks--critical {
-    background: #fef2f2;
-    border-left-color: #dc2626;
+    background: var(--risks-critical-bg);
+    border-left-color: var(--risks-critical-rule);
   }
   .label {
     display: inline-flex;
@@ -80,10 +97,10 @@
     color: var(--muted);
   }
   .risks--onTrack .label {
-    color: #166534;
+    color: var(--risks-ok-ink);
   }
   .risks--watch .label {
-    color: #92400e;
+    color: var(--risks-watch-ink);
   }
   .risks--alert .label {
     color: var(--warn);

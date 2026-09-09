@@ -17,7 +17,7 @@
       docs: {
         description: {
           component:
-            'E3 — export serialises the portfolio (whole, or a partial file from the category-grouped checkboxes); import runs the total parse and shows its report before anything happens. The action is a single command either way — `ReplacePortfolio` or, in merge mode, `MergeProjects` — so it undoes like a typo.',
+            'Import / export modal — export serialises the portfolio (whole, or a partial file from the category-grouped checkboxes); import runs the total parse and shows its report before anything happens. The action is a single command either way — `ReplacePortfolio` or, in merge mode, `MergeProjects` — so it undoes like a typo.',
         },
       },
     },

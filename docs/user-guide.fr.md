@@ -35,7 +35,7 @@ confirmation, la base courante est remplacée par le jeu Déjà Vu Ltd. :
 20 projets dans 8 catégories. Le chargement est une seule entrée d'historique
 — Ctrl+Z l'annule.
 
-<img src="images/fr-review.png" width="720" alt="Vue Revue : titre, sous-titre, dates et slides additionnelles">
+<img src="images/fr-review.png" width="720" alt="Vue Revue : titre, sous-titre, dates et slides libres">
 
 Ensuite :
 
@@ -43,8 +43,9 @@ Ensuite :
   et les slides libres (chacune avec un titre, une ancre et des blocs de
   texte ; les flèches **Monter** / **Descendre** les réordonnent).
 - **Projets** liste le portefeuille ; **+ Ajouter un projet** en crée un.
-- **Paramètres** porte l'identité, le thème et les catégories ; chaque projet
-  appartient à une catégorie.
+- **Paramètres** porte l'identité, le thème, les catégories, les slides
+  libres, les slides d'agrégat et l'administration des données ; chaque
+  projet appartient à une catégorie.
 
 Chaque vue est une adresse : `#/review`, `#/projects`, `#/settings`,
 `#/history` — et `#/sheet/P-01` pour une fiche projet. Les entrées de la barre
@@ -112,7 +113,9 @@ l'éditeur**, **Vue d'ensemble**, **Plein écran**, **Enregistrer**,
 
 **Enregistrer** télécharge `slideshow-{date}.html` : une copie autonome du
 diaporama, en lecture seule. Elle s'ouvre en `file://` sans réseau et s'envoie
-comme un seul fichier.
+comme un seul fichier. La police du thème doit exister chez le lecteur ; sinon
+le diaporama retombe sur la pile système — l'impression PDF, elle, embarque
+les glyphes.
 
 ## Imprimer
 
@@ -163,13 +166,14 @@ copie de l'application, et les fichiers voyagent comme vous voulez
    renvoie son export.
 3. **Fusionner.** Importez le fichier reçu et choisissez **Fusionner les
    projets dans le portefeuille courant** : l'aperçu chiffre l'effet avant
-   d'agir (« fusionner : 3 remplacés, 2 ajoutés »). Un projet d'identifiant
+   d'agir (« fusionner : 3 remplacés, 2 ajoutés ») et liste les projets que
+   le fichier remplacerait. Un projet d'identifiant
    connu remplace le vôtre à sa place, un identifiant nouveau s'ajoute en fin
    de sa catégorie, une catégorie inconnue est créée — vos catégories
    homonymes gardent leur version, et rien n'est jamais supprimé. La revue,
    les réglages et les slides libres du fichier reçu sont ignorés.
 
-<img src="images/fr-import-merge.png" width="720" alt="Le choix du mode d'import : remplacer ou fusionner, avec l'aperçu chiffré">
+<img src="images/fr-import-merge.png" width="720" alt="Le choix du mode d'import : remplacer ou fusionner, avec l'aperçu chiffré et la liste des projets remplacés">
 
 La fusion est une seule entrée d'historique : **Ctrl+Z** la défait en bloc.
 
@@ -190,7 +194,7 @@ une police non embarquée est choisie.
 
 ## Apparence
 
-<img src="images/fr-settings.png" width="720" alt="Vue Paramètres : identité, catégories, langue et palette">
+<img src="images/fr-settings.png" width="720" alt="Vue Paramètres : identité, thème, catégories, slides libres, slides d’agrégat et données">
 
 **Paramètres > Langue & palette** :
 

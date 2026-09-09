@@ -6,7 +6,7 @@
    * and puts a `break-after: page` on it; Chrome's own preview then produces one
    * A4 landscape page per slide.
    *
-   * Pitfall n° 10 lives in `print.css`, not here: 1122 × 793 and NOT 1123 × 794,
+   * The page-size rule lives in `print.css`, not here: 1122 × 793 and NOT 1123 × 794,
    * one pixel under the 96 dpi A4, otherwise Chrome slips a blank page between
    * two slides. Nothing in this component may add height to a slide — hence the
    * flat container with zero gap and zero padding in print, and a plain stack on

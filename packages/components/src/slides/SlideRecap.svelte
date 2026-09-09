@@ -1,6 +1,6 @@
 <script lang="ts">
   /**
-   * Recap "Where do projects stand?" (canonical mockup, frames 05 and 06):
+   * Recap "Where do projects stand?":
    * one row per tracked project, paginated by `recapRows`.
    * The last page stops on its rows — the table never stretches to fill the
    * frame. The next milestone turns red when it is overdue.
@@ -21,6 +21,7 @@
   import HealthDot from '../commons/HealthDot.svelte'
   import ProgressGauge from '../commons/ProgressGauge.svelte'
   import SlideChrome from './SlideChrome.svelte'
+  import { displayLabel } from '../commons/display'
   import { categoryName, columns, railText } from './labels'
 
   interface Props {
@@ -38,7 +39,7 @@
   const language = $derived(portfolio.settings.language)
   const headers = $derived(columns('recap.columns', language))
 
-  /* Canon foot of every page but the last: how many tracked projects follow. */
+  /* Foot of every page but the last: how many tracked projects follow. */
   const nextPageCount = $derived(
     pageNumber < totalPages ? (recapPages(portfolio)[pageNumber]?.length ?? 0) : 0,
   )
@@ -58,7 +59,7 @@
           late:
             milestone !== undefined &&
             milestoneState(milestone, portfolio.review.reviewDate) === 'overdue',
-          // A pending decision is a decision with no outcome (pitfall n° 4).
+          // A pending decision is a decision with no outcome.
           pending: pendingDecisionsOf(project).length > 0,
         },
       ]
@@ -118,7 +119,7 @@
           <td><ProgressGauge gauge={projectGauge(row.project)} {language} /></td>
           <td class="milestone" class:late={row.late} class:dim={row.milestone === undefined}>
             {#if row.milestone}
-              {row.milestone.label}
+              {displayLabel(row.milestone.label)}
               <span class="dim">
                 — {row.milestone.display ?? formatShortDate(row.milestone.date)}
               </span>

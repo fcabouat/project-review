@@ -5,7 +5,7 @@
    * the three-part foot (month · legend · "page / total").
    *
    * The title slide and the dividers do NOT use it: they are full-bleed
-   * compositions with no rail and no foot (canonical mockup, frames 01 and 07).
+   * compositions with no rail and no foot.
    */
   import type { Language } from '@project-review/core/model/theme'
   import type { Portfolio } from '@project-review/core/model/portfolio'
@@ -77,7 +77,7 @@
 
 <section class="slide" class:slide--sheet={sheet} style:--cat={tint}>
   {#if flat && sheet}
-    <!-- flat sheet (canon F-03/F-04): the header is a full-width category color
+    <!-- flat sheet: the header is a full-width category color
          plane — kicker, title, chips and meta come from the heading snippet -->
     <div class="flat-head">
       <div class="flat-cart">

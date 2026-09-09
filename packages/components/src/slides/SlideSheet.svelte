@@ -1,7 +1,7 @@
 <script lang="ts">
   /**
-   * Project sheet (canonical mockup, frames 08, 10 and 11) — the reference
-   * template, "v2.1 bands":
+   * Project sheet — the reference
+   * template, a banded composition:
    *   row A  goal BAND (elastic) + the merged FACTS block (338 px), both with
    *          a left rule, contents aligned to the top, height capped at 104 px;
    *   row B  three narrative cards in strict thirds, bullets centered;
@@ -40,7 +40,7 @@
   let { portfolio, projectId, page, total, logo }: Props = $props()
 
   const language = $derived(portfolio.settings.language)
-  /** 'flat' (canon F-03): kicker + title + chips + meta on the color plane. */
+  /** 'flat': kicker + title + chips + meta on the color plane. */
   const flat = $derived(portfolio.settings.theme.style === 'flat')
   const project = $derived(projectById(portfolio, projectId))
   const category = $derived(project ? categoryOf(portfolio, project.categoryId) : undefined)
@@ -62,10 +62,10 @@
     { variant: 'next', lines: project?.next ?? [] },
   ])
 
-  /** Pitfall n° 4: a decision is pending as long as it has no outcome. */
+  /** A decision is pending as long as it has no outcome. */
   const pending = $derived(project ? pendingDecisionsOf(project) : [])
   const decision = $derived(pending[0])
-  /** "Décideur" is the third column header of the decisions table. */
+  /** The third column header of the decisions table (`decisions.columns`). */
   const ownerLabel = $derived(columns('decisions.columns', language)[2] ?? '')
 </script>
 
@@ -81,7 +81,7 @@
   >
     {#snippet heading()}
       {#if flat}
-        <!-- canon F-03: the id moves from the meta line up to the kicker -->
+        <!-- flat: the id moves from the meta line up to the kicker -->
         <div class="flat-kicker">{categoryName(category, language)} · {project.id}</div>
         <h2>{project.name}</h2>
         <div class="flat-headrow">

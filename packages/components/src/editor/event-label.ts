@@ -15,6 +15,7 @@
  * store's rule): the time shown by the History belongs to the view.
  */
 import type { Language } from '@project-review/core/model/theme'
+import { displayLabel } from '../commons/display'
 import { formatShortDate } from '@project-review/core/services/i18n'
 import { isoDate } from '@project-review/core/values/date'
 import type {
@@ -76,7 +77,7 @@ function transition(
   after: string,
   language: Language,
 ): string {
-  // Non-breaking space before the colon in French (pitfall n° 7).
+  // Non-breaking space before the colon in French.
   const colon = language === 'fr' ? ' :' : ':'
   const arrow = te('editor.event.arrow', language)
   return `${subject} · ${fieldLabel}${colon} ${before} ${arrow} ${after}`
@@ -220,10 +221,11 @@ export function eventLabel(event: DomainEvent, language: Language, nameOf?: Name
 
     case 'FreeSlideCreated':
     case 'FreeSlideDeleted':
-      return te(byType, language, { title: event.slide.title })
+      // An empty title falls back to the display dash — the line stays readable.
+      return te(byType, language, { title: displayLabel(event.slide.title) })
 
     case 'FreeSlideChanged':
-      return te(byType, language, { title: event.after.title })
+      return te(byType, language, { title: displayLabel(event.after.title) })
 
     case 'FreeSlideMoved':
       return te(byType, language)

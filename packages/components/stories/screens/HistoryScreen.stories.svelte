@@ -13,7 +13,7 @@
       docs: {
         description: {
           component:
-            'EH — the event journal, most recent first, with the current-position separator. PLAYABLE: the story pre-runs a few real commands (one already undone), and the two buttons move the cursor on the in-memory loop.',
+            'The event journal, most recent first, with the current-position separator. PLAYABLE: the story pre-runs a few real commands (one already undone), and the two buttons move the cursor on the in-memory loop.',
         },
       },
     },

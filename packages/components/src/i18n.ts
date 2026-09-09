@@ -1,6 +1,6 @@
 /**
- * LOCAL editor catalog — same discipline as the core catalog/, keys prefixed
- * `editor.*`.
+ * LOCAL editor catalog — same discipline as the core catalog data
+ * (data/catalog.*.ts), keys prefixed `editor.*`.
  *
  * WHY A SECOND CATALOG. The core catalog is the exhaustive catalog of the
  * labels *the deck generates*: it deliberately says nothing about the editor's
@@ -14,7 +14,7 @@
  * in the core catalog, and are never restated here.
  *
  * French typography: the non-breaking spaces before `: ; ? !` and `%` live in
- * these strings (pitfall n° 7) — never applied to text the user typed.
+ * these strings — never applied to text the user typed.
  *
  * PURE module: no Svelte, no DOM, no clock.
  */
@@ -70,7 +70,7 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
   },
 
   /* ----------------------------- slideshow ------------------------------ */
-  /* Exit bar of the E4 mockup: hidden by default, revealed on the top edge. */
+  /* Slideshow exit bar: hidden by default, revealed on the top edge. */
   'editor.slideshow.bar': { fr: 'Barre de sortie du diaporama', en: 'Slideshow exit bar' },
   'editor.slideshow.back': { fr: "‹ Retour à l'éditeur", en: '‹ Back to the editor' },
   'editor.slideshow.print': { fr: 'Imprimer', en: 'Print' },
@@ -162,7 +162,7 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
   /* --------------------------- review screen ----------------------------- */
   'editor.review.title': { fr: 'Revue', en: 'Review' },
   'editor.review.identity': { fr: 'Identité', en: 'Identity' },
-  'editor.review.freeSlides': { fr: 'Slides additionnelles', en: 'Additional slides' },
+  'editor.review.freeSlides': { fr: 'Slides libres', en: 'Free slides' },
   'editor.review.dateHint': { fr: 'AAAA-MM-JJ', en: 'YYYY-MM-DD' },
   'editor.review.noFreeSlide': { fr: 'Aucune slide libre.', en: 'No free slide.' },
 
@@ -237,10 +237,9 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
   },
   'editor.settings.add': { fr: '+ Ajouter', en: '+ Add' },
   'editor.settings.newCategory': { fr: 'Nouvelle catégorie', en: 'New category' },
-  'editor.settings.newSlide': { fr: 'Nouvelle slide', en: 'New slide' },
   'editor.settings.fontHint': {
-    fr: `«${NBSP}Marianne${NBSP}» (embarquée) ou toute famille Google Fonts — défaut${NBSP}: Roboto.`,
-    en: '"Marianne" (bundled) or any Google Fonts family — default: Roboto.',
+    fr: `«${NBSP}Marianne${NBSP}» (servie si déployée à côté${NBSP}; jamais téléchargée) ou toute famille Google Fonts — défaut${NBSP}: Roboto.`,
+    en: '"Marianne" (served if deployed alongside; never fetched) or any Google Fonts family — default: Roboto.',
   },
   'editor.setting.style': { fr: 'Thème', en: 'Theme' },
   'editor.style.flat': { fr: 'Flat', en: 'Flat' },
@@ -399,7 +398,7 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
     fr: `Ignoré avant lancement${NBSP}: la tuile affichera «${NBSP}—${NBSP}».`,
     en: 'Ignored before launch: the tile will show "—".',
   },
-  /* Same wording as the A/T/J tooltips (canon, 04/09) — the dynamic {reason}
+  /* Same wording as the A/T/J tooltips — the dynamic {reason}
      variant is retired with them. */
   'editor.hint.sheet.auto': {
     fr: 'Auto — slide de détail affichée si le projet est prêt, en cours ou en reliquats, ou s’il porte une décision attendue.',
@@ -471,6 +470,10 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
   'editor.error.badJson': {
     fr: 'JSON illisible — vérifiez la syntaxe.',
     en: 'Unreadable JSON — check the syntax.',
+  },
+  'editor.error.tooLarge': {
+    fr: `Fichier trop volumineux (plus de 10${NBSP}Mo) — ce n'est pas un portefeuille.`,
+    en: 'File too large (over 10 MB) — not a portfolio.',
   },
 
   /* ------------ strict-parse errors (`{ path, code, params }`) ------------ */
@@ -586,7 +589,7 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
     en: 'Partial export: the selected projects, their categories, the current review and settings — the file opens on its own in the app.',
   },
 
-  /* ---------------------- E2ter — slide preview -------------------------- */
+  /* --------------------------- slide preview ----------------------------- */
   'editor.preview.open': { fr: 'Aperçu de la slide', en: 'Preview the slide' },
   'editor.preview.button': { fr: `Aperçu de la slide${NBSP}▸`, en: `Preview the slide${NBSP}▸` },
   'editor.preview.title': { fr: 'Aperçu — {subject}', en: 'Preview — {subject}' },
@@ -637,7 +640,7 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
   },
 
   /* ---------------------- history: event wording ------------------------- */
-  // Composition glyph: the canonical mockup writes the transition with "▸".
+  // Composition glyph: history lines write a state transition with "▸".
   'editor.event.arrow': { fr: '▸', en: '▸' },
   'editor.event.subject.review': { fr: 'Revue', en: 'Review' },
   'editor.event.subject.identity': { fr: 'Identité', en: 'Identity' },

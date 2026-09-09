@@ -1,10 +1,10 @@
 <script lang="ts">
   /**
-   * EH — the event journal, in business wording (`eventLabel`). The journal
+   * History screen — the event journal, in business wording (`eventLabel`). The journal
    * speaks EVENTS on purpose: views dispatch commands, but `past` records what
    * `decide` completed them into, and that is what can be undone.
    *
-   * The list reads MOST RECENT FIRST, like the mockup: the undone events sit on
+   * The list reads MOST RECENT FIRST: the undone events sit on
    * top, greyed and tagged, then the "current position" separator, then the
    * applied ones. Undo/redo move that separator — nothing is ever deleted from
    * the display until a new event branches the future away (the in-memory
@@ -12,7 +12,7 @@
    * bottom silently).
    *
    * The store carries no timestamp (events are pure): the time column of the
-   * mockup would have to be invented here, so it is left out rather than faked.
+   * layout would have to be invented here, so it is left out rather than faked.
    *
    * Pure screen: the trail comes in as plain props (`past`/`future`), the two
    * moves go out as callbacks — no store (screens contract, `contracts.ts`).

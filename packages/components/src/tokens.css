@@ -1,11 +1,11 @@
-/* Tokens du thème — repris des maquettes (contrat visuel).
-   Les 12 couleurs génériques de catégorie sont résolues par palettes.css
-   (blocs [data-palette]) : ici, uniquement le chrome structurel et les
-   échelles sémantiques. Les widgets du paquet lisent ces variables ; l'app
-   (app.css) et le Storybook du paquet importent ce fichier — une seule source. */
+/* Theme tokens — the visual contract of the package.
+   The 12 generic category colors are resolved by palettes.css
+   ([data-palette] blocks): here, only the structural chrome and the semantic
+   scales. The package's widgets read these variables; the app (app.css) and
+   the package's Storybook import this file — a single source. */
 @import './palettes.css';
 :root {
-  /* structure (famille Tailwind par défaut ; l'accent peut être surchargé par flavor) */
+  /* structure (Tailwind family by default; the accent may be overridden per flavor) */
   --accent: #312e81;
   --txt: #111827;
   --txt2: #374151;
@@ -16,10 +16,9 @@
   --bg-alt: #f3f4f6;
   --accent-975: #eef2ff;
   --accent-925: #e0e7ff;
-  --accent-850: #c7d2fe;
   --accent-main: #6366f1;
 
-  /* échelle d'alerte (Niveau) */
+  /* health scale */
   --ok: #15803d;
   --ok-bg: #dcfce7;
   --vig-txt: #92400e;
@@ -40,11 +39,11 @@
   --av-100: #15803d;
   --av-na: #cccccc;
 
-  /* Single source: theme.css declares the --font default, applyFont() (phase 7)
+  /* Single source: theme.css declares the --font default, applyFont()
      overrides it inline from settings.theme.font. */
   font-family: var(--font, 'Inter', 'Segoe UI', system-ui, sans-serif);
   color: var(--txt);
   background: var(--bg-alt);
 }
 
-/* Piège n°13 : les chips portent toujours un filet currentColor pour rester lisibles sur tout fond. */
+/* Chips always carry a currentColor hairline so they stay readable on any ground. */

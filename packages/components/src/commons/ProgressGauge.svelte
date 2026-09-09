@@ -2,7 +2,7 @@
   /**
    * Progress gauge: grey track + fill in the band color.
    * The band comes from `progressRamp` (through `projectGauge`) — no threshold is
-   * restated here. Pitfall n° 3: before launch the gauge is "not assessed" (full
+   * restated here. Before launch the gauge is "not assessed" (full
    * grey track, value "—"), never a red bar at 0 %.
    */
   import type { Gauge } from '@project-review/core/projections'
@@ -24,7 +24,7 @@
 
   const band = $derived(gauge.type === 'value' ? gauge.band : 'grey')
   const pct = $derived(gauge.type === 'value' ? gauge.pct : 0)
-  // Non-breaking space before "%": generated label (pitfall n° 7).
+  // Non-breaking space before "%": French typography on a generated label.
   // `priority.none` = the "missing value" em dash, identical fr/en: the only
   // catalog entry for that glyph, so we do not hard-code it here.
   const text = $derived(gauge.type === 'value' ? `${gauge.pct} %` : t('priority.none', language))
@@ -83,7 +83,7 @@
     color: var(--muted);
   }
 
-  /* Fully grey track when nothing is assessable: the mockup fills it — the grey
+  /* Fully grey track when nothing is assessable — the grey
      itself comes from BAND_COLOR through the same `--fill` variable. */
   .band--grey .bar {
     background: var(--fill);

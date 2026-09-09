@@ -1,6 +1,6 @@
 <script lang="ts">
   /**
-   * One column of the review narrative (band 2 of the v3 sheet): colored disc +
+   * One column of the review narrative (band 2 of the sheet): colored disc +
    * icon, heading in small caps, then the bullets in the micro-format.
    * Three variants only — done (green), in progress (blue), next steps (light
    * blue): the disc color tells the tense of the verb.

@@ -1,13 +1,12 @@
 /* ==========================================================================
-   A4 landscape recomposition — copied value for value from the canonical
-   mockup `mockups/impression-a4.html`.
+   A4 landscape recomposition of the slide theme.
 
    This is NOT a homothetic reduction of the 16:9: the ratio goes from 1.778 to
    1.414, so the title column drops to 434 px, the goal card follows it, the
    typographic scale goes to ×0.95, and the height gained on row A is paid back
    to the narrative row.
 
-   Pitfall n° 10: the printed page is 1122 × 793 px, ONE pixel under the screen
+   The printed page is 1122 × 793 px, ONE pixel under the screen
    format (1123 × 794), otherwise Chrome slips a blank page between two slides.
 
    Every selector is prefixed by `.slide` — one class more than the theme's, so
@@ -153,7 +152,7 @@
     font-size: 12.5px;
   }
 
-  /* ---------- D1 --------------------------------------------------------- */
+  /* ---------- portfolio dashboard ---------------------------------------- */
   .slide .stats {
     height: 92px;
     gap: 12px;
@@ -179,7 +178,7 @@
     font-size: 12.5px;
   }
 
-  /* ---------- D2 --------------------------------------------------------- */
+  /* ---------- health dashboard ------------------------------------------- */
   .slide .health-rows {
     gap: 17px;
   }
@@ -248,7 +247,7 @@
   .slide .note {
     font-size: 11.5px;
   }
-  /* the writing zone is not a typographic measure — it keeps the canon's
+  /* the writing zone is not a typographic measure — it keeps the screen's
      52 px, A4 being the format one writes on by hand */
   .slide .table--decisions th {
     padding: 7px 9px;
@@ -360,7 +359,7 @@
     font-size: 13.5px;
   }
 
-  /* ---------- project sheet (v2.1 bands) --------------------------------- */
+  /* ---------- project sheet (bands) -------------------------------------- */
   /* The bands of rows A and C are atoms with scoped styles of their own, whose
      selectors weigh two classes: the rules that reach inside them therefore
      chain THREE (`.slide .facts .value`), never two — otherwise the winner

@@ -1,9 +1,10 @@
 <script lang="ts">
   /**
-   * E1 / E1bis — the portfolio table, grouped by category, with the instant
-   * fuzzy search.
+   * Projects screen — the portfolio table, grouped by category, with the
+   * instant fuzzy search. Destructive confirmations use the native dialog —
+   * deliberate.
    *
-   * Two grouping rules from the mockup, both meaningful:
+   * Two grouping rules, both meaningful:
    *  - a category with no TRACKED project shows no group (an empty category is
    *    not news);
    *  - archived projects are gathered in one collapsed `<details>` group at the
@@ -21,7 +22,6 @@
   import { UNSORTED_CATEGORY } from '@project-review/core/model/category'
   import { SHEET_MODES } from '@project-review/core/model/project'
   import {
-    displayedStatus,
     isArchived,
     isTracked,
     orphanProjects,
@@ -29,6 +29,8 @@
     projectGauge,
     projectsOfCategory,
   } from '@project-review/core/projections'
+  import StageChip from '../commons/StageChip.svelte'
+  import HealthDot from '../commons/HealthDot.svelte'
   import { catColor } from '../commons/cat-color'
   import { t } from '@project-review/core/services/i18n'
   import { nextProjectId } from '@project-review/core/values/ids'
@@ -185,14 +187,11 @@
     <span class="pid">{project.id}</span>
     <span class="pnom" title={project.name}>{project.name}</span>
     <span class="etapecell">
-      <!-- displayedStatus owns the whole wording, on-hold suffix included —
-           and its rule (no suffix on an archived project) with it. -->
-      <span class="chip chip-{project.stage}">{displayedStatus(project, language)}</span>
+      <!-- The SAME StageChip as the recap slide — one chip vocabulary, on-hold
+           rendering (and its archived-project rule) included. -->
+      <StageChip {project} {language} compact />
     </span>
-    <span
-      class="health-dot health-{project.health ?? 'ne'}"
-      title={t(`level.${project.health ?? 'notAssessed'}`, language)}
-    ></span>
+    <HealthDot health={project.health} {language} shape="dot" />
     <span class="prio">{project.priority ?? t('priority.none', language)}</span>
     <span
       class="avanc"

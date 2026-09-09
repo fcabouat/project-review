@@ -6,7 +6,7 @@
  * JSON-serialisable by construction (no callbacks — there are none to begin
  * with).
  *
- * Drawer navigation (canon `slides-demo.html`): edge arrows show where the
+ * Drawer navigation: edge arrows show where the
  * drawers are, the progress bar situates the review, the slides keep their own
  * page counter so reveal's number stays off. No URL contract (`hash`/`history`
  * off): the deck is not addressable — and it must never fight the app's OWN

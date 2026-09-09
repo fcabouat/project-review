@@ -1,6 +1,6 @@
 <script module lang="ts">
   /**
-   * D1 dashboard indicator: a figure, a label, a tinted ground.
+   * Portfolio dashboard indicator: a figure, a label, a tinted ground.
    * The tone carries the meaning (neutral / accent / watch / alert / good) —
    * the one thing the figure does not say.
    */

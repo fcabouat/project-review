@@ -22,7 +22,8 @@ import { recapPages } from './recap'
  * Whether the deck shows the project's sheet. Two deliberate subtleties:
  * `sheet: 'always'` wins even on an archived project (a still-visible archive),
  * and in 'auto' mode a pending decision triggers the sheet even when archived —
- * while that same decision stays out of D2, which reads tracked projects only.
+ * while that same decision stays out of the health dashboard, which reads
+ * tracked projects only.
  */
 export function showsSheet(p: Project): boolean {
   if (p.sheet === 'always') return true

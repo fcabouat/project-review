@@ -31,7 +31,7 @@ To see a full example, open **Settings**, scroll to the **Data** card and click
 by the Déjà Vu Ltd. sample set: 20 projects in 8 categories. The load is a
 single history entry — Ctrl+Z undoes it.
 
-<img src="images/en-review.png" width="720" alt="Review view: title, subtitle, dates and additional slides">
+<img src="images/en-review.png" width="720" alt="Review view: title, subtitle, dates and free slides">
 
 From there:
 
@@ -39,8 +39,9 @@ From there:
   slides (each with a title, an anchor position and text blocks; the
   **Move up** / **Move down** arrows reorder them).
 - **Projects** lists the portfolio; **+ Add a project** creates one.
-- **Settings** holds the identity, the theme and the categories; every project
-  belongs to one category.
+- **Settings** holds the identity, the theme, the categories, the free
+  slides, the aggregate-slide switches and the data administration; every
+  project belongs to one category.
 
 Every view is an address: `#/review`, `#/projects`, `#/settings`,
 `#/history` — and `#/sheet/P-01` for a project sheet. The sidebar entries are
@@ -102,7 +103,9 @@ Moving the mouse to the top edge shows a bar: **Back to the editor**,
 
 **Save** downloads `slideshow-{date}.html`: a standalone, read-only copy of
 the slideshow. It opens from `file://` with no network and can be sent as a
-single file.
+single file. The theme font must exist on the reader's machine; otherwise the
+deck falls back to the system stack — PDF printing, by contrast, embeds the
+glyphs.
 
 ## Printing
 
@@ -150,13 +153,14 @@ application, and the files travel however you like (mail, file share…).
    back.
 3. **Merge.** Import the returned file and choose **Merge the projects into
    the current portfolio**: the preview counts the effect before anything
-   happens ("merge: 3 replaced, 2 added"). A project with a known id replaces
+   happens ("merge: 3 replaced, 2 added") and lists the projects the file
+   would replace. A project with a known id replaces
    yours in place, a new id joins the end of its category, an unknown
    category is created — your homonym categories keep their version, and
    nothing is ever deleted. The incoming review, settings and free slides are
    ignored.
 
-<img src="images/en-import-merge.png" width="720" alt="The import mode choice: replace or merge, with the counted preview">
+<img src="images/en-import-merge.png" width="720" alt="The import mode choice: replace or merge, with the counted preview and the list of replaced projects">
 
 The merge is a single history entry: **Ctrl+Z** undoes it whole.
 
@@ -176,7 +180,7 @@ when a non-bundled font family is chosen.
 
 ## Appearance
 
-<img src="images/en-settings.png" width="720" alt="Settings view: identity, categories, language and palette">
+<img src="images/en-settings.png" width="720" alt="Settings view: identity, theme, categories, free slides, aggregate slides and data">
 
 **Settings > Language & palette**:
 

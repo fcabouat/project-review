@@ -11,7 +11,7 @@
       title: `${pct} %`,
       gauge: { type: 'value', pct, band: progressRamp(pct) } as Gauge,
     })),
-    // P-05 (stage "ready"): pitfall n° 3 — no progress before launch.
+    // P-05 (stage "ready"): no progress before launch.
     { title: 'not assessed', gauge: { type: 'notAssessed' } as Gauge },
   ]
 

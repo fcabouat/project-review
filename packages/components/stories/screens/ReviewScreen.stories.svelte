@@ -13,7 +13,7 @@
       docs: {
         description: {
           component:
-            'E0 — the review’s own fields and the opening free slides. PLAYABLE: the story binds the screen to an in-memory editing loop (`screen-store`), so every field commits a real command.',
+            'The review’s own fields and the opening free slides. PLAYABLE: the story binds the screen to an in-memory editing loop (`screen-store`), so every field commits a real command.',
         },
       },
     },

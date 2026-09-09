@@ -1,11 +1,11 @@
 <script lang="ts">
   /**
-   * The sheet's merged FACTS block (row A, right side of the v2.1 canon): one
+   * The sheet's merged FACTS block (row A, right side): one
    * grey band with a left rule, holding the three dated columns — start, end,
    * progress — separated by hairlines, then the budget across the full width
    * under a rule.
    *
-   * Two decisions of the canon are carried here and nowhere else:
+   * Two layout decisions are carried here and nowhere else:
    *   · progress is the BAR ALONE, full width of its column (1.12 of a share):
    *     the percentage is already said by the recap table, and repeating it in
    *     14 px would have cost the column its width;
@@ -91,7 +91,7 @@
   .fact--progress {
     flex: 1.12;
   }
-  /* same scale as every other slide label (mockup `.lab`) */
+  /* same scale as every other slide label (`.label`) */
   .label {
     font-size: 12px;
     font-weight: 700;

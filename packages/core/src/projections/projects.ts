@@ -25,8 +25,8 @@ export function isTracked(p: Project): boolean {
   return !isArchived(p)
 }
 
-/** 'toScope' or 'ready' — not launched yet: no gauge (pitfall n° 3) and its
- * own segment on the D1 bars. */
+/** 'toScope' or 'ready' — not launched yet: no gauge, and its
+ * own segment on the portfolio-dashboard bars. */
 export function isPreProject(p: Project): boolean {
   return PRE_PROJECT_STAGES.includes(p.stage)
 }
@@ -69,6 +69,18 @@ export function knownCategoryIds(p: Portfolio): ReadonlySet<string> {
 export function orphanProjects(p: Portfolio): readonly Project[] {
   const known = knownCategoryIds(p)
   return p.projects.filter((pr) => !known.has(pr.categoryId))
+}
+
+/**
+ * Projects of one DECK group, addressed by the id its divider carries: a real
+ * category's list, or the orphans when the id resolves to no category — the
+ * unsorted sentinel included. The precedence mirrors `categoryOf` (a real
+ * category always wins its id), and the orphan arm matches by NON-membership,
+ * exactly like `deck()` builds the group: a project whose `categoryId` is a
+ * ghost ('ghost', not 'unsorted') is still listed by the unsorted divider.
+ */
+export function projectsOfGroup(p: Portfolio, categoryId: string): readonly Project[] {
+  return knownCategoryIds(p).has(categoryId) ? projectsOfCategory(p, categoryId) : orphanProjects(p)
 }
 
 /**

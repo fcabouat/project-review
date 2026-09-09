@@ -1,6 +1,6 @@
 <script lang="ts">
   /**
-   * D1 dashboard "The portfolio" (canonical mockup, frame 03): the six derived
+   * Portfolio dashboard "The portfolio": the six derived
    * indicators, then one bar per non-empty category.
    * The bar scale is shared: 4 projects = 489 px, otherwise comparing two
    * categories would mean nothing. The legend sits in the foot.
@@ -10,7 +10,7 @@
     categoryBars,
     categoryOf,
     kpis,
-    projectsOfCategory,
+    projectsOfGroup,
     isTracked,
   } from '@project-review/core/projections'
   import { catColor } from '../commons/cat-color'
@@ -49,7 +49,8 @@
         // categoryName, not .name: the unsorted sentinel carries a catalog KEY.
         name: categoryName(category, language),
         color: catColor(category.color),
-        count: projectsOfCategory(portfolio, bar.categoryId).filter(isTracked).length,
+        // `projectsOfGroup`: the unsorted bar counts the real orphans.
+        count: projectsOfGroup(portfolio, bar.categoryId).filter(isTracked).length,
       }
     }),
   )
@@ -99,7 +100,7 @@
 
 <style>
   /* the only measure that belongs to this slide alone: the air between the
-     indicator row and the breakdown (mockup, inline `margin-top: 34px`) */
+     indicator row and the breakdown (34 px) */
   .breakdown {
     margin-top: 34px;
   }

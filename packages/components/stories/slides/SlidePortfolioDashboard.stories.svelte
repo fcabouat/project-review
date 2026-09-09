@@ -12,7 +12,7 @@
       docs: {
         description: {
           component:
-            'D1: the six derived indicators, then one bar per non-empty category (8 of them here). The bar scale is shared by every row — 4 projects = 489 px — otherwise comparing two categories would mean nothing.',
+            'The portfolio dashboard: the six derived indicators, then one bar per non-empty category (8 of them here). The bar scale is shared by every row — 4 projects = 489 px — otherwise comparing two categories would mean nothing.',
         },
       },
     },

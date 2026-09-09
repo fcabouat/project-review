@@ -25,7 +25,7 @@ export type Gauge =
   | { readonly type: 'notAssessed' }
   | { readonly type: 'value'; readonly pct: number; readonly band: ProgressBand }
 
-/** Pitfall n° 3: no progress before launch, whatever the form captured. */
+/** No progress before launch, whatever the form captured. */
 export function projectGauge(pr: Project): Gauge {
   if (isPreProject(pr) || pr.progress === undefined) return { type: 'notAssessed' }
   return { type: 'value', pct: pr.progress, band: progressRamp(pr.progress) }

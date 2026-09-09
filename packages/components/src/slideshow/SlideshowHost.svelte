@@ -7,7 +7,7 @@
    * `SettingsView`, `FreeSlideCard` all mount the slide preview). The shell
    * publishes the opener, the preview dialog asks for it; a component mounted
    * outside the shell — a story — gets `undefined` and keeps its button
-   * disabled, which is exactly the wanted behaviour (pitfall n° 12).
+   * disabled, which is exactly the wanted behaviour.
    */
   const OPENER = Symbol('slideshow.open')
 
@@ -29,9 +29,11 @@
    * only allowed dependency between the two); slideshow/ imports nothing from
    * editor/.
    *
-   * Full-screen slideshow. Mounted ONLY on «&nbsp;Diaporama ▸&nbsp;» and
+   * Full-screen slideshow. Mounted ONLY on the generate button
+   * (`editor.topbar.slideshow`) and
    * unmounted on the way back — reveal.js never exists while one edits
-   * (pitfall n° 1). Two consequences drive the whole file:
+   * — reveal.js must never weigh on the editor's bundle. Two consequences
+   * drive the whole file:
    *
    * 1. THE ENGINE IS IMPORTED AT MOUNT TIME. `await import('reveal.js')` and its
    *    base stylesheet (as a string, via `?inline`) are two dynamic chunks: the
@@ -64,28 +66,28 @@
 
   interface Props {
     readonly portfolio: Portfolio
-    /** 0-based deck position to open on — «&nbsp;Ouvrir le diaporama ici&nbsp;». */
+    /** 0-based deck position to open on (`editor.preview.openSlideshow`). */
     readonly startAt?: number
     /** Back to the editor: the caller unmounts this component. */
     readonly close: () => void
     /**
-     * « Enregistrer » — the standalone .html. Injected by the app shell
+     * The save action (`editor.slideshow.save`) — the standalone .html. Injected by the app shell
      * (infrastructure/slideshow-export.ts); layering forbids the reverse
-     * import. Absent — a story — the button is a no-op (pitfall n° 12).
+     * import. Absent — a story — the button is a no-op.
      */
     readonly exportStandalone?: (slidesEl: HTMLElement, portfolio: Portfolio) => Promise<void>
   }
 
   let { portfolio, startAt = 0, close, exportStandalone }: Props = $props()
 
-  /** Slide canvas, fixed by the templates (plan § 5). */
+  /** Slide canvas, fixed by the slide templates. */
   const SLIDE_WIDTH = 1280
   const SLIDE_HEIGHT = 720
 
   /**
-   * The drawers of the canonical mockup `slides-demo.html`: → skips a whole
-   * category, ↓ opens its sheets. `groups` drives the markup, `slides` (its
-   * exact flattening — the `deckTree` invariant) keeps the flat page numbers.
+   * The slideshow drawers: → skips a whole category, ↓ opens its sheets.
+   * `groups` drives the markup, `slides` (its exact flattening — the `deckTree`
+   * invariant) keeps the flat page numbers.
    */
   const groups = untrack(() => deckTree(portfolio))
   const slides = groups.flatMap((g) => (g.kind === 'single' ? [g.slide] : [...g.slides]))
@@ -290,8 +292,8 @@
              SINGLE in anything. The `<section class="stack">` wrapper is the one
              deliberate exception: reveal treats a section containing sections as
              a vertical STACK (it adds the class itself; written out so the CSS
-             holds before boot), which is exactly the drawer navigation of the
-             canonical mockup. Page numbers stay FLAT across the drawers. -->
+             holds before boot), which is exactly the drawer navigation the
+             deck tree describes. Page numbers stay FLAT across the drawers. -->
         {#each groups as group, h (h)}
           {#if group.kind === 'stack'}
             <section class="stack">
