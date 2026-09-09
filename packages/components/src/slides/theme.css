@@ -1,15 +1,19 @@
 /* ==========================================================================
-   Slide theme — the 16:9 template (1280 × 720), the reference values of the
-   whole deck. Nothing is redrawn here.
+   Slide theme — the THEMED side of the 16:9 deck (1280 × 720).
 
-   Why one global stylesheet rather than per-component scoped styles: the
-   frame, the tables and the sheet rows are ONE grid shared by ten templates,
-   and `print.css` has to transpose that same grid to A4. A single sheet keeps
-   the reference in one readable place and gives the print sheet a single set
-   of selectors to override.
+   The layout of the templates lives in their utility classes (screen values,
+   `print:` variants for the A4 transposition). This sheet keeps what the
+   utilities do not carry:
+     - the geometry tokens the utilities reference (--slide-*, --title-column);
+     - colors, fonts and surfaces (everything a theme may restate);
+     - the reaches into the atoms' interiors (cartouche, chips, text lines),
+       which a parent's class attribute cannot address;
+     - selector-driven state (zebra rows, level tones, `.late`, `.dim`).
 
-   Semantic tokens (--accent, --ok, --av-*, …) come from `tokens.css`; only the
-   geometry of the deck — and the type stack — is defined here.
+   `flat.css` restates both structure and colors under
+   `[data-slide-style='flat']` — as UNLAYERED author CSS it wins over the
+   templates' layered utilities, which is exactly the override the style swap
+   needs.
    ========================================================================== */
 
 :root {
@@ -30,139 +34,35 @@
 /* ---------- frame -------------------------------------------------------- */
 
 .slide {
-  position: relative;
-  width: var(--slide-width);
-  height: var(--slide-height);
-  overflow: hidden;
   background: var(--bg);
-  display: flex;
   font-family: var(--font);
-  font-size: 14.5px;
-  line-height: 1.45;
   color: var(--txt);
-}
-.slide * {
-  box-sizing: border-box;
+  /* Canvas delineation wherever the slide is not the full screen (editor
+     preview, Storybook, letterboxed decks): an outline, not a border — the
+     slide is border-box and a border would eat 1px of the 1280×720 grid;
+     the outline paints outside it. Both themes define --border2. */
+  outline: 1px solid var(--border2);
 }
 
-/* vertical bar — text anchored at the bottom (text end 44 px from the floor) */
+/* vertical bar — the sheet takes the color of its category */
 .rail {
-  width: var(--slide-rail);
-  flex: none;
   background: var(--accent);
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding-bottom: var(--slide-margin);
 }
-/* a sheet's rail takes the color of its category */
 .slide--sheet .rail {
   background: var(--cat, var(--accent));
 }
 .rail-text {
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-  font-size: 13.5px;
-  font-weight: 700;
   color: #fff;
-  letter-spacing: 0.14em;
-  white-space: nowrap;
-  text-transform: uppercase;
 }
 
-.canvas {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  padding: 26px var(--slide-margin) 22px;
-}
-
-/* header: normalized logo box (180 × 64, contain, flush left) + cartouche */
-.head {
-  height: 64px;
-  flex: none;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-}
-.logo {
-  height: 64px;
-  width: 180px;
-  object-fit: contain;
-  object-position: left center;
-  display: block;
-}
-
-/* slide title */
 .slide-heading {
-  flex: none;
-  margin-top: var(--slide-step);
-  font-size: 30px;
-  line-height: 36px;
-  font-weight: 700;
   color: var(--accent);
-  letter-spacing: -0.01em;
-}
-.heading-row {
-  flex: none;
-  margin-top: var(--slide-step);
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--slide-gutter);
-}
-.heading-row .slide-heading {
-  margin-top: 0;
-  min-width: 0;
-}
-.heading-notes {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  flex: none;
 }
 .heading-note {
-  font-size: 12.5px;
   color: var(--muted);
-  white-space: nowrap;
-}
-
-/* body + foot */
-.slide-body {
-  flex: 1;
-  min-height: 0;
-  margin-top: var(--slide-step);
-  display: flex;
-  flex-direction: column;
-}
-.slide-body--centered {
-  justify-content: center;
-}
-.slide-body--split {
-  flex-direction: row;
-  gap: var(--slide-margin);
-}
-.slide-body--tight {
-  margin-top: 14px;
 }
 .slide-foot {
-  flex: none;
-  height: 14px;
-  margin-top: var(--slide-step);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--slide-step);
-  font-size: 11px;
   color: var(--muted);
-}
-.foot-mid {
-  flex: 1;
-  text-align: center;
-}
-.foot-right {
-  white-space: nowrap;
 }
 
 /* ---------- primitives --------------------------------------------------- */
@@ -186,147 +86,52 @@
 }
 
 /* category pill and id chip: the category tint at 12 % over white */
-.pill {
-  display: inline-flex;
-  align-items: center;
-  height: 22px;
-  padding: 0 9px;
+.pill,
+.id-chip {
   border-radius: 999px;
   background: color-mix(in srgb, var(--cat, var(--accent)) 12%, #fff);
   color: var(--cat, var(--accent));
-  font-size: 12px;
-  font-weight: 700;
-  white-space: nowrap;
   /* fallback: stable metrics, then a hairline in the text hue */
   border: 1px solid transparent;
   border-color: color-mix(in srgb, currentColor 25%, transparent);
 }
-.id-chip {
-  display: inline-flex;
-  align-items: center;
-  height: 21px;
-  padding: 0 8px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--cat, var(--accent)) 12%, #fff);
-  color: var(--cat, var(--accent));
-  font-size: 11.5px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-  border: 1px solid transparent;
-  border-color: color-mix(in srgb, currentColor 25%, transparent);
-}
 
-/* micro-format bullets (hanging indent) — free slides */
-.bullets {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
 .card {
   background: #fff;
   border: 1px solid var(--border2);
   border-radius: 8px;
-  padding: 12px 14px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 /* ---------- tables ------------------------------------------------------- */
 
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-}
 .table th {
   background: var(--accent);
   color: #fff;
-  font-size: 12px;
-  font-weight: 700;
-  text-align: left;
-  padding: 9px 10px;
-  letter-spacing: 0.02em;
 }
 .table td {
-  padding: 6px 10px;
-  font-size: 13px;
   color: var(--txt2);
-  vertical-align: middle;
-}
-.table tbody tr {
-  height: 40px;
 }
 .table tbody tr:nth-child(even) {
   background: var(--bg-alt);
 }
 .table .num {
-  font-size: 12.5px;
-  font-weight: 700;
   color: var(--txt);
 }
 .table .name {
-  font-size: 13px;
   color: var(--txt);
-  line-height: 1.22;
-}
-.table .center {
-  text-align: center;
 }
 
 /* ---------- portfolio dashboard ------------------------------------------ */
 
-.stats {
-  flex: none;
-  height: 88px;
-  display: flex;
-  gap: 14px;
-}
-.category-rows {
-  flex: 1;
-  min-height: 0;
-  margin-top: var(--slide-step);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-.category-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  height: 27px;
-}
 .category-name {
-  width: 170px;
-  flex: none;
-  font-size: 13px;
-  font-weight: 600;
   color: var(--txt);
 }
 .category-count {
-  width: 24px;
-  flex: none;
-  text-align: right;
-  font-size: 13px;
-  font-weight: 700;
   color: var(--txt2);
 }
 .category-row .cat-bar {
   margin-left: 5px;
-}
-.legend {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.legend-key {
-  display: inline-block;
-  width: 13px;
-  height: 9px;
-  border-radius: 2px;
-  margin: 0 5px 0 14px;
-}
-.legend > .legend-key:first-child {
-  margin-left: 0;
 }
 .legend-key--inProgress {
   background: var(--txt2);
@@ -341,47 +146,17 @@
 
 /* ---------- health dashboard --------------------------------------------- */
 
-.health-column {
-  width: 302px;
-  flex: none;
-  display: flex;
-  flex-direction: column;
-}
-.health-rows {
-  margin-top: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-.health-row {
-  display: grid;
-  grid-template-columns: 9px 1fr auto;
-  align-items: center;
-  column-gap: 9px;
-  row-gap: 7px;
-}
 .health-dot {
-  display: inline-block;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
   background: var(--tone);
 }
 .health-label {
-  font-size: 13.5px;
   color: var(--txt);
 }
 .health-count {
-  font-size: 14px;
-  font-weight: 700;
   color: var(--txt);
 }
 .health-bar {
-  grid-column: 2 / 4;
-  height: 4px;
-  border-radius: 999px;
   background: #ededed;
-  overflow: hidden;
 }
 .health-bar i {
   display: block;
@@ -405,21 +180,14 @@
   --tone: var(--ne);
 }
 
-/* the inset follows the health block directly (gap 17): no dead space */
 .callout {
-  margin-top: var(--slide-step);
   background: var(--err-bg);
-  border-radius: 8px;
-  padding: 12px 14px;
 }
 .callout .label {
   font-size: 11px;
   color: var(--err);
 }
 .callout p {
-  margin-top: 5px;
-  font-size: 13px;
-  line-height: 1.35;
   color: var(--txt2);
 }
 .callout p b {
@@ -427,23 +195,11 @@
   color: var(--err);
 }
 
-.pending-column {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-.table--pending {
-  margin-top: 12px;
-}
 .table--pending tbody tr {
   background: none;
-  height: auto;
   border-bottom: 1px solid var(--border2);
 }
 .table--pending td {
-  padding: 9px 10px;
-  vertical-align: middle;
   border-left: 3px solid transparent;
 }
 .table--pending td + td {
@@ -456,15 +212,10 @@
   border-left-color: var(--err);
 }
 .table--pending .name {
-  font-size: 13px;
-  font-weight: 600;
   color: var(--txt);
-  line-height: 1.28;
 }
 .table--pending .who {
-  font-size: 12px;
   color: var(--muted);
-  line-height: 1.25;
 }
 .more-row td {
   font-size: 12px;
@@ -473,22 +224,8 @@
 }
 
 /* ---------- recap -------------------------------------------------------- */
-/* tight padding: a project name on 2 lines fits the 40 px row */
-.table--recap td {
-  padding: 4px 9px;
-}
-.table--recap th {
-  padding: 9px 9px;
-}
-.table--recap .pill {
-  height: 20px;
-  font-size: 11px;
-  padding: 0 8px;
-}
-/* second selector: without it `.table td` (more specific) would win */
+
 .table--recap .milestone {
-  font-size: 12px;
-  line-height: 1.2;
   color: var(--txt);
 }
 .table--recap .milestone.late,
@@ -498,79 +235,29 @@
 }
 .decision-mark {
   color: var(--accent);
-  font-size: 14px;
-  font-weight: 700;
-  line-height: 1;
 }
 
 /* ---------- archives ----------------------------------------------------- */
 
-.table--archives tbody tr {
-  height: 52px;
-}
 .note {
-  margin-top: 20px;
-  font-size: 12px;
   color: var(--muted);
 }
 
 /* ---------- decisions (today's table) + record of the previous review ----- */
-/* the writing zones stay at 52 px: this is the table one fills by hand */
-.table--decisions th {
-  padding: 6px 10px;
-}
-.table--decisions tbody tr {
-  height: 64px;
-}
-.table--decisions td {
-  padding: 6px 10px;
-  vertical-align: top;
-}
+
 .table--decisions .question {
-  font-size: 12.5px;
-  line-height: 1.32;
   color: var(--txt2);
 }
 .table--decisions .who {
-  font-size: 12px;
   color: var(--txt2);
 }
-/* chip floated on a 15 px text line: the name takes the full width from the
-   2nd line on — the 21 % "Project" column then fits in 2 lines */
-.project-cell {
-  display: block;
-  font-size: 12px;
-  line-height: 1.25;
-}
-.project-cell .id-chip {
-  float: left;
-  height: 15px;
-  font-size: 10.5px;
-  padding: 0 5px;
-  margin-right: 7px;
-}
 .project-cell .name {
-  font-size: 12px;
-  font-weight: 600;
   color: var(--txt);
-  line-height: 1.25;
 }
 .write-line {
-  display: block;
-  height: 52px;
   border-bottom: 1px dotted #b9b9b9;
 }
-/* record of the previous review — appendix, two airy lines */
-.table--record tbody tr {
-  height: 68px;
-}
-.table--record td {
-  padding: 10px 10px;
-  vertical-align: middle;
-}
 .table--record .question {
-  font-size: 12.5px;
-  line-height: 1.32;
   color: var(--muted);
 }
 .table--record .taken {
@@ -578,10 +265,6 @@
   font-weight: 600;
   color: var(--txt);
   line-height: 1.3;
-}
-.table--record .who {
-  font-size: 12.5px;
-  color: var(--txt2);
 }
 /* the outcome is entered text, rendered by TextLine: the record gives it the
    weight of an answer (the chain outranks the atom's scoped rule) */
@@ -594,296 +277,89 @@
 /* ---------- title slide -------------------------------------------------- */
 
 .title-left {
-  width: var(--title-column);
-  flex: none;
   background: #fff;
-  display: flex;
-  flex-direction: column;
-  padding: var(--slide-margin);
-}
-/* align-self: without it the flex box stretches the image and the vertical text */
-.title-logo {
-  height: 88px;
-  width: 180px;
-  object-fit: contain;
-  object-position: left center;
-  display: block;
-  align-self: flex-start;
 }
 .title-vertical {
-  align-self: flex-start;
-  margin-top: auto;
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-  font-size: 44px;
-  font-weight: 800;
   color: var(--accent);
-  letter-spacing: -0.01em;
-  line-height: 1;
-  text-transform: uppercase;
 }
 .title-right {
-  flex: 1;
-  min-width: 0;
   background: var(--accent);
   color: #fff;
-  position: relative;
-  padding: 187px var(--slide-rail) 0;
-}
-.title-right h1 {
-  font-size: 56px;
-  font-weight: 800;
-  line-height: 1.06;
-  letter-spacing: -0.015em;
 }
 .title-sub {
-  margin-top: var(--slide-step);
-  font-size: 20px;
   color: rgba(255, 255, 255, 0.8);
 }
-/* standard cartouche, in white, on the grid of the blue block — same inset as
-   every other slide */
-.title-cartouche {
-  position: absolute;
-  top: 26px;
-  right: var(--slide-margin);
-}
-/* discreet signature, foot of the blue block */
 .title-sign {
-  position: absolute;
-  left: var(--slide-rail);
-  bottom: var(--slide-margin);
-  font-size: 13px;
   color: rgba(255, 255, 255, 0.65);
 }
 .title-contact {
-  display: block;
-  margin-top: 4px;
-  font-size: 11.5px;
   color: rgba(255, 255, 255, 0.5);
 }
-.kpis {
-  position: absolute;
-  left: var(--slide-rail);
-  right: var(--slide-rail);
-  top: 446px;
-  display: flex;
-  gap: var(--slide-gutter);
-}
 .kpi {
-  flex: 1;
   border-top: 1px solid rgba(255, 255, 255, 0.28);
-  padding-top: var(--slide-step);
-}
-.kpi b {
-  display: block;
-  font-size: 40px;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.02em;
 }
 .kpi span {
-  display: block;
-  margin-top: 9px;
-  font-size: 12.5px;
   color: rgba(255, 255, 255, 0.75);
-  line-height: 1.3;
 }
 
 /* ---------- dividers ----------------------------------------------------- */
-/* "monument" composition: right-aligned content column, giant numeral anchored
-   bottom-left and bleeding off both edges of the frame */
+
 .slide--divider {
-  position: relative;
   background: var(--cat, var(--accent));
   color: #fff;
-  display: block;
-  overflow: hidden;
-}
-.divider-cartouche {
-  position: absolute;
-  top: 26px;
-  right: var(--slide-margin);
-  z-index: 3;
 }
 .divider-numeral {
-  position: absolute;
-  left: -28px;
-  bottom: -92px;
-  font-size: 400px;
-  font-weight: 800;
-  line-height: 1;
   color: rgba(255, 255, 255, 0.12);
-  letter-spacing: -0.02em;
-  z-index: 1;
-}
-.divider-block {
-  position: absolute;
-  right: var(--slide-margin);
-  top: 376px;
-  max-width: 920px;
-  z-index: 2;
-  text-align: right;
-}
-.divider-block h2 {
-  font-size: 64px;
-  font-weight: 800;
-  line-height: 1.05;
-  letter-spacing: -0.015em;
 }
 .divider-count {
-  margin-top: 14px;
-  font-size: 15px;
   color: rgba(255, 255, 255, 0.82);
 }
 .divider-list {
-  position: absolute;
-  right: var(--slide-margin);
-  top: 520px;
-  width: 680px;
-  z-index: 2;
-  margin: 0;
-  padding: 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.28);
 }
 .divider-list li {
-  list-style: none;
-  font-size: 14px;
-  line-height: 1.35;
   color: rgba(255, 255, 255, 0.92);
-  padding: 9px 0;
   border-top: 1px solid rgba(255, 255, 255, 0.28);
-  text-align: right;
 }
 .divider-list li b {
-  font-weight: 700;
   color: #fff;
-  margin-right: 6px;
-}
-/* 6 projects and beyond, the single column would run past the floor: same
-   rows, two columns, list widened to the left */
-.divider-list--compact {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  column-gap: 34px;
-  width: 1000px;
 }
 .divider-list li.divider-more {
-  padding: 9px 0;
-  text-align: right;
-  font-size: 13px;
-  font-style: italic;
   color: rgba(255, 255, 255, 0.75);
-  border-top: 1px solid rgba(255, 255, 255, 0.28);
-  grid-column: 1 / -1;
 }
 
 /* ---------- project sheet — bands composition ---------------------------- */
-/* logo box at 48 px (same ratio as the normalized 180 × 64 box): the header
-   height is then given by the cartouche, unchanged — 48.6 px */
-.slide--sheet .head {
-  height: auto;
-}
-.slide--sheet .logo {
-  height: 48px;
-  width: 135px;
-}
-.sheet-title {
-  flex: none;
-  margin-top: 10px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--slide-step);
-}
+
 .sheet-title h2 {
-  font-size: 29px;
-  line-height: 35px;
-  font-weight: 700;
   color: var(--accent);
-  letter-spacing: -0.01em;
-  min-width: 0;
-}
-.sheet-chips {
-  display: flex;
-  gap: 8px;
-  flex: none;
-  margin-top: 4px;
 }
 .sheet-meta {
-  flex: none;
-  margin-top: 6px;
-  font-size: 13px;
-  line-height: 18px;
   color: var(--muted);
 }
 .sheet-meta b {
   font-weight: 600;
   color: var(--txt2);
 }
-.sheet-body {
-  flex: 1;
-  min-height: 0;
-  margin-top: 11px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-/* the foot takes the gutter of the prototype: gap 12 + margin 1 */
-.slide--sheet .slide-foot {
-  margin-top: 13px;
-}
 
-/* row A: goal band (elastic) + the merged facts block (338 px). The height is
-   driven by the facts; a long goal — or a long budget — may stretch the row a
-   little, up to a ceiling. Contents aligned to the TOP. */
-.row-a {
-  flex: none;
-  display: flex;
-  gap: 12px;
-  align-items: stretch;
-  max-height: 104px;
-}
 .goal {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
   background: var(--accent-975);
   border-left: 4px solid var(--accent);
   border-radius: 4px;
-  padding: 9px 16px;
-  display: flex;
-  flex-direction: column;
 }
 .goal p {
-  margin-top: 4px;
-  font-size: 13.5px;
-  line-height: 1.32;
   color: #312e81;
 }
-/* the facts block carries its own metrics (atom); the row owns its width */
+/* the facts block carries its own metrics (atom); the row owns its width —
+   an atom-root reach no template class attribute can express */
 .row-a .facts {
   width: 338px;
   flex: none;
 }
 
-/* row B: three narrative cards, strict thirds */
-.row-b {
-  flex: 1;
-  min-height: 0;
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 12px;
-}
 .narrative-card {
   border: 1px solid var(--border2);
   border-radius: 8px;
   background: #fff;
-  padding: 9px 13px;
-  min-width: 0;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
 }
 /* the bullets are centered in the leftover height of the card — the
    heading stays pinned to the top, the list floats on `margin: auto 0` */
@@ -908,21 +384,9 @@
   top: 9px;
 }
 
-/* row C: risks + decision, two bands with a left rule, equal halves. The risks
-   band is an atom (five tones): only the decision band is drawn here. */
-.row-c {
-  flex: none;
-  display: flex;
-  gap: 12px;
-  align-items: stretch;
-}
+/* the decision band: label re-toned inline, box in the accent tint */
 .decision {
-  flex: 1;
-  min-width: 0;
   border-radius: 4px;
-  padding: 9px 14px;
-  /* line-height 0 on the box: the inline label adds no leading of its own */
-  line-height: 0;
   background: var(--accent-975);
   border-left: 4px solid var(--accent);
 }
@@ -936,16 +400,9 @@
   color: var(--accent);
 }
 .decision p {
-  margin-top: 4px;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.3;
   color: var(--accent);
 }
 .decision-owner {
-  margin-top: 3px;
-  font-size: 11px;
-  line-height: 1.2;
   color: color-mix(in srgb, var(--accent) 75%, transparent);
 }
 .decision--none {
@@ -959,7 +416,6 @@
   font-weight: 400;
   font-style: italic;
   color: var(--muted);
-  font-size: 13px;
 }
 
 /* the timeline closes the sheet: it takes its own height, never the leftovers
@@ -997,18 +453,6 @@
 
 /* ---------- free slide --------------------------------------------------- */
 
-.freeform-blocks {
-  display: flex;
-  gap: var(--slide-step);
-  align-items: stretch;
-  width: 100%;
-}
-/* One block: an 800 px card flush with the left margin.
-   Two or three: they share the width and shrink, never wrap. */
-.freeform-card {
-  flex: 0 1 800px;
-  padding: 34px var(--slide-margin);
-}
 /* the free slide reads at arm's length: 17 px bullets, 17 gutter. The chained
    `.line.bullet` raises specificity above the TextLine atom's scoped rule. */
 .slide .freeform-card .line.bullet {
@@ -1024,4 +468,17 @@
 .slide .freeform-card .line.bullet::before {
   top: 0.52em;
   background: #b6b6b6;
+}
+
+/* ---------- body modifier grammar ---------------------------------------- */
+/* the three modes SlideChrome's bodyClass ADT can name */
+.slide-body--centered {
+  justify-content: center;
+}
+.slide-body--split {
+  flex-direction: row;
+  gap: var(--slide-margin);
+}
+.slide-body--tight {
+  margin-top: 14px;
 }

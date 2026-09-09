@@ -37,9 +37,11 @@
   })
 </script>
 
-<section class="card">
-  <h2>{te('editor.sheet.options', language)}</h2>
-  <div class="options-row">
+<section class="bg-background border-border rounded-lg border p-4">
+  <h2 class="text-primary mb-3 text-xs font-bold tracking-[0.06em] uppercase">
+    {te('editor.sheet.options', language)}
+  </h2>
+  <div class="flex flex-wrap items-start gap-[34px]">
     <FieldSegmented
       label={te('editor.field.sheet', language)}
       value={project.sheet}
@@ -50,7 +52,7 @@
       hint={sheetHint}
       commit={(v: SheetMode) => set('sheet', v)}
     />
-    <div class="field" style="width:220px;margin-bottom:0">
+    <div class="flex w-[220px] flex-col">
       <FieldText
         {language}
         label={te('editor.field.author', language)}
@@ -59,12 +61,14 @@
         commit={(v) => set('author', v)}
       />
     </div>
-    <div class="field-group" style="margin-bottom:0">
-      <span class="label">{te('editor.field.updatedOn', language)}</span>
-      <span class="static-value">
+    <div class="flex flex-col gap-[7px]">
+      <span class="text-(--txt2) text-[12.5px] font-semibold"
+        >{te('editor.field.updatedOn', language)}</span
+      >
+      <span class="text-(--txt2) flex h-9 items-center text-sm">
         {project.updatedOn ? formatShortDate(project.updatedOn) : t('priority.none', language)}
       </span>
     </div>
   </div>
-  <p class="hint" style="margin-top:14px">{sheetReason}</p>
+  <p class="text-muted-foreground mt-3.5 text-[11.5px]">{sheetReason}</p>
 </section>

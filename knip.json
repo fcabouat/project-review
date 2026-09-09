@@ -10,8 +10,7 @@
     },
     "packages/components": {
       "entry": ["stories/**/*.stories.svelte", "tests/**/*.test.ts"],
-      "project": ["src/**", "stories/**", "tests/**"],
-      "ignoreDependencies": ["tailwindcss"]
+      "project": ["src/**", "stories/**", "tests/**"]
     },
     "packages/infrastructure": {
       "entry": ["tests/**/*.test.ts"],

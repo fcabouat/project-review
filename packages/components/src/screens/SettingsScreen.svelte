@@ -2,7 +2,7 @@
   /**
    * Settings screen: appearance (palette, font, language), aggregate slides,
    * categories (CRUD + reorder) and free slides. Destructive confirmations
-   * use the native dialog — deliberate.
+   * run in the vendored AlertDialog (see `settings/DataCard`).
    *
    * Every control emits a `ChangeSetting` / category command, so switching the
    * language or the palette is undoable like any other edit. `decide` reads the
@@ -33,15 +33,15 @@
   let { portfolio, dispatch, persistence }: Props = $props()
 </script>
 
-<div class="settings-grid">
-  <div class="settings-col">
+<div class="grid grid-cols-2 items-start gap-5">
+  <div class="flex min-w-0 flex-col gap-4">
     <IdentityCard {portfolio} {dispatch} />
     <AppearanceCard {portfolio} {dispatch} />
     <AggregateSlidesCard {portfolio} {dispatch} />
     <DataCard {portfolio} {dispatch} {persistence} />
   </div>
 
-  <div class="settings-col">
+  <div class="flex min-w-0 flex-col gap-4">
     <CategoriesCard {portfolio} {dispatch} />
     <FreeSlidesCard {portfolio} {dispatch} />
   </div>

@@ -98,15 +98,23 @@
           {/if}
         </div>
       {:else}
-        <div class="sheet-title">
-          <h2>{project.name}</h2>
-          <div class="sheet-chips">
+        <div
+          class="sheet-title mt-2.5 flex flex-none items-start justify-between gap-(--slide-step) print:gap-4"
+        >
+          <h2
+            class="min-w-0 text-[29px] leading-[35px] font-bold tracking-[-0.01em] print:text-[27.5px] print:leading-[33px]"
+          >
+            {project.name}
+          </h2>
+          <div class="mt-1 flex flex-none gap-2 print:gap-[7px]">
             <StageChip {project} {language} />
             <HealthDot health={project.health} {language} shape="chip" />
             <PriorityBadge priority={project.priority} {language} />
           </div>
         </div>
-        <div class="sheet-meta">
+        <div
+          class="sheet-meta mt-1.5 flex-none text-[13px] leading-[18px] print:text-[12.5px] print:leading-[17px]"
+        >
           {project.id}{#each meta as item (item.key)}{' · '}{fieldLabel(item.key, language)}<b
               >{item.value}</b
             >{/each}
@@ -114,35 +122,48 @@
       {/if}
     {/snippet}
 
-    <div class="sheet-body">
-      <div class="row-a">
-        <div class="goal">
+    <div class="sheet-body mt-[11px] flex min-h-0 flex-1 flex-col gap-3 print:mt-3 print:gap-2.5">
+      <div
+        class="row-a flex max-h-[104px] flex-none items-stretch gap-3 print:max-h-[100px] print:gap-[11px]"
+      >
+        <div
+          class="goal flex min-w-0 flex-1 flex-col overflow-hidden px-4 py-[9px] print:px-[15px]"
+        >
           <div class="label label--accent">{t('sheet.goal', language)}</div>
-          <p>{project.goal}</p>
+          <p class="mt-1 text-[13.5px] leading-[1.32] print:text-[13px]">{project.goal}</p>
         </div>
         <FactsBlock {project} {language} />
       </div>
 
-      <div class="row-b">
+      <div class="row-b grid min-h-0 flex-1 grid-cols-3 gap-3 print:gap-[11px]">
         {#each narratives as narrative (narrative.variant)}
-          <div class="narrative-card">
+          <div
+            class="narrative-card flex min-w-0 flex-col overflow-hidden px-[13px] py-[9px] print:px-3"
+          >
             <NarrativeCard variant={narrative.variant} lines={narrative.lines} {language} />
           </div>
         {/each}
       </div>
 
-      <div class="row-c">
+      <div class="row-c flex flex-none items-stretch gap-3 print:gap-[11px]">
         <RisksBand level={risksLevel(project)} text={project.risks} {language} />
-        <div class="decision" class:decision--none={decision === undefined}>
+        <div
+          class="decision min-w-0 flex-1 px-3.5 py-[9px] [line-height:0] print:px-[13px]"
+          class:decision--none={decision === undefined}
+        >
           <span class="label">
             <Icon name="scales-3-line" size="14px" />{t('sheet.decision', language)}
             {#if pending.length > 1}
               {t('sheet.decisionMore', language, { n: pending.length - 1 })}
             {/if}
           </span>
-          <p>{decision?.question ?? t('sheet.decisionNone', language)}</p>
+          <p class="mt-1 text-[13px] leading-[1.3] font-semibold print:text-[12.3px]">
+            {decision?.question ?? t('sheet.decisionNone', language)}
+          </p>
           {#if decision?.decider}
-            <div class="decision-owner">{withColon(ownerLabel, language)}{decision.decider}</div>
+            <div class="decision-owner mt-[3px] text-[11px] leading-[1.2] print:text-[10.5px]">
+              {withColon(ownerLabel, language)}{decision.decider}
+            </div>
           {/if}
         </div>
       </div>

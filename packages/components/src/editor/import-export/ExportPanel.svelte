@@ -10,6 +10,9 @@
   import type { Portfolio } from '@project-review/core/model/portfolio'
   import { UNSORTED_CATEGORY } from '@project-review/core/model/category'
   import { te } from '../../i18n'
+  import { Button } from '../../commons/ui/button'
+  import { Checkbox } from '../../commons/ui/checkbox'
+  import { Textarea } from '../../commons/ui/textarea'
 
   interface Props {
     readonly portfolio: Portfolio
@@ -94,10 +97,12 @@
   }
 </script>
 
-<div class="modal-panel">
+<div class="p-5">
   {#if groups.length > 0}
-    <fieldset class="export-groups">
-      <legend
+    <fieldset
+      class="border-border mb-3 max-h-[220px] overflow-auto rounded-md border px-3.5 pt-2.5 pb-3"
+    >
+      <legend class="text-(--txt2) px-1 text-xs font-bold"
         >{te('editor.io.selection', language)} — {te('editor.io.selectionCount', language, {
           n: selectedIds.size,
           total: portfolio.projects.length,
@@ -106,22 +111,22 @@
       {#each groups as group (group.id)}
         {@const ids = group.projects.map((x) => x.id)}
         {@const checkedCount = ids.filter((id) => !excluded.has(id)).length}
-        <div class="export-group">
-          <label class="export-group-head">
-            <input
-              type="checkbox"
+        <div class="mt-1.5">
+          <label class="flex cursor-pointer items-center gap-2 text-[13px] font-bold">
+            <Checkbox
               checked={checkedCount === ids.length}
               indeterminate={checkedCount > 0 && checkedCount < ids.length}
-              onchange={(e) => setChecked(ids, e.currentTarget.checked)}
+              onCheckedChange={(on) => setChecked(ids, on)}
             />
             <span>{group.name}</span>
           </label>
           {#each group.projects as x (x.id)}
-            <label class="export-project">
-              <input
-                type="checkbox"
+            <label
+              class="text-(--txt2) ml-[22px] flex cursor-pointer items-center gap-2 text-[13px]"
+            >
+              <Checkbox
                 checked={!excluded.has(x.id)}
-                onchange={(e) => setChecked([x.id], e.currentTarget.checked)}
+                onCheckedChange={(on) => setChecked([x.id], on)}
               />
               <span>{x.id} · {x.name}</span>
             </label>
@@ -130,20 +135,23 @@
       {/each}
     </fieldset>
     {#if !allSelected}
-      <p class="hint">{te('editor.io.partialHint', language)}</p>
+      <p class="text-muted-foreground mb-3 text-[11.5px]">
+        {te('editor.io.partialHint', language)}
+      </p>
     {/if}
   {/if}
-  <textarea
-    class="textarea code"
-    rows="9"
+  <Textarea
+    class="text-(--txt2) field-sizing-fixed bg-[#fafafa] font-mono text-xs leading-[1.55]"
+    rows={9}
     readonly
     aria-label={te('editor.io.export', language)}
-    value={exportSource}></textarea>
-  <div class="modal-actions">
-    <button class="btn btn-secondary" type="button" onclick={close}>
+    value={exportSource}
+  ></Textarea>
+  <div class="mt-4 flex justify-end gap-2.5">
+    <Button variant="outline" onclick={close}>
       {te('editor.io.close', language)}
-    </button>
-    <button class="btn btn-secondary" type="button" onclick={copy}>
+    </Button>
+    <Button variant="outline" onclick={copy}>
       {te(
         copyState === 'done'
           ? 'editor.io.copied'
@@ -152,9 +160,9 @@
             : 'editor.io.copy',
         language,
       )}
-    </button>
-    <button class="btn btn-primary" type="button" onclick={download}>
+    </Button>
+    <Button onclick={download}>
       {te('editor.io.download', language)}
-    </button>
+    </Button>
   </div>
 </div>

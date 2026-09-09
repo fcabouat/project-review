@@ -21,6 +21,7 @@
   import type { DomainEvent } from '@project-review/core/events'
   import { te } from '../i18n'
   import { eventLabel } from '../editor/event-label'
+  import { Button } from '../commons/ui/button'
 
   interface Props {
     readonly portfolio: Portfolio
@@ -47,45 +48,49 @@
   const total = $derived(past.length + future.length)
 </script>
 
-<section class="card hist-card">
-  <div class="hist-head">
-    <h2>{te('editor.history.title', language, { n: total })}</h2>
-    <div class="hist-actions">
-      <button
-        class="btn btn-secondary btn-sm"
-        type="button"
-        disabled={past.length === 0}
-        onclick={() => undo()}>↶ {te('editor.topbar.undo', language)}</button
+<section class="bg-background border-border max-w-[760px] rounded-lg border p-4">
+  <div class="border-border mb-3.5 flex items-center justify-between border-b pb-[11px]">
+    <h2 class="text-primary text-xs font-bold tracking-[0.06em] uppercase">
+      {te('editor.history.title', language, { n: total })}
+    </h2>
+    <div class="flex gap-2">
+      <Button variant="outline" size="sm" disabled={past.length === 0} onclick={() => undo()}
+        >↶ {te('editor.topbar.undo', language)}</Button
       >
-      <button
-        class="btn btn-secondary btn-sm"
-        type="button"
-        disabled={future.length === 0}
-        onclick={() => redo()}>↷ {te('editor.topbar.redo', language)}</button
+      <Button variant="outline" size="sm" disabled={future.length === 0} onclick={() => redo()}
+        >↷ {te('editor.topbar.redo', language)}</Button
       >
     </div>
   </div>
 
   {#if total === 0}
-    <p class="hint">{te('editor.history.empty', language)}</p>
+    <p class="text-muted-foreground text-[11.5px]">{te('editor.history.empty', language)}</p>
   {:else}
-    <ul class="hist-list">
+    <ul class="m-0 list-none p-0">
       {#each undone as event, i (`future-${i}`)}
-        <li class="hist-row is-undone">
-          <span class="hist-label">{eventLabel(event, language, nameOf)}</span>
-          <span class="hist-tag">{te('editor.history.undone', language)}</span>
+        <li
+          class="border-border text-muted-foreground flex items-baseline gap-3 border-b px-0.5 py-2 text-[13px]"
+        >
+          <span class="min-w-0 flex-1">{eventLabel(event, language, nameOf)}</span>
+          <span class="flex-none text-[11px] italic">{te('editor.history.undone', language)}</span>
         </li>
       {/each}
 
-      <li class="hist-sep">{te('editor.history.current', language)}</li>
+      <li
+        class="text-muted-foreground py-[9px] text-center text-[11px] font-semibold tracking-[0.03em]"
+      >
+        {te('editor.history.current', language)}
+      </li>
 
       {#each applied as event, i (`past-${i}`)}
-        <li class="hist-row">
-          <span class="hist-label">{eventLabel(event, language, nameOf)}</span>
+        <li
+          class="border-border text-foreground flex items-baseline gap-3 border-b px-0.5 py-2 text-[13px] last:border-b-0"
+        >
+          <span class="min-w-0 flex-1">{eventLabel(event, language, nameOf)}</span>
         </li>
       {/each}
     </ul>
   {/if}
 
-  <p class="hist-foot">{te('editor.history.foot', language)}</p>
+  <p class="text-muted-foreground mt-3.5 text-[11.5px]">{te('editor.history.foot', language)}</p>
 </section>

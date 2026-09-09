@@ -12,9 +12,18 @@ import svelte from 'eslint-plugin-svelte'
  */
 
 /** The embeddable core imports NOTHING: no Svelte, no DOM helper, no sibling
- * workspace package, no view layer. Restated in EVERY core layer block. */
+ * workspace package, no view layer, no UI primitive kit. Restated in EVERY
+ * core layer block. */
 const CORE_EMBEDDABLE = {
-  group: ['svelte', 'svelte/**', '@project-review/**', 'reveal.js', 'reveal.js/**'],
+  group: [
+    'svelte',
+    'svelte/**',
+    '@project-review/**',
+    'reveal.js',
+    'reveal.js/**',
+    'bits-ui',
+    'bits-ui/**',
+  ],
   message:
     '@project-review/core is embeddable: no Svelte, no dependency, no view layer (docs/overview.md).',
 }

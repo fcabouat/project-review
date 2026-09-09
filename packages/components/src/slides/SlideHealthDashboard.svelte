@@ -88,29 +88,39 @@
   bodyClass="slide-body--split"
 >
   {#snippet heading()}
-    <h2 class="slide-heading">{t('d2.title', language)}</h2>
+    <h2
+      class="slide-heading mt-(--slide-step) flex-none text-[30px] leading-9 font-bold tracking-[-0.01em] print:mt-4 print:text-[28.5px] print:leading-[34px]"
+    >
+      {t('d2.title', language)}
+    </h2>
   {/snippet}
 
   <!-- left column: portfolio health -->
-  <div class="health-column">
+  <div class="flex w-[302px] flex-none flex-col">
     <div class="label label--accent">{t('d2.health', language)}</div>
-    <div class="health-rows">
+    <div class="mt-4 flex flex-col gap-[15px] print:gap-[17px]">
       {#each levels as level (level)}
-        <div class="health-row level--{level}">
-          <span class="health-dot"></span>
-          <span class="health-label">{t(`level.${level}`, language)}</span>
-          <span class="health-count">{breakdown[level]}</span>
-          <div class="health-bar">
+        <div
+          class="level--{level} grid grid-cols-[9px_1fr_auto] items-center gap-x-[9px] gap-y-[7px]"
+        >
+          <span class="health-dot inline-block size-[9px] rounded-full"></span>
+          <span class="health-label text-[13.5px] print:text-[13px]"
+            >{t(`level.${level}`, language)}</span
+          >
+          <span class="health-count text-sm leading-[1.45] font-bold print:text-[13.5px]"
+            >{breakdown[level]}</span
+          >
+          <div class="health-bar h-1 overflow-hidden rounded-full [grid-column:2/4]">
             <i style:width="{(breakdown[level] / maxCount) * 100}%"></i>
           </div>
         </div>
       {/each}
     </div>
     {#if overdue.length > 0}
-      <div class="callout">
+      <div class="callout mt-(--slide-step) rounded-lg px-3.5 py-3">
         <div class="label">{t('d2.overdueMilestones', language, { n: overdue.length })}</div>
         {#each overdue as item (`${item.project.id}:${item.index}`)}
-          <p>
+          <p class="mt-[5px] text-[13px] leading-[1.35] print:text-[12.5px]">
             <b>{item.project.id}</b>
             {displayLabel(item.milestone.label)}
             <span class="dim"
@@ -123,9 +133,10 @@
   </div>
 
   <!-- right column: pending decisions -->
-  <div class="pending-column">
+  {@const TD = 'px-2.5 py-[9px] align-middle print:px-[9px] print:py-2.5'}
+  <div class="flex min-w-0 flex-1 flex-col">
     <div class="label label--accent">{t('d2.decisions', language)}</div>
-    <table class="table table--pending">
+    <table class="table table--pending mt-3 w-full table-fixed">
       <colgroup>
         <col style:width="70px" />
         <col style:width="220px" />
@@ -136,16 +147,28 @@
         <!-- The ref (projectId + index in `decisions`) is the identity of a
              pending decision; the `:` separator keeps "P-1"+11 ≠ "P-11"+1. -->
         {#each shown as row (`${row.ref.projectId}:${row.ref.index}`)}
-          <tr class="level--{row.project.health ?? 'notAssessed'}" style:--cat={row.color}>
-            <td><span class="id-chip">{row.project.id}</span></td>
-            <td class="name">{row.project.name}</td>
-            <td class="who">{row.decision.decider ?? ''}</td>
-            <td>{row.decision.question}</td>
+          <tr
+            class="level--{row.project.health ?? 'notAssessed'} print:h-11"
+            style:--cat={row.color}
+          >
+            <td class="{TD} text-[13px] print:text-[12.5px]"
+              ><span
+                class="id-chip inline-flex h-[21px] items-center px-2 text-[11.5px] font-bold tracking-[0.02em] whitespace-nowrap print:h-5 print:px-[7px] print:text-[11px]"
+                >{row.project.id}</span
+              ></td
+            >
+            <td class="name {TD} text-[13px] leading-[1.28] font-semibold print:text-[12.5px]"
+              >{row.project.name}</td
+            >
+            <td class="who {TD} text-xs leading-[1.25] print:text-[11.5px]"
+              >{row.decision.decider ?? ''}</td
+            >
+            <td class="{TD} text-[13px] print:text-[12.5px]">{row.decision.question}</td>
           </tr>
         {/each}
         {#if hidden > 0}
           <tr class="more-row">
-            <td colspan="4">{t('d2.more', language, { n: hidden })}</td>
+            <td class={TD} colspan="4">{t('d2.more', language, { n: hidden })}</td>
           </tr>
         {/if}
       </tbody>

@@ -5,6 +5,8 @@
   import type { Language } from '@project-review/core/model/theme'
   import { te } from '../../i18n'
   import FieldText from '../../editor/FieldText.svelte'
+  import Icon from '../../commons/Icon.svelte'
+  import { Button } from '../../commons/ui/button'
   import type { Dispatch } from '../contracts'
 
   interface Props {
@@ -35,20 +37,24 @@
   }
 </script>
 
-<section class="card">
-  <h2>{te('editor.tab.decisions', language)}</h2>
+<section class="bg-background border-border rounded-lg border p-4">
+  <h2 class="text-primary mb-3 text-xs font-bold tracking-[0.06em] uppercase">
+    {te('editor.tab.decisions', language)}
+  </h2>
   {#each project.decisions as decision, index (index)}
-    <div class="decision-card">
-      <div class="decision-card-head">
-        <span class="decision-index">
+    <div class="border-border mb-3.5 rounded-lg border px-4 py-3.5 last-of-type:mb-0">
+      <div class="mb-1.5 flex items-center justify-between">
+        <span class="text-muted-foreground text-[11px] font-bold tracking-[0.05em] uppercase">
           {te('editor.sheet.decisionIndex', language, { n: index + 1 })}
         </span>
-        <button
-          class="icon-btn"
-          type="button"
+        <Button
+          variant="ghost"
+          size="icon-xs"
+          class="text-muted-foreground"
           title={te('editor.sheet.removeDecision', language)}
           aria-label={te('editor.sheet.removeDecision', language)}
-          onclick={() => setDecisions(project.decisions.filter((_, i) => i !== index))}>✕</button
+          onclick={() => setDecisions(project.decisions.filter((_, i) => i !== index))}
+          ><Icon name="close-line" /></Button
         >
       </div>
       <FieldText
@@ -68,9 +74,12 @@
         hint={te('editor.hint.decider', language)}
         commit={(v) => patchDecision(index, { decider: v })}
       />
-      <div class="decision-taken">
-        <span class="decision-taken-label">{te('editor.sheet.taken', language)}</span>
-        <div class="grid-2-1">
+      <div class="bg-secondary mt-2 rounded-md border border-dashed border-[#c7c7cc] p-3">
+        <span
+          class="text-muted-foreground mb-[9px] block text-[10px] font-bold tracking-[0.05em] uppercase"
+          >{te('editor.sheet.taken', language)}</span
+        >
+        <div class="grid grid-cols-[2fr_1fr] gap-3.5">
           <FieldText
             {language}
             label={te('editor.sheet.takenText', language)}
@@ -90,19 +99,21 @@
       </div>
     </div>
   {:else}
-    <p class="hint">{te('editor.sheet.noDecision', language)}</p>
+    <p class="text-muted-foreground text-[11.5px]">{te('editor.sheet.noDecision', language)}</p>
   {/each}
 
   {#if project.decisions.length < 3}
-    <button
-      class="btn btn-secondary btn-sm"
-      type="button"
-      style="margin-top:12px"
+    <Button
+      variant="outline"
+      size="sm"
+      class="mt-3"
       onclick={() => setDecisions([...project.decisions, { question: '' }])}
     >
       {te('editor.sheet.addDecision', language, { n: 3 - project.decisions.length })}
-    </button>
+    </Button>
   {:else}
-    <p class="hint" style="margin-top:12px">{te('editor.sheet.decisionsFull', language)}</p>
+    <p class="text-muted-foreground mt-3 text-[11.5px]">
+      {te('editor.sheet.decisionsFull', language)}
+    </p>
   {/if}
 </section>

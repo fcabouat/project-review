@@ -532,6 +532,13 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
     en: '{n} contract error(s):',
   },
   'editor.io.cancel': { fr: 'Annuler', en: 'Cancel' },
+  /* Confirm button of the destructive-action dialogs (AlertDialog). */
+  'editor.confirm': { fr: 'Confirmer', en: 'Confirm' },
+  /* Dialog-foot pointer to the data administration (samples, purge). */
+  'editor.io.dataPointer': {
+    fr: `Les données d'exemple et la purge se trouvent dans Paramètres → Données`,
+    en: 'Sample data and the purge live in Settings → Data',
+  },
   'editor.io.keepSettings': {
     fr: `Conserver mes réglages et mon identité (thème, logo, langue, affichage)`,
     en: 'Keep my settings and identity (theme, logo, language, display)',

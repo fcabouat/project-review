@@ -3,8 +3,10 @@
    * Remix Icon icons **inlined** (never the icon font: its baseline floats).
    * The package SVG already carries `fill="currentColor"`; the stylesheet below
    * restates it so we survive any variation of the package.
-   * Six icons only — each one must earn its place: five on the
-   * sheets, plus `eye-line` for the editor's "preview this slide" affordance.
+   * Each icon must earn its place: five on the sheets, `eye-line` for the
+   * editor's "preview this slide" affordance, and the last five are the
+   * indicator glyphs of the vendored ui primitives (commons/ui) — this catalog
+   * is the single icon source, Remix everywhere.
    */
   import checkLine from 'remixicon/icons/System/check-line.svg?raw'
   import timeLine from 'remixicon/icons/System/time-line.svg?raw'
@@ -12,6 +14,11 @@
   import alertLine from 'remixicon/icons/System/alert-line.svg?raw'
   import scales3Line from 'remixicon/icons/Others/scales-3-line.svg?raw'
   import eyeLine from 'remixicon/icons/System/eye-line.svg?raw'
+  import closeLine from 'remixicon/icons/System/close-line.svg?raw'
+  import subtractLine from 'remixicon/icons/System/subtract-line.svg?raw'
+  import arrowUpSLine from 'remixicon/icons/Arrows/arrow-up-s-line.svg?raw'
+  import arrowDownSLine from 'remixicon/icons/Arrows/arrow-down-s-line.svg?raw'
+  import circleFill from 'remixicon/icons/System/checkbox-blank-circle-fill.svg?raw'
 
   export const ICONS = {
     'check-line': checkLine,
@@ -20,6 +27,11 @@
     'alert-line': alertLine,
     'scales-3-line': scales3Line,
     'eye-line': eyeLine,
+    'close-line': closeLine,
+    'subtract-line': subtractLine,
+    'arrow-up-s-line': arrowUpSLine,
+    'arrow-down-s-line': arrowDownSLine,
+    'checkbox-blank-circle-fill': circleFill,
   } as const
 
   export type IconName = keyof typeof ICONS

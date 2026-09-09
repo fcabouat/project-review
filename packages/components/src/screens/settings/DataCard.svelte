@@ -1,5 +1,5 @@
 <script lang="ts">
-  /** Data-administration card: local-save switch, sample loading, settings reset and content purge. */
+  /** Data-administration card: local-save switch, sample loading, settings reset and content purge — every destructive move confirmed in the vendored AlertDialog. */
   import type { Portfolio } from '@project-review/core/model/portfolio'
   import { parsePortfolio } from '@project-review/core/services/parse'
   import { emptyPortfolio } from '@project-review/core/data/empty-portfolio'
@@ -7,6 +7,8 @@
   import sampleEn from '@project-review/core/samples/sample-portfolio.en.json'
   import { te } from '../../i18n'
   import FieldSwitch from '../../editor/FieldSwitch.svelte'
+  import * as AlertDialog from '../../commons/ui/alert-dialog'
+  import { Button } from '../../commons/ui/button'
   import type { Dispatch, PersistenceControl } from '../contracts'
 
   interface Props {
@@ -26,17 +28,27 @@
     dispatch({ type: 'ReplacePortfolio', portfolio: next })
   }
 
-  /* ---- data administration — all UNDOABLE replacements ---- */
+  /* ---- data administration — all UNDOABLE replacements, one pending
+     confirmation at a time (the AlertDialog below carries the wording) ---- */
+
+  type PendingAction = 'purge' | 'examples' | 'resetSettings' | 'persistOff'
+  let pending = $state<PendingAction | undefined>(undefined)
+
+  /** Title (the action's own label) and body (the historic confirm wording). */
+  const WORDING: Record<PendingAction, { readonly title: string; readonly body: string }> = {
+    purge: { title: 'editor.data.purge', body: 'editor.data.purgeConfirm' },
+    examples: { title: 'editor.data.examples', body: 'editor.data.examplesConfirm' },
+    resetSettings: { title: 'editor.data.resetSettings', body: 'editor.data.resetSettingsConfirm' },
+    persistOff: { title: 'editor.data.persist', body: 'editor.data.persistOffConfirm' },
+  }
 
   /** Content emptied, review and settings kept: the "organization kit" state. */
   function purge(): void {
-    if (!window.confirm(te('editor.data.purgeConfirm', language))) return
     replace({ ...portfolio, categories: [], projects: [], freeSlides: [] })
   }
 
   /** The bundled sample set of the current language, as a full replacement. */
   function loadExamples(): void {
-    if (!window.confirm(te('editor.data.examplesConfirm', language))) return
     const parsed = parsePortfolio(language === 'en' ? sampleEn : sampleFr)
     if (!parsed.ok) return
     replace(parsed.portfolio)
@@ -44,7 +56,6 @@
 
   /** Theme and display back to the defaults; language and identity are kept. */
   function resetSettings(): void {
-    if (!window.confirm(te('editor.data.resetSettingsConfirm', language))) return
     const defaults = emptyPortfolio(language, portfolio.review.reviewDate).settings
     replace({
       ...portfolio,
@@ -52,33 +63,68 @@
     })
   }
 
+  function confirmPending(): void {
+    const action = pending
+    pending = undefined
+    if (action === 'purge') purge()
+    else if (action === 'examples') loadExamples()
+    else if (action === 'resetSettings') resetSettings()
+    else if (action === 'persistOff') persistence?.toggle(false)
+  }
+
   function togglePersist(enabled: boolean): void {
     if (!persistence) return
-    if (!enabled && !window.confirm(te('editor.data.persistOffConfirm', language))) return
+    // Turning the local save OFF erases the stored copy: that one confirms.
+    if (!enabled) {
+      pending = 'persistOff'
+      return
+    }
     persistence.toggle(enabled)
   }
 </script>
 
-<section class="card">
-  <h2>{te('editor.nav.data', language)}</h2>
+<section class="bg-background border-border rounded-lg border p-4">
+  <h2 class="text-primary mb-3 text-xs font-bold tracking-[0.06em] uppercase">
+    {te('editor.nav.data', language)}
+  </h2>
   {#if persistence}
     <FieldSwitch
       label={te('editor.data.persist', language)}
       checked={persistence.enabled}
       commit={togglePersist}
     />
-    <p class="hint">{te('editor.data.persistHint', language)}</p>
+    <p class="text-muted-foreground text-[11.5px]">{te('editor.data.persistHint', language)}</p>
   {/if}
-  <div class="data-actions">
-    <button class="btn btn-secondary btn-sm" type="button" onclick={loadExamples}>
+  <div class="mt-2.5 flex flex-wrap gap-2">
+    <Button variant="outline" size="sm" onclick={() => (pending = 'examples')}>
       {te('editor.data.examples', language)}
-    </button>
-    <button class="btn btn-secondary btn-sm" type="button" onclick={resetSettings}>
+    </Button>
+    <Button variant="outline" size="sm" onclick={() => (pending = 'resetSettings')}>
       {te('editor.data.resetSettings', language)}
-    </button>
-    <button class="btn btn-secondary btn-sm btn-danger" type="button" onclick={purge}>
+    </Button>
+    <Button variant="destructive" size="sm" onclick={() => (pending = 'purge')}>
       {te('editor.data.purge', language)}
-    </button>
+    </Button>
   </div>
-  <p class="hint">{te('editor.data.undoHint', language)}</p>
+  <p class="text-muted-foreground mt-2.5 text-[11.5px]">{te('editor.data.undoHint', language)}</p>
 </section>
+
+<!-- One dialog for the four confirmations: the pending action names its own
+     title and body; Confirm dispatches, anything else drops the intent. -->
+{#if pending}
+  {@const wording = WORDING[pending]}
+  <AlertDialog.Root open onOpenChange={(o) => o || (pending = undefined)}>
+    <AlertDialog.Content>
+      <AlertDialog.Header>
+        <AlertDialog.Title>{te(wording.title, language)}</AlertDialog.Title>
+        <AlertDialog.Description>{te(wording.body, language)}</AlertDialog.Description>
+      </AlertDialog.Header>
+      <AlertDialog.Footer>
+        <AlertDialog.Cancel>{te('editor.io.cancel', language)}</AlertDialog.Cancel>
+        <AlertDialog.Action onclick={confirmPending}
+          >{te('editor.confirm', language)}</AlertDialog.Action
+        >
+      </AlertDialog.Footer>
+    </AlertDialog.Content>
+  </AlertDialog.Root>
+{/if}

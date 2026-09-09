@@ -14,6 +14,8 @@
   import { untrack } from 'svelte'
   import { te } from '../i18n'
   import type { Language } from '@project-review/core/model/theme'
+  import { Input } from '../commons/ui/input'
+  import { Textarea } from '../commons/ui/textarea'
 
   interface Props {
     readonly label?: string
@@ -68,23 +70,31 @@
     const next = draft === '' ? undefined : draft
     if (next !== value) commit(next)
   }
+
+  const counterClass = $derived(
+    over
+      ? 'text-(--warn) font-bold text-[11px] whitespace-nowrap tabular-nums'
+      : 'text-muted-foreground text-[11px] whitespace-nowrap tabular-nums',
+  )
 </script>
 
-<label class="field">
-  {#if label}<span>{label}</span>{/if}
+<label class="mb-3.5 flex flex-col last:mb-0">
+  {#if label}<span class="text-(--txt2) mb-[5px] text-[12.5px] font-semibold">{label}</span>{/if}
   {#if rows}
-    <textarea
-      class="textarea"
-      class:code={monospace}
+    <Textarea
+      class={monospace
+        ? 'text-(--txt2) field-sizing-fixed bg-[#fafafa] font-mono text-xs leading-[1.55]'
+        : 'field-sizing-fixed text-sm leading-[1.4]'}
       {rows}
       {placeholder}
       {readonly}
       aria-label={ariaLabel ?? label}
       bind:value={draft}
-      {onblur}></textarea>
+      {onblur}
+    ></Textarea>
   {:else}
-    <input
-      class="input"
+    <Input
+      class="read-only:text-(--txt2) read-only:bg-[#fafafa]"
       type="text"
       {placeholder}
       {readonly}
@@ -94,14 +104,14 @@
     />
   {/if}
   {#if hint || max !== undefined || maxLines !== undefined}
-    <span class="field-footer">
-      <span class="hint">{hint ?? ''}</span>
+    <span class="mt-[5px] flex items-baseline justify-between gap-3.5">
+      <span class="text-muted-foreground text-[11.5px]">{hint ?? ''}</span>
       {#if maxLines !== undefined}
-        <span class="counter" class:over>
+        <span class={counterClass}>
           {te('editor.counter.lines', language, { n: lineCount, max: maxLines })}
         </span>
       {:else if max !== undefined}
-        <span class="counter" class:over>
+        <span class={counterClass}>
           {te('editor.counter.chars', language, { n: draft.length, max })}
         </span>
       {/if}

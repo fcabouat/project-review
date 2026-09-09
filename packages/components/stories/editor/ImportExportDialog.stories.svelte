@@ -37,16 +37,30 @@
   })
 </script>
 
-<!-- The modal renders in a `.editor` root: the chrome stylesheet is scoped to it. -->
+<!-- The modal renders in a `.editor` root: the chrome stylesheet is scoped to
+     it. `openSettings` is a no-op seam here: it only has to make the
+     Settings ▸ Data pointer line visible. -->
 <Story name="Export" asChild>
   <div class="editor">
-    <ImportExportDialog portfolio={sample} dispatch={() => {}} tab="export" close={() => {}} />
+    <ImportExportDialog
+      portfolio={sample}
+      dispatch={() => {}}
+      tab="export"
+      close={() => {}}
+      openSettings={() => {}}
+    />
   </div>
 </Story>
 
 <Story name="Import" asChild>
   <div class="editor">
-    <ImportExportDialog portfolio={sample} dispatch={() => {}} tab="import" close={() => {}} />
+    <ImportExportDialog
+      portfolio={sample}
+      dispatch={() => {}}
+      tab="import"
+      close={() => {}}
+      openSettings={() => {}}
+    />
   </div>
 </Story>
 
@@ -64,6 +78,7 @@
       prefill={contribution}
       prefillMode="merge"
       close={() => {}}
+      openSettings={() => {}}
     />
   </div>
 </Story>

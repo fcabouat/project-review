@@ -14,14 +14,16 @@
    * passed in: it costs nothing while open, and nothing at all while closed.
    *
    * The slide is 1280 × 720 by contract; the stage shows it at `SCALE` inside a
-   * 16:9 frame, on a dark ground.
+   * 16:9 frame, on a dark ground. The vendored Dialog owns the overlay, the
+   * focus trap and Escape.
    */
   import type { Portfolio } from '@project-review/core/model/portfolio'
   import type { Slide } from '@project-review/core/projections/slide'
   import { deck } from '@project-review/core/projections'
   import SlideView from '../slides/SlideView.svelte'
-  import { autofocus } from './autofocus'
   import { te } from '../i18n'
+  import { Button } from '../commons/ui/button'
+  import * as Dialog from '../commons/ui/dialog'
   import { useSlideshow } from '../slideshow/SlideshowHost.svelte'
 
   /**
@@ -71,42 +73,26 @@
   }
 </script>
 
-<svelte:window
-  onkeydown={(e) => {
-    if (e.key === 'Escape') close()
-  }}
-/>
-
-<div
-  class="modal-overlay"
-  role="presentation"
-  onclick={(e) => {
-    if (e.target === e.currentTarget) close()
-  }}
->
-  <!-- Focused on mount: an aria-modal dialog must receive focus when it opens. -->
-  <div
-    class="modal modal--apercu"
-    role="dialog"
-    aria-modal="true"
-    aria-label={subject}
-    tabindex="-1"
-    use:autofocus
+<Dialog.Root open onOpenChange={(o) => o || close()}>
+  <Dialog.Content
+    class="top-11 w-[860px] max-w-[calc(100%-32px)] translate-y-0 gap-0 overflow-hidden rounded-lg p-0 sm:max-w-[860px]"
   >
-    <div class="apercu-head">
-      <b>{te('editor.preview.title', language, { subject })}</b>
-      <span class="apercu-pos">
+    <div class="border-border flex items-center gap-3 border-b py-3 pr-14 pl-[18px]">
+      <Dialog.Title class="text-sm font-bold"
+        >{te('editor.preview.title', language, { subject })}</Dialog.Title
+      >
+      <span class="text-muted-foreground text-xs">
         {position
           ? te('editor.preview.position', language, position)
           : te('editor.preview.outOfDeck', language)}
       </span>
-      <span class="apercu-actions">
+      <span class="ml-auto flex items-center gap-3.5">
         <!-- Opens the slideshow ON THIS slide: the deck position derived above is
              exactly the index the host starts on. Out-of-deck slide, or no shell
              around us: nothing to open. -->
-        <button
-          class="link-btn"
-          type="button"
+        <Button
+          variant="link"
+          class="h-auto p-0 text-[12.5px] font-bold"
           disabled={!openSlideshow || !position}
           title={te('editor.topbar.openSlideshow', language)}
           onclick={() => {
@@ -116,24 +102,17 @@
           }}
         >
           {te('editor.preview.openSlideshow', language)}
-        </button>
-        <button
-          class="apercu-close"
-          type="button"
-          title={te('editor.io.close', language)}
-          aria-label={te('editor.io.close', language)}
-          onclick={close}>✕</button
-        >
+        </Button>
       </span>
     </div>
 
-    <div class="apercu-stage">
+    <div class="flex justify-center bg-[#2a2a31] p-[22px]">
       <div
-        class="apercu-frame"
+        class="relative flex-none overflow-hidden rounded-[3px] bg-white shadow-[0_10px_34px_rgb(0_0_0/0.45)]"
         style="width:{SLIDE_WIDTH * SCALE}px;height:{SLIDE_HEIGHT * SCALE}px"
       >
         <div
-          class="apercu-scale"
+          class="absolute top-0 left-0 origin-top-left"
           style="width:{SLIDE_WIDTH}px;height:{SLIDE_HEIGHT}px;transform:scale({SCALE})"
         >
           <SlideView {portfolio} {slide} page={position?.page} total={position?.total} />
@@ -141,6 +120,10 @@
       </div>
     </div>
 
-    <p class="apercu-foot">{te('editor.preview.foot', language)}</p>
-  </div>
-</div>
+    <Dialog.Description
+      class="border-border text-muted-foreground border-t px-[18px] py-2.5 text-[11.5px]"
+    >
+      {te('editor.preview.foot', language)}
+    </Dialog.Description>
+  </Dialog.Content>
+</Dialog.Root>

@@ -58,10 +58,16 @@
   bodyClass="slide-body--tight"
 >
   {#snippet heading()}
-    <div class="heading-row">
-      <h2 class="slide-heading">{t('prevDecisions.title', language)}</h2>
+    <div
+      class="heading-row mt-(--slide-step) flex flex-none items-baseline justify-between gap-(--slide-gutter) print:mt-4 print:gap-6"
+    >
+      <h2
+        class="slide-heading mt-0 min-w-0 print:mt-4 text-[30px] leading-9 font-bold tracking-[-0.01em] print:text-[28.5px] print:leading-[34px]"
+      >
+        {t('prevDecisions.title', language)}
+      </h2>
       {#if portfolio.review.previousReviewDate}
-        <span class="heading-note">
+        <span class="heading-note text-[12.5px] whitespace-nowrap print:text-[12px]">
           {t('prevDecisions.since', language, {
             date: formatLongDate(portfolio.review.previousReviewDate, language),
           })}
@@ -70,7 +76,10 @@
     </div>
   {/snippet}
 
-  <table class="table table--decisions table--record">
+  {@const TH =
+    'px-2.5 py-1.5 text-left text-xs leading-[1.45] font-bold tracking-[0.02em] print:px-[9px] print:py-[7px] print:text-[11.5px]'}
+  {@const TD = 'px-2.5 py-2.5 align-middle print:px-[9px] print:py-[7px]'}
+  <table class="table table--decisions table--record w-full table-fixed">
     <colgroup>
       <col style:width="24%" /><col style:width="30%" /><col style:width="26%" /><col
         style:width="10%"
@@ -79,25 +88,34 @@
     <thead>
       <tr>
         {#each headers as header, i (i)}
-          <th>{header}</th>
+          <th class={TH}>{header}</th>
         {/each}
       </tr>
     </thead>
     <tbody>
       <!-- `:` separator: "P-1"+11 and "P-11"+1 must not share a key. -->
       {#each rows as row (`${row.ref.projectId}:${row.ref.index}`)}
-        <tr style:--cat={row.color}>
-          <td>
-            <span class="project-cell">
-              <span class="id-chip">{row.project.id}</span>
-              <span class="name">{row.project.name}</span>
+        <tr class="h-[68px] print:h-[66px]" style:--cat={row.color}>
+          <td class={TD}>
+            <span class="project-cell block text-xs leading-[1.25] print:text-[11.5px]">
+              <span
+                class="id-chip float-left mr-[7px] inline-flex h-[15px] items-center px-[5px] text-[10.5px] font-bold tracking-[0.02em] whitespace-nowrap print:h-3.5 print:text-[10px]"
+                >{row.project.id}</span
+              >
+              <span class="name text-xs leading-[1.25] font-semibold print:text-[11.5px]"
+                >{row.project.name}</span
+              >
             </span>
           </td>
-          <td class="question">{row.decision.question}</td>
+          <td class="question {TD} text-[12.5px] leading-[1.32] print:text-[12px]"
+            >{row.decision.question}</td
+          >
           <!-- the outcome is entered in the micro-format: bold + dimmed suffix -->
-          <td class="taken"><TextLine text={row.outcome.text} /></td>
-          <td class="who">{row.decision.decider ?? ''}</td>
-          <td class="who">{formatShortDate(row.outcome.when)}</td>
+          <td class="taken {TD}"><TextLine text={row.outcome.text} /></td>
+          <td class="who {TD} text-[12.5px] print:text-[11.5px]">{row.decision.decider ?? ''}</td>
+          <td class="who {TD} text-[12.5px] print:text-[11.5px]"
+            >{formatShortDate(row.outcome.when)}</td
+          >
         </tr>
       {/each}
     </tbody>

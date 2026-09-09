@@ -16,11 +16,13 @@
   const freeSlides = $derived(portfolio.freeSlides)
 </script>
 
-<section class="card">
-  <h2>{te('editor.settings.freeSlides', language)}</h2>
+<section class="bg-background border-border rounded-lg border p-4">
+  <h2 class="text-primary mb-3 text-xs font-bold tracking-[0.06em] uppercase">
+    {te('editor.settings.freeSlides', language)}
+  </h2>
   {#each freeSlides as slide (slide.id)}
     <FreeSlideCard {portfolio} {dispatch} {slide} />
   {:else}
-    <p class="hint">{te('editor.review.noFreeSlide', language)}</p>
+    <p class="text-muted-foreground text-[11.5px]">{te('editor.review.noFreeSlide', language)}</p>
   {/each}
 </section>

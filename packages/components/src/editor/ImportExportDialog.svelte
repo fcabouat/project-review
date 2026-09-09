@@ -16,7 +16,9 @@
    * refused whole, and the report lists EVERY violation (path → localized
    * message) — the user fixes the file, never the parse.
    *
-   * The dialog is store-agnostic: portfolio in, `dispatch` out.
+   * The dialog is store-agnostic: portfolio in, `dispatch` out. The vendored
+   * Dialog owns the overlay, the focus trap and Escape; the vendored Tabs own
+   * the tab keyboard interaction.
    *
    * The two tab panels live in `editor/import-export/` (ExportPanel,
    * ImportPanel); this file keeps only the modal chrome and the tab switch.
@@ -24,8 +26,9 @@
   import { untrack } from 'svelte'
   import type { Portfolio } from '@project-review/core/model/portfolio'
   import type { Dispatch } from '../contracts'
-  import { autofocus } from './autofocus'
   import { te } from '../i18n'
+  import * as Dialog from '../commons/ui/dialog'
+  import * as Tabs from '../commons/ui/tabs'
   import ExportPanel from './import-export/ExportPanel.svelte'
   import ImportPanel from './import-export/ImportPanel.svelte'
 
@@ -34,6 +37,10 @@
     readonly dispatch: Dispatch
     readonly tab: 'export' | 'import'
     readonly close: () => void
+    /** Sends the user to Settings ▸ Data (samples, purge) — the host closes
+     * the dialog and navigates. Absent (a bare story), the pointer line is
+     * not shown. */
+    readonly openSettings?: () => void
     /** Opening content of the import box, and the mode pre-selected under it
      * (story/testing seams — the user path is drop, browse or paste, then
      * choose). */
@@ -41,57 +48,56 @@
     readonly prefillMode?: 'replace' | 'merge'
   }
 
-  let { portfolio, dispatch, tab, close, prefill, prefillMode }: Props = $props()
+  let { portfolio, dispatch, tab, close, openSettings, prefill, prefillMode }: Props = $props()
 
   // Opening tab only: the modal owns the choice once it is open.
   let active = $state<'export' | 'import'>(untrack(() => tab))
 
   const language = $derived(portfolio.settings.language)
+
+  const triggerClass =
+    'text-muted-foreground data-[state=active]:text-primary data-[state=active]:border-primary ' +
+    'h-auto flex-none grow-0 rounded-none border-x-0 border-t-0 border-b-2 border-transparent ' +
+    'bg-transparent px-0.5 py-3.5 text-[13.5px] font-bold shadow-none data-[state=active]:shadow-none'
 </script>
 
-<!-- Escape listens on the window (same as SlidePreviewDialog): a handler on the
-     dialog node alone goes dead as soon as focus sits anywhere else. -->
-<svelte:window
-  onkeydown={(e) => {
-    if (e.key === 'Escape') close()
-  }}
-/>
-
-<div
-  class="modal-overlay"
-  role="presentation"
-  onclick={(e) => {
-    if (e.target === e.currentTarget) close()
-  }}
->
-  <!-- Focused on mount: an aria-modal dialog must receive focus when it opens. -->
-  <div
-    class="modal"
-    role="dialog"
-    aria-modal="true"
-    aria-label={te('editor.io.title', language)}
-    tabindex="-1"
-    use:autofocus
+<Dialog.Root open onOpenChange={(o) => o || close()}>
+  <Dialog.Content
+    class="top-11 w-[640px] max-w-[calc(100%-32px)] translate-y-0 gap-0 p-0 sm:max-w-[640px]"
   >
-    <div class="modal-tabs">
-      <button
-        class="tab-label"
-        class:active={active === 'export'}
-        type="button"
-        onclick={() => (active = 'export')}>{te('editor.io.export', language)}</button
+    <Dialog.Title class="sr-only">{te('editor.io.title', language)}</Dialog.Title>
+    <Tabs.Root value={active} onValueChange={(v) => (active = v as 'export' | 'import')}>
+      <Tabs.List
+        class="border-border h-auto w-full justify-start gap-[26px] rounded-none border-b bg-transparent p-0 px-5"
       >
-      <button
-        class="tab-label"
-        class:active={active === 'import'}
-        type="button"
-        onclick={() => (active = 'import')}>{te('editor.io.import', language)}</button
-      >
-    </div>
+        <Tabs.Trigger value="export" class={triggerClass}
+          >{te('editor.io.export', language)}</Tabs.Trigger
+        >
+        <Tabs.Trigger value="import" class={triggerClass}
+          >{te('editor.io.import', language)}</Tabs.Trigger
+        >
+      </Tabs.List>
 
-    {#if active === 'export'}
-      <ExportPanel {portfolio} {close} />
-    {:else}
-      <ImportPanel {portfolio} {dispatch} {close} {prefill} {prefillMode} />
+      <Tabs.Content value="export">
+        <ExportPanel {portfolio} {close} />
+      </Tabs.Content>
+      <Tabs.Content value="import">
+        <ImportPanel {portfolio} {dispatch} {close} {prefill} {prefillMode} />
+      </Tabs.Content>
+    </Tabs.Root>
+
+    {#if openSettings}
+      <!-- Discoverability, one quiet line: the sample data and the purge are
+           administered from Settings ▸ Data, not from this dialog. -->
+      <div class="border-border border-t px-5 py-2.5 text-center">
+        <button
+          type="button"
+          class="text-muted-foreground hover:text-primary cursor-pointer text-[11.5px] underline underline-offset-2"
+          onclick={openSettings}
+        >
+          {te('editor.io.dataPointer', language)}
+        </button>
+      </div>
     {/if}
-  </div>
-</div>
+  </Dialog.Content>
+</Dialog.Root>

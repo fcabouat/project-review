@@ -1,5 +1,7 @@
 <script lang="ts">
-  /** Boolean toggle (`.switch`) — one click, one event, no draft. */
+  /** Boolean toggle (vendored Switch) — one click, one event, no draft. */
+  import { Switch } from '../commons/ui/switch'
+
   interface Props {
     readonly label: string
     readonly checked: boolean
@@ -9,15 +11,9 @@
   let { label, checked, commit }: Props = $props()
 </script>
 
-<div class="togglerow">
+<div
+  class="border-border flex items-center justify-between py-[7px] text-[13px] first:pt-0 not-last:border-b"
+>
   <span>{label}</span>
-  <label class="switch">
-    <input
-      type="checkbox"
-      {checked}
-      aria-label={label}
-      onchange={(e) => commit(e.currentTarget.checked)}
-    />
-    <span class="switch-track"><span class="switch-thumb"></span></span>
-  </label>
+  <Switch {checked} aria-label={label} onCheckedChange={(next) => commit(next)} />
 </div>

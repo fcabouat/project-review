@@ -111,7 +111,7 @@ async function main() {
       'navigation: #/sheet/P-01 shows the sheet screen',
     )
     check(
-      (await page.locator('.breadcrumb .current').textContent())?.trim() === 'P-01',
+      (await page.getByRole('textbox', { name: 'ID', exact: true }).inputValue()) === 'P-01',
       'navigation: the sheet is P-01',
     )
     await page.goBack()

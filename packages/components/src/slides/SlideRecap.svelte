@@ -75,10 +75,16 @@
   {logo}
 >
   {#snippet heading()}
-    <div class="heading-row">
-      <h2 class="slide-heading">{t('recap.title', language)}</h2>
+    <div
+      class="heading-row mt-(--slide-step) flex flex-none items-baseline justify-between gap-(--slide-gutter) print:mt-4 print:gap-6"
+    >
+      <h2
+        class="slide-heading mt-0 min-w-0 print:mt-4 text-[30px] leading-9 font-bold tracking-[-0.01em] print:text-[28.5px] print:leading-[34px]"
+      >
+        {t('recap.title', language)}
+      </h2>
       {#if totalPages > 1}
-        <span class="heading-note">
+        <span class="heading-note text-[12.5px] whitespace-nowrap print:text-[12px]">
           {t('recap.page', language, { page: pageNumber, total: totalPages })}
         </span>
       {/if}
@@ -91,7 +97,10 @@
     {/if}
   {/snippet}
 
-  <table class="table table--recap">
+  {@const TH =
+    'px-[9px] py-[9px] text-xs leading-[1.45] font-bold tracking-[0.02em] print:px-1.5 print:text-[11.5px]'}
+  {@const TD = 'px-[9px] py-1 align-middle print:px-1.5 print:py-[5px]'}
+  <table class="table table--recap w-full table-fixed">
     <colgroup>
       <col style:width="50px" /><col style:width="232px" /><col style:width="196px" /><col
         style:width="174px"
@@ -102,22 +111,37 @@
     <thead>
       <tr>
         {#each headers as header, i (i)}
-          <th class={i === headers.length - 1 ? 'center' : ''}>{header}</th>
+          <th class={i === headers.length - 1 ? `${TH} text-center` : `${TH} text-left`}
+            >{header}</th
+          >
         {/each}
       </tr>
     </thead>
     <tbody>
       {#each rows as row (row.project.id)}
-        <tr>
-          <td class="num">{row.project.id}</td>
-          <td class="name">{row.project.name}</td>
-          <td style:--cat={row.color}
-            ><span class="pill">{categoryName(row.category, language)}</span></td
+        <tr class="h-10 print:h-11">
+          <td class="num {TD} text-[12.5px] font-bold print:text-[12px]">{row.project.id}</td>
+          <td class="name {TD} text-[13px] leading-[1.22] print:text-[12px]">{row.project.name}</td>
+          <td class="{TD} text-[13px] print:text-[12.5px]" style:--cat={row.color}
+            ><span
+              class="pill inline-flex h-5 items-center px-2 text-[11px] font-bold whitespace-nowrap print:h-[19px] print:px-[5px] print:text-[9.5px]"
+              >{categoryName(row.category, language)}</span
+            ></td
           >
-          <td><StageChip project={row.project} {language} compact /></td>
-          <td><HealthDot health={row.project.health} {language} /></td>
-          <td><ProgressGauge gauge={projectGauge(row.project)} {language} /></td>
-          <td class="milestone" class:late={row.late} class:dim={row.milestone === undefined}>
+          <td class="{TD} text-[13px] print:text-[12.5px]"
+            ><StageChip project={row.project} {language} compact /></td
+          >
+          <td class="{TD} text-[13px] print:text-[12.5px]"
+            ><HealthDot health={row.project.health} {language} /></td
+          >
+          <td class="{TD} text-[13px] print:text-[12.5px]"
+            ><ProgressGauge gauge={projectGauge(row.project)} {language} /></td
+          >
+          <td
+            class="milestone {TD} text-xs leading-[1.2] print:text-[11px]"
+            class:late={row.late}
+            class:dim={row.milestone === undefined}
+          >
             {#if row.milestone}
               {displayLabel(row.milestone.label)}
               <span class="dim">
@@ -127,8 +151,10 @@
               {t('priority.none', language)}
             {/if}
           </td>
-          <td class="center">
-            {#if row.pending}<b class="decision-mark">✓</b>{/if}
+          <td class="{TD} text-center text-[13px] print:text-[12.5px]">
+            {#if row.pending}<b
+                class="decision-mark text-sm leading-none font-bold print:text-[13px]">✓</b
+              >{/if}
           </td>
         </tr>
       {/each}

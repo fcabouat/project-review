@@ -11,6 +11,10 @@
   import { mergeReport, type MergeReport } from '@project-review/core/events'
   import type { Dispatch } from '../../contracts'
   import { te } from '../../i18n'
+  import { Button } from '../../commons/ui/button'
+  import { Checkbox } from '../../commons/ui/checkbox'
+  import { Textarea } from '../../commons/ui/textarea'
+  import * as RadioGroup from '../../commons/ui/radio-group'
 
   interface Props {
     readonly portfolio: Portfolio
@@ -109,10 +113,11 @@
   }
 </script>
 
-<div class="modal-panel">
+<div class="p-5">
   <div
-    class="dropzone"
-    class:over={dragging}
+    class="{dragging
+      ? 'border-primary bg-accent text-accent-foreground'
+      : 'text-muted-foreground bg-secondary border-[#c7c7cc]'} mb-3 rounded-lg border-[1.5px] border-dashed p-5 text-center text-[13px]"
     role="presentation"
     ondragover={(e) => {
       e.preventDefault()
@@ -126,28 +131,29 @@
     }}
   >
     {te('editor.io.dropzone', language)}
-    <label class="link-btn" style="cursor:pointer">
+    <label class="text-primary ml-1.5 cursor-pointer font-semibold underline">
       {te('editor.io.browse', language)}
       <input
         type="file"
         accept="application/json,.json"
-        style="position:absolute;width:1px;height:1px;opacity:0"
+        class="absolute h-px w-px opacity-0"
         onchange={(e) => void readFile(e.currentTarget.files?.[0])}
       />
     </label>
   </div>
 
-  <textarea
-    class="textarea code"
-    rows="6"
+  <Textarea
+    class="text-(--txt2) field-sizing-fixed bg-[#fafafa] font-mono text-xs leading-[1.55]"
+    rows={6}
     aria-label={te('editor.io.paste', language)}
     value={source}
-    oninput={(e) => analyse(e.currentTarget.value)}></textarea>
+    oninput={(e) => analyse(e.currentTarget.value)}
+  ></Textarea>
 
   {#if result}
-    <div class="import-report">
+    <div class="bg-secondary mt-3.5 rounded-md px-3.5 py-3">
       {#if result.ok}
-        <p class="report-ok">
+        <p class="text-(--ok) text-[13px] font-bold">
           {te('editor.io.reportOk', language, {
             projects: result.portfolio.projects.length,
             categories: result.portfolio.categories.length,
@@ -155,18 +161,18 @@
           })}
         </p>
       {:else if 'refusal' in result}
-        <p class="report-ko">
+        <p class="text-destructive text-[13px] font-bold">
           {te('editor.io.refused', language)} — {te(`editor.error.${result.refusal}`, language)}
         </p>
       {:else}
-        <p class="report-ko">
+        <p class="text-destructive mb-2 text-[13px] font-bold">
           {te('editor.io.refused', language)} — {te('editor.io.errorCount', language, {
             n: result.errors.length,
           })}
         </p>
-        <ul class="report-warn">
+        <ul class="m-0 flex max-h-[190px] list-none flex-col gap-1.5 overflow-auto p-0">
           {#each result.errors as error, i (i)}
-            <li>
+            <li class="text-(--warn) text-[12.5px]">
               — {#if error.path}{error.path} :
               {/if}{errorMessage(error)}
             </li>
@@ -177,8 +183,8 @@
   {/if}
 
   {#if mergedDone}
-    <div class="import-report">
-      <p class="report-ok">
+    <div class="bg-secondary mt-3.5 rounded-md px-3.5 py-3">
+      <p class="text-(--ok) text-[13px] font-bold">
         {te('editor.io.mergeDone', language, {
           n: mergedDone.replaced,
           m: mergedDone.added,
@@ -186,16 +192,24 @@
       </p>
     </div>
   {:else if result?.ok}
-    <fieldset class="import-mode">
-      <legend>{te('editor.io.modeLegend', language)}</legend>
-      <label>
-        <input type="radio" name="import-mode" value="replace" bind:group={mode} />
-        <span>{te('editor.io.mode.replace', language)}</span>
-      </label>
-      <label>
-        <input type="radio" name="import-mode" value="merge" bind:group={mode} />
-        <span>{te('editor.io.mode.merge', language)}</span>
-      </label>
+    <fieldset class="border-border mt-3 flex flex-col gap-[7px] rounded-md border px-3.5 pt-1 pb-3">
+      <legend class="text-(--txt2) px-1 text-xs font-bold"
+        >{te('editor.io.modeLegend', language)}</legend
+      >
+      <RadioGroup.Root
+        class="flex flex-col gap-[7px]"
+        value={mode}
+        onValueChange={(v) => (mode = v as 'replace' | 'merge')}
+      >
+        <label class="flex cursor-pointer items-center gap-2 text-[13px]">
+          <RadioGroup.Item value="replace" />
+          <span>{te('editor.io.mode.replace', language)}</span>
+        </label>
+        <label class="flex cursor-pointer items-center gap-2 text-[13px]">
+          <RadioGroup.Item value="merge" />
+          <span>{te('editor.io.mode.merge', language)}</span>
+        </label>
+      </RadioGroup.Root>
     </fieldset>
 
     {#if mode === 'merge'}
@@ -205,16 +219,16 @@
            the very versions the incoming homonyms would overwrite. -->
       {@const replaced = mergeEvent?.type === 'ProjectsMerged' ? mergeEvent.before.projects : []}
       {#if replaced.length > 0}
-        <div class="merge-replaced">
+        <div class="text-(--txt2) mt-2.5 text-[12.5px]">
           {te('editor.io.mergeReplacedList', language)}
-          <ul>
+          <ul class="mt-1 max-h-[120px] overflow-auto pl-4">
             {#each replaced as entry (entry.value.id)}
-              <li><b>{entry.value.id}</b> · {entry.value.name}</li>
+              <li><b class="font-bold">{entry.value.id}</b> · {entry.value.name}</li>
             {/each}
           </ul>
         </div>
       {/if}
-      <p class="merge-preview">
+      <p class="mt-2.5 text-[13px] font-bold">
         {#if mergePreview}
           {te('editor.io.mergePreview', language, {
             n: mergePreview.replaced,
@@ -229,30 +243,28 @@
           {te('editor.io.mergeNoEffect', language)}
         {/if}
       </p>
-      <p class="hint">{te('editor.io.mergeHint', language)}</p>
+      <p class="text-muted-foreground mt-1 text-[11.5px]">{te('editor.io.mergeHint', language)}</p>
     {:else}
-      <label class="keep-settings">
-        <input type="checkbox" bind:checked={keepSettings} />
+      <label class="mt-2.5 flex cursor-pointer items-center gap-2 text-[13px]">
+        <Checkbox bind:checked={keepSettings} />
         <span>{te('editor.io.keepSettings', language)}</span>
       </label>
     {/if}
   {/if}
 
-  <div class="modal-actions">
+  <div class="mt-4 flex justify-end gap-2.5">
     {#if mergedDone}
-      <button class="btn btn-primary" type="button" onclick={close}>
+      <Button onclick={close}>
         {te('editor.io.close', language)}
-      </button>
+      </Button>
     {:else}
-      <button class="btn btn-secondary" type="button" onclick={close}>
+      <Button variant="outline" onclick={close}>
         {te('editor.io.cancel', language)}
-      </button>
-      <button
-        class="btn btn-primary"
-        type="button"
+      </Button>
+      <Button
         disabled={!result?.ok || (mode === 'merge' && mergePreview === undefined)}
         onclick={confirmImport}
-        >{te(mode === 'merge' ? 'editor.io.merge' : 'editor.io.replace', language)}</button
+        >{te(mode === 'merge' ? 'editor.io.merge' : 'editor.io.replace', language)}</Button
       >
     {/if}
   </div>

@@ -24,6 +24,9 @@ export default defineConfig({
         '**/tests/fixtures/**',
         '**/vite.config.ts',
         '**/vitest.config.ts',
+        // Barrels of the vendored primitives: re-exports of .svelte files,
+        // same DOM perimeter as the components themselves.
+        '**/commons/ui/**/index.ts',
       ],
       thresholds: {
         'packages/core/src/**': { lines: 100, branches: 95 },

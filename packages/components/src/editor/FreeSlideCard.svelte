@@ -19,6 +19,8 @@
   import { te } from '../i18n'
   import FieldText from './FieldText.svelte'
   import Icon from '../commons/Icon.svelte'
+  import { Button } from '../commons/ui/button'
+  import * as Select from '../commons/ui/select'
   import SlidePreviewDialog from './SlidePreviewDialog.svelte'
   import { displayLabel } from '../commons/display'
 
@@ -82,23 +84,26 @@
   )
 </script>
 
-<div class="decision-card">
-  <div class="decision-card-head">
-    <span class="decision-index">{anchorLabel(slide.anchor)}</span>
-    <span style="display:flex;gap:2px">
-      <button
-        class="icon-btn"
-        type="button"
+<div class="border-border mb-3.5 rounded-lg border px-4 py-3.5 last-of-type:mb-0">
+  <div class="mb-1.5 flex items-center justify-between">
+    <span class="text-muted-foreground text-[11px] font-bold tracking-[0.05em] uppercase">
+      {anchorLabel(slide.anchor)}
+    </span>
+    <span class="flex gap-0.5">
+      <Button
+        variant="ghost"
+        size="icon-xs"
         title={te('editor.preview.freeSlide', language)}
         aria-label={te('editor.preview.freeSlide', language)}
-        onclick={() => (previewing = true)}><Icon name="eye-line" /></button
+        onclick={() => (previewing = true)}><Icon name="eye-line" /></Button
       >
-      <button
-        class="icon-btn"
-        type="button"
+      <Button
+        variant="ghost"
+        size="icon-xs"
         title={te('editor.projects.delete', language)}
         aria-label={te('editor.projects.delete', language)}
-        onclick={() => dispatch({ type: 'DeleteFreeSlide', id: slide.id })}>✕</button
+        onclick={() => dispatch({ type: 'DeleteFreeSlide', id: slide.id })}
+        ><Icon name="close-line" /></Button
       >
     </span>
   </div>
@@ -122,22 +127,25 @@
     commit={(v) => replace({ ...slide, title: v ?? '' })}
   />
 
-  <div class="field">
-    <span>{te('editor.settings.anchor', language)}</span>
-    <select
-      class="select-trigger"
-      value={anchorValue}
-      aria-label={te('editor.settings.anchor', language)}
-      onchange={(e) => onAnchorChange(e.currentTarget.value)}
+  <div class="mb-3.5 flex flex-col last:mb-0">
+    <span class="text-(--txt2) mb-[5px] text-[12.5px] font-semibold"
+      >{te('editor.settings.anchor', language)}</span
     >
-      <option value="opening">{te('editor.anchor.opening', language)}</option>
-      {#each portfolio.categories as category (category.id)}
-        <option value={category.id}>
-          {te('editor.anchor.beforeCategory', language, { name: category.name })}
-        </option>
-      {/each}
-      <option value="closing">{te('editor.anchor.closing', language)}</option>
-    </select>
+    <Select.Root type="single" value={anchorValue} onValueChange={onAnchorChange}>
+      <Select.Trigger class="w-full" aria-label={te('editor.settings.anchor', language)}>
+        {anchorLabel(slide.anchor)}
+      </Select.Trigger>
+      <Select.Content>
+        <Select.Item value="opening" label={te('editor.anchor.opening', language)} />
+        {#each portfolio.categories as category (category.id)}
+          <Select.Item
+            value={category.id}
+            label={te('editor.anchor.beforeCategory', language, { name: category.name })}
+          />
+        {/each}
+        <Select.Item value="closing" label={te('editor.anchor.closing', language)} />
+      </Select.Content>
+    </Select.Root>
   </div>
 
   <FieldText

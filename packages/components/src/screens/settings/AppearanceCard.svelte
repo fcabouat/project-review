@@ -7,6 +7,8 @@
   import { catColor } from '../../commons/cat-color'
   import { te } from '../../i18n'
   import FieldText from '../../editor/FieldText.svelte'
+  import FieldSegmented from '../../editor/FieldSegmented.svelte'
+  import * as RadioGroup from '../../commons/ui/radio-group'
   import type { Dispatch } from '../contracts'
 
   interface Props {
@@ -41,52 +43,61 @@
   const PREVIEW: readonly Color[] = ['blue', 'teal', 'green', 'red']
 </script>
 
-<section class="card">
-  <h2>{te('editor.settings.appearance', language)}</h2>
+<section class="bg-background border-border rounded-lg border p-4">
+  <h2 class="text-primary mb-3 text-xs font-bold tracking-[0.06em] uppercase">
+    {te('editor.settings.appearance', language)}
+  </h2>
 
-  <div class="field-group">
-    <span class="label">{te('editor.setting.style', language)}</span>
-    <div class="segmented" role="group" aria-label={te('editor.setting.style', language)}>
-      {#each THEME_STYLES as candidate (candidate)}
-        <button
-          type="button"
-          class:active={settings.theme.style === candidate}
-          aria-pressed={settings.theme.style === candidate}
-          onclick={() => setStyle(candidate)}
-        >
-          {te(`editor.style.${candidate}`, language)}
-        </button>
-      {/each}
-    </div>
-  </div>
+  <FieldSegmented
+    label={te('editor.setting.style', language)}
+    value={settings.theme.style}
+    options={THEME_STYLES.map((candidate) => ({
+      value: candidate,
+      label: te(`editor.style.${candidate}`, language),
+    }))}
+    commit={setStyle}
+  />
 
-  <div class="field-group">
-    <span class="label">{te('editor.setting.palette', language)}</span>
-    <div class="palette-radios">
+  <div class="mb-4 flex flex-col gap-[7px]">
+    <span class="text-(--txt2) text-[12.5px] font-semibold"
+      >{te('editor.setting.palette', language)}</span
+    >
+    <RadioGroup.Root
+      class="flex flex-col gap-[7px]"
+      value={palette}
+      onValueChange={(v) => setPalette(v as PaletteFamily)}
+      aria-label={te('editor.setting.palette', language)}
+    >
       {#each PALETTES as family (family)}
-        <label class="palette-option" class:checked={palette === family}>
-          <input
-            type="radio"
-            name="palette"
-            value={family}
-            checked={palette === family}
-            onchange={() => setPalette(family)}
-          />
+        {@const checked = palette === family}
+        <label
+          class="{checked
+            ? 'border-primary bg-accent'
+            : 'border-input bg-white'} has-[:focus-visible]:outline-ring relative flex cursor-pointer items-center gap-[9px] rounded-[7px] border px-2.5 py-2 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-1"
+        >
+          <RadioGroup.Item value={family} class="sr-only" />
           <!-- The dots preview THIS family, not the active one: the local
                data-palette re-scopes the --cat-* variables (palettes.css). -->
-          <span class="palette-dots" data-palette={family} aria-hidden="true">
+          <span class="flex flex-none gap-1" data-palette={family} aria-hidden="true">
             {#each PREVIEW as color (color)}
-              <span class="pd" style="--c:{catColor(color)}"></span>
+              <span
+                class="inline-block size-3 rounded-full shadow-[0_0_0_1px_rgb(0_0_0/0.08)]"
+                style="background:{catColor(color)}"
+              ></span>
             {/each}
           </span>
-          <span class="palette-name">{te(`editor.palette.${family}`, language)}</span>
+          <span class="{checked ? 'text-primary font-bold' : 'text-(--txt2)'} text-[12.5px]"
+            >{te(`editor.palette.${family}`, language)}</span
+          >
         </label>
       {/each}
-    </div>
+    </RadioGroup.Root>
   </div>
 
-  <div class="field-group">
-    <span class="label">{te('editor.setting.font', language)}</span>
+  <div class="mb-4 flex flex-col gap-[7px]">
+    <span class="text-(--txt2) text-[12.5px] font-semibold"
+      >{te('editor.setting.font', language)}</span
+    >
     <!-- Free text: "Marianne" (served if the woff2 files are deployed
          alongside; never fetched), or any Google Fonts family, loaded on
          demand. -->
@@ -99,19 +110,14 @@
     />
   </div>
 
-  <div class="field-group" style="margin-bottom:0">
-    <span class="label">{te('editor.setting.language', language)}</span>
-    <div class="segmented" role="group" aria-label={te('editor.setting.language', language)}>
-      {#each LANGUAGES as candidate (candidate)}
-        <button
-          type="button"
-          class:active={language === candidate}
-          aria-pressed={language === candidate}
-          onclick={() => setLanguage(candidate)}
-        >
-          {candidate.toUpperCase()}
-        </button>
-      {/each}
-    </div>
-  </div>
+  <FieldSegmented
+    label={te('editor.setting.language', language)}
+    value={language}
+    options={LANGUAGES.map((candidate) => ({
+      value: candidate,
+      label: candidate.toUpperCase(),
+    }))}
+    ariaLabel={te('editor.setting.language', language)}
+    commit={setLanguage}
+  />
 </section>

@@ -5,6 +5,7 @@
   import type { IdentityField } from '@project-review/core/events'
   import { te } from '../../i18n'
   import FieldText from '../../editor/FieldText.svelte'
+  import { Button } from '../../commons/ui/button'
   import type { Dispatch } from '../contracts'
   import defaultLogo from '../../assets/logo-dejavu.svg'
 
@@ -56,8 +57,10 @@
   }
 </script>
 
-<section class="card">
-  <h2>{te('editor.review.identity', language)}</h2>
+<section class="bg-background border-border rounded-lg border p-4">
+  <h2 class="text-primary mb-3 text-xs font-bold tracking-[0.06em] uppercase">
+    {te('editor.review.identity', language)}
+  </h2>
   <FieldText
     {language}
     label={te('editor.field.org', language)}
@@ -89,18 +92,24 @@
     commit={(v) => setIdentity('contact', v)}
   />
 
-  <div class="field-group" style="margin-bottom:0">
-    <span class="label">{te('editor.settings.logo', language)}</span>
-    <div class="logo-row">
-      <img class="logo-preview" src={identity.logo ?? defaultLogo} alt="" />
-      <div class="logo-actions">
-        <button class="btn btn-secondary btn-sm" type="button" onclick={() => logoInput?.click()}>
+  <div class="mt-4 flex flex-col gap-[7px]">
+    <span class="text-(--txt2) text-[12.5px] font-semibold"
+      >{te('editor.settings.logo', language)}</span
+    >
+    <div class="flex items-center gap-3.5">
+      <img
+        class="border-border h-11 w-[124px] rounded-md border bg-white object-contain object-left px-2 py-1"
+        src={identity.logo ?? defaultLogo}
+        alt=""
+      />
+      <div class="flex flex-col gap-1.5">
+        <Button variant="outline" size="sm" onclick={() => logoInput?.click()}>
           {te('editor.settings.logoImport', language)}
-        </button>
+        </Button>
         {#if identity.logo !== undefined}
-          <button class="btn btn-secondary btn-sm" type="button" onclick={resetLogo}>
+          <Button variant="outline" size="sm" onclick={resetLogo}>
             {te('editor.settings.logoReset', language)}
-          </button>
+          </Button>
         {/if}
       </div>
     </div>
@@ -108,13 +117,13 @@
       bind:this={logoInput}
       type="file"
       accept="image/svg+xml,image/png,image/jpeg,image/webp"
-      style="display:none"
+      class="hidden"
       onchange={(e) => importLogo(e.currentTarget.files)}
     />
     {#if logoError}
-      <p class="hint" role="alert" style="color:var(--err)">{logoError}</p>
+      <p class="text-destructive text-[11.5px]" role="alert">{logoError}</p>
     {:else}
-      <p class="hint">{te('editor.settings.logoHint', language)}</p>
+      <p class="text-muted-foreground text-[11.5px]">{te('editor.settings.logoHint', language)}</p>
     {/if}
   </div>
 </section>

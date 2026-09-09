@@ -20,6 +20,7 @@
   import FieldText from '../editor/FieldText.svelte'
   import FreeSlideCard from '../editor/FreeSlideCard.svelte'
   import Icon from '../commons/Icon.svelte'
+  import { Button } from '../commons/ui/button'
   import SlidePreviewDialog from '../editor/SlidePreviewDialog.svelte'
   import type { Dispatch } from './contracts'
 
@@ -88,17 +89,20 @@
   }
 </script>
 
-<div class="settings-grid">
-  <div class="settings-col">
-    <section class="card">
-      <h2 style="display:flex;align-items:center;justify-content:space-between">
+<div class="grid grid-cols-2 items-start gap-5">
+  <div class="flex min-w-0 flex-col gap-4">
+    <section class="bg-background border-border rounded-lg border p-4">
+      <h2
+        class="text-primary mb-3 flex items-center justify-between text-xs font-bold tracking-[0.06em] uppercase"
+      >
         {te('editor.review.title', language)}
-        <button
-          class="icon-btn"
-          type="button"
+        <Button
+          variant="ghost"
+          size="icon-xs"
+          class="text-muted-foreground"
           title={te('editor.preview.titleSlide', language)}
           aria-label={te('editor.preview.titleSlide', language)}
-          onclick={() => (previewingTitle = true)}><Icon name="eye-line" /></button
+          onclick={() => (previewingTitle = true)}><Icon name="eye-line" /></Button
         >
       </h2>
       <FieldText
@@ -134,42 +138,45 @@
     </section>
   </div>
 
-  <div class="settings-col">
-    <section class="card">
-      <h2>{te('editor.review.freeSlides', language)}</h2>
+  <div class="flex min-w-0 flex-col gap-4">
+    <section class="bg-background border-border rounded-lg border p-4">
+      <h2 class="text-primary mb-3 text-xs font-bold tracking-[0.06em] uppercase">
+        {te('editor.review.freeSlides', language)}
+      </h2>
       {#each openings as slide, index (slide.id)}
-        <div class="freeslide-row">
-          <span class="freeslide-move">
-            <button
-              class="icon-btn"
-              type="button"
+        <div class="grid grid-cols-[26px_minmax(0,1fr)] items-start gap-1.5">
+          <span class="flex flex-col gap-0.5 pt-2">
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              class="text-muted-foreground"
               title={te('editor.projects.moveUp', language)}
               aria-label="{te('editor.projects.moveUp', language)} {slide.title}"
               disabled={index === 0}
-              onclick={() => moveOpening(slide, -1)}><span class="glyph-rot-up">▸</span></button
+              onclick={() => moveOpening(slide, -1)}
+              ><span class="inline-block -rotate-90">▸</span></Button
             >
-            <button
-              class="icon-btn"
-              type="button"
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              class="text-muted-foreground"
               title={te('editor.projects.moveDown', language)}
               aria-label="{te('editor.projects.moveDown', language)} {slide.title}"
               disabled={index === openings.length - 1}
-              onclick={() => moveOpening(slide, 1)}><span class="glyph-rot-down">▸</span></button
+              onclick={() => moveOpening(slide, 1)}
+              ><span class="inline-block rotate-90">▸</span></Button
             >
           </span>
           <FreeSlideCard {portfolio} {dispatch} {slide} />
         </div>
       {:else}
-        <p class="hint">{te('editor.review.noFreeSlide', language)}</p>
+        <p class="text-muted-foreground text-[11.5px]">
+          {te('editor.review.noFreeSlide', language)}
+        </p>
       {/each}
-      <button
-        class="btn btn-secondary btn-sm"
-        type="button"
-        style="width:100%;justify-content:center;margin-top:10px"
-        onclick={addOpening}
-      >
+      <Button variant="outline" size="sm" class="mt-2.5 w-full" onclick={addOpening}>
         {te('editor.settings.add', language)}
-      </button>
+      </Button>
     </section>
   </div>
 </div>

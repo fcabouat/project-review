@@ -46,12 +46,16 @@
   bodyClass="slide-body--centered"
 >
   {#snippet heading()}
-    <h2 class="slide-heading">{displayLabel(slide?.title)}</h2>
+    <h2
+      class="slide-heading mt-(--slide-step) flex-none text-[30px] leading-9 font-bold tracking-[-0.01em] print:mt-4 print:text-[28.5px] print:leading-[34px]"
+    >
+      {displayLabel(slide?.title)}
+    </h2>
   {/snippet}
-  <div class="freeform-blocks">
+  <div class="flex w-full items-stretch gap-(--slide-step)">
     {#each slide?.blocks ?? [] as block, i (i)}
-      <div class="card freeform-card">
-        <ul class="bullets">
+      <div class="card freeform-card flex-[0_1_800px] px-(--slide-margin) py-[34px]">
+        <ul class="m-0 list-none p-0">
           {#each block as line, j (j)}
             <TextLine text={line} bullet />
           {/each}

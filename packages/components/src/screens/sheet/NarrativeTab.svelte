@@ -30,11 +30,13 @@
   }
 </script>
 
-<section class="card">
-  <h2>{te('editor.sheet.narrative', language)}</h2>
-  <div class="recit-grid">
+<section class="bg-background border-border rounded-lg border p-4">
+  <h2 class="text-primary mb-3 text-xs font-bold tracking-[0.06em] uppercase">
+    {te('editor.sheet.narrative', language)}
+  </h2>
+  <div class="grid grid-cols-3 gap-5">
     {#each ['done', 'ongoing', 'next'] as const as list (list)}
-      <div class="recit-col">
+      <div>
         <FieldText
           {language}
           label={t(`sheet.${list}`, language)}
@@ -45,16 +47,21 @@
           commit={(v) => setList(list, v)}
         />
         {#if project[list].length > 0}
-          <div class="preview">
-            <span class="preview-label">{te('editor.sheet.preview', language)}</span>
-            <ul class="preview-list">
+          <div class="bg-secondary mt-0.5 rounded-md px-3 py-2.5">
+            <span
+              class="text-muted-foreground mb-[7px] block text-[10px] font-bold tracking-[0.05em] uppercase"
+              >{te('editor.sheet.preview', language)}</span
+            >
+            <ul class="text-foreground m-0 list-disc pl-[15px] text-[13px]">
               {#each project[list] as line, i (i)}
                 {@const parsed = parseLine(line)}
-                <li>
+                <li class="mb-[5px] last:mb-0">
                   {#each parsed.segments as segment, j (j)}
                     {#if segment.bold}<b>{segment.text}</b>{:else}{segment.text}{/if}
                   {/each}
-                  {#if parsed.suffix}<span class="muted-suffix"> — {parsed.suffix}</span>{/if}
+                  {#if parsed.suffix}<span class="text-muted-foreground font-normal">
+                      — {parsed.suffix}</span
+                    >{/if}
                 </li>
               {/each}
             </ul>
@@ -64,7 +71,7 @@
     {/each}
   </div>
 
-  <div style="margin-top:16px">
+  <div class="mt-4">
     <FieldText
       {language}
       label={t('sheet.risks', language)}

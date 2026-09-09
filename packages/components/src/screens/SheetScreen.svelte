@@ -1,8 +1,9 @@
 <script lang="ts">
   /**
    * Sheet screen — the project sheet, in TABS rather than one long scroll: "Frame & status
-   * · Narrative · Decisions · Milestones & dates · Options". Renumbering and
-   * its refusal use the native prompt/alert dialogs — deliberate.
+   * · Narrative · Decisions · Milestones & dates · Options". Renumbering runs
+   * in the vendored Dialog: a local draft, and the refusal surfaces inline in
+   * the same dialog instead of a second alert.
    *
    * Field ↔ command, at blur: `decide` reads the `before` and drops the
    * scalar no-ops. The WHOLESALE replacements (lists, milestones, decisions)
@@ -11,7 +12,7 @@
    *
    * The id is NOT a field: it only moves through `RenumberProject`, and the
    * uniqueness check lives in `decide` — a refused renumbering comes back as
-   * `undefined` and surfaces as the alert below.
+   * `undefined` and surfaces as the inline refusal below.
    *
    * The screen is addressed by `#/sheet/{id}`: the project id comes from the
    * route. Pure screen (screens contract, `contracts.ts`): navigation goes out
@@ -29,6 +30,11 @@
   import { te } from '../i18n'
   import { projectWarnings } from '../editor/validation'
   import Icon from '../commons/Icon.svelte'
+  import { Button } from '../commons/ui/button'
+  import * as Dialog from '../commons/ui/dialog'
+  import { Input } from '../commons/ui/input'
+  import * as Select from '../commons/ui/select'
+  import * as Tabs from '../commons/ui/tabs'
   import SlidePreviewDialog from '../editor/SlidePreviewDialog.svelte'
   import FieldText from '../editor/FieldText.svelte'
   import StateTab from './sheet/StateTab.svelte'
@@ -88,62 +94,87 @@
   /**
    * Renumbering: the ONE way an id changes. Uniqueness is `decide`'s check —
    * a refused command records nothing and comes back `undefined`, which is
-   * exactly when the user needs the alert.
+   * exactly when the dialog shows the refusal, inline.
    */
-  function renumber(): void {
+  let renumbering = $state(false)
+  let renumberDraft = $state('')
+  /** Id of the last refused proposal — the inline message names it. */
+  let renumberTaken = $state<string | undefined>(undefined)
+
+  function openRenumber(): void {
     if (!project) return
-    const proposed = window.prompt(
-      te('editor.sheet.renumberPrompt', language, { id: project.id }),
-      project.id,
-    )
-    const next = asProjectId(proposed?.trim() ?? '')
-    if (!next || next === project.id) return
-    const event = dispatch({ type: 'RenumberProject', id: project.id, newId: next })
-    if (event === undefined) {
-      window.alert(te('editor.sheet.renumberTaken', language, { id: next }))
+    renumberDraft = project.id
+    renumberTaken = undefined
+    renumbering = true
+  }
+
+  function confirmRenumber(): void {
+    if (!project) return
+    const next = asProjectId(renumberDraft.trim())
+    if (!next || next === project.id) {
+      renumbering = false
       return
     }
+    const event = dispatch({ type: 'RenumberProject', id: project.id, newId: next })
+    if (event === undefined) {
+      renumberTaken = next
+      return
+    }
+    renumbering = false
     // The route addresses the OLD id: swap it for the new one in place.
     replaceRoute({ name: 'sheet', id: next })
   }
 
   const category = $derived(project ? categoryOf(portfolio, project.categoryId) : undefined)
+
+  const tabTrigger =
+    'text-muted-foreground data-[state=active]:text-primary data-[state=active]:border-primary ' +
+    'hover:text-(--txt2) h-auto flex-none grow-0 rounded-none border-x-0 border-t-0 border-b-2 ' +
+    'border-transparent bg-transparent px-3.5 pt-[13px] pb-[11px] text-[13px] font-bold ' +
+    'whitespace-nowrap shadow-none data-[state=active]:shadow-none'
 </script>
 
 {#if !project}
-  <p class="table-empty">{te('editor.sheet.missing', language)}</p>
+  <p class="text-muted-foreground px-4 py-[26px] text-center text-[13px]">
+    {te('editor.sheet.missing', language)}
+  </p>
 {:else}
-  <div class="appbar appbar-e2">
-    <nav class="breadcrumb">
-      <button class="link-btn" type="button" onclick={back}>
+  <div
+    class="border-border flex flex-col items-stretch gap-2.5 rounded-t-lg border border-b-0 bg-white px-[22px] py-4"
+  >
+    <nav class="text-muted-foreground text-xs">
+      <Button variant="link" class="h-auto p-0 text-xs underline" onclick={back}>
         {te('editor.sheet.breadcrumb', language)}
-      </button>
-      <span class="sep">/</span>
-      <span class="current">{project.id}</span>
+      </Button>
+      <span class="mx-1.5 text-[#b9b9bc]">/</span>
+      <span class="text-(--txt2) font-semibold">{project.id}</span>
     </nav>
-    <div class="e2-bar-main">
-      <div class="e2-head-fields">
-        <label class="field field-id">
-          <span>{te('editor.field.id', language)}</span>
-          <span style="display:flex;gap:6px;align-items:center">
-            <input
-              class="input"
+    <div class="flex items-end gap-[18px]">
+      <div class="flex min-w-0 flex-1 gap-4">
+        <label class="flex w-32 flex-none flex-col">
+          <span class="text-(--txt2) mb-[5px] text-[12.5px] font-semibold"
+            >{te('editor.field.id', language)}</span
+          >
+          <span class="flex items-center gap-1.5">
+            <Input
+              class="read-only:text-(--txt2) read-only:bg-[#fafafa]"
               value={project.id}
               readonly
               title={te('editor.sheet.idLocked', language)}
               aria-label={te('editor.field.id', language)}
             />
-            <button
-              class="icon-btn"
-              type="button"
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              class="text-muted-foreground"
               title={te('editor.sheet.renumber', language)}
               aria-label={te('editor.sheet.renumber', language)}
-              onclick={renumber}>✎</button
+              onclick={openRenumber}>✎</Button
             >
           </span>
         </label>
 
-        <div class="field field-name">
+        <div class="min-w-0 flex-1">
           <FieldText
             {language}
             label={te('editor.field.name', language)}
@@ -153,70 +184,76 @@
           />
         </div>
 
-        <div class="field field-cat">
-          <span>{te('editor.field.categoryId', language)}</span>
-          <select
-            class="select-trigger"
-            value={project.categoryId}
-            aria-label={te('editor.field.categoryId', language)}
-            onchange={(e) =>
-              set('categoryId', categoryId(e.currentTarget.value) ?? project.categoryId)}
-            style={category ? `border-left:4px solid ${catColor(category.color)}` : undefined}
+        <div class="flex w-[210px] flex-none flex-col">
+          <span class="text-(--txt2) mb-[5px] text-[12.5px] font-semibold"
+            >{te('editor.field.categoryId', language)}</span
           >
-            {#each portfolio.categories as c (c.id)}
-              <option value={c.id}>{c.name}</option>
-            {/each}
-          </select>
+          <Select.Root
+            type="single"
+            value={project.categoryId}
+            onValueChange={(v) => set('categoryId', categoryId(v) ?? project.categoryId)}
+          >
+            <Select.Trigger
+              class="w-full"
+              aria-label={te('editor.field.categoryId', language)}
+              style={category ? `border-left:4px solid ${catColor(category.color)}` : undefined}
+            >
+              <span class="truncate">{category?.name ?? project.categoryId}</span>
+            </Select.Trigger>
+            <Select.Content>
+              {#each portfolio.categories as c (c.id)}
+                <Select.Item value={c.id} label={c.name} />
+              {/each}
+            </Select.Content>
+          </Select.Root>
         </div>
       </div>
-      <button class="btn btn-primary" type="button" onclick={() => (previewing = true)}>
+      <Button onclick={() => (previewing = true)}>
         <Icon name="eye-line" />
         {te('editor.preview.button', language)}
-      </button>
+      </Button>
     </div>
   </div>
 
-  <div class="etabs" role="tablist">
-    {#each TABS as entry (entry.id)}
-      <button
-        class="etab-label"
-        class:active={tab === entry.id}
-        type="button"
-        role="tab"
-        aria-selected={tab === entry.id}
-        onclick={() => (tab = entry.id)}>{te(entry.key, language)}</button
+  <Tabs.Root value={tab} onValueChange={(v) => (tab = v as Tab)}>
+    <Tabs.List
+      class="border-border h-auto w-full justify-start gap-0.5 rounded-none border-x border-b bg-white p-0 px-[22px]"
+    >
+      {#each TABS as entry (entry.id)}
+        <Tabs.Trigger value={entry.id} class={tabTrigger}>{te(entry.key, language)}</Tabs.Trigger>
+      {/each}
+    </Tabs.List>
+
+    <div class="flex flex-col gap-5 pt-5">
+      {#if warnings.length > 0}
+        <ul
+          class="bg-(--warn-bg) border-(--warn)/30 m-0 flex list-none flex-col gap-[5px] rounded-md border px-3 py-2.5"
+        >
+          {#each warnings as warning, i (i)}
+            <li class="text-(--warn) text-xs font-semibold">
+              {te(warning.key, language, warning.slots)}
+            </li>
+          {/each}
+        </ul>
+      {/if}
+
+      <Tabs.Content value="state"><StateTab {project} {language} {set} /></Tabs.Content>
+      <Tabs.Content value="narrative">
+        <NarrativeTab {project} {language} {dispatch} {set} />
+      </Tabs.Content>
+      <Tabs.Content value="decisions"><DecisionsTab {project} {language} {dispatch} /></Tabs.Content
       >
-    {/each}
-  </div>
+      <Tabs.Content value="milestones">
+        <MilestonesTab {project} {portfolio} {language} {dispatch} {set} />
+      </Tabs.Content>
+      <Tabs.Content value="options"><OptionsTab {project} {language} {set} /></Tabs.Content>
+    </div>
+  </Tabs.Root>
 
-  <div class="e2-body">
-    {#if warnings.length > 0}
-      <ul class="softcheck">
-        {#each warnings as warning, i (i)}
-          <li>{te(warning.key, language, warning.slots)}</li>
-        {/each}
-      </ul>
-    {/if}
-
-    {#if tab === 'state'}
-      <StateTab {project} {language} {set} />
-    {:else if tab === 'narrative'}
-      <NarrativeTab {project} {language} {dispatch} {set} />
-    {:else if tab === 'decisions'}
-      <DecisionsTab {project} {language} {dispatch} />
-    {:else if tab === 'milestones'}
-      <MilestonesTab {project} {portfolio} {language} {dispatch} {set} />
-    {:else}
-      <OptionsTab {project} {language} {set} />
-    {/if}
-  </div>
-
-  <div
-    style="margin-top:14px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted)"
-  >
+  <div class="text-muted-foreground mt-3.5 flex items-center justify-between text-xs">
     <span>{te('editor.sheet.continuous', language)}</span>
-    <button class="link-btn" type="button" onclick={back}
-      >{te('editor.sheet.back', language)}</button
+    <Button variant="link" class="h-auto p-0 text-xs underline" onclick={back}
+      >{te('editor.sheet.back', language)}</Button
     >
   </div>
 
@@ -227,5 +264,38 @@
       subject={te('editor.preview.subject.sheet', language, { id: project.id })}
       close={() => (previewing = false)}
     />
+  {/if}
+
+  <!-- Renumbering dialog: one Input, Confirm dispatches; a refused id keeps
+       the dialog open and says which id is taken. -->
+  {#if renumbering}
+    <Dialog.Root open onOpenChange={(o) => o || (renumbering = false)}>
+      <Dialog.Content class="w-[420px]">
+        <Dialog.Header>
+          <Dialog.Title>{te('editor.sheet.renumber', language)}</Dialog.Title>
+          <Dialog.Description>
+            {te('editor.sheet.renumberPrompt', language, { id: project.id })}
+          </Dialog.Description>
+        </Dialog.Header>
+        <Input
+          bind:value={renumberDraft}
+          aria-label={te('editor.field.id', language)}
+          onkeydown={(e) => {
+            if (e.key === 'Enter') confirmRenumber()
+          }}
+        />
+        {#if renumberTaken}
+          <p class="text-destructive text-xs font-semibold" role="alert">
+            {te('editor.sheet.renumberTaken', language, { id: renumberTaken })}
+          </p>
+        {/if}
+        <Dialog.Footer>
+          <Button variant="outline" onclick={() => (renumbering = false)}>
+            {te('editor.io.cancel', language)}
+          </Button>
+          <Button onclick={confirmRenumber}>{te('editor.confirm', language)}</Button>
+        </Dialog.Footer>
+      </Dialog.Content>
+    </Dialog.Root>
   {/if}
 {/if}

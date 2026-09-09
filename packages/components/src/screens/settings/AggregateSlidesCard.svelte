@@ -3,6 +3,7 @@
   import type { Portfolio } from '@project-review/core/model/portfolio'
   import { te } from '../../i18n'
   import FieldSwitch from '../../editor/FieldSwitch.svelte'
+  import { Button } from '../../commons/ui/button'
   import type { Dispatch } from '../contracts'
 
   interface Props {
@@ -32,8 +33,10 @@
   }
 </script>
 
-<section class="card">
-  <h2>{te('editor.settings.aggregates', language)}</h2>
+<section class="bg-background border-border rounded-lg border p-4">
+  <h2 class="text-primary mb-3 text-xs font-bold tracking-[0.06em] uppercase">
+    {te('editor.settings.aggregates', language)}
+  </h2>
   <FieldSwitch
     label={te('editor.setting.healthDashboard', language)}
     checked={settings.show.healthDashboard}
@@ -54,21 +57,28 @@
     checked={settings.show.decisions}
     commit={(v) => setShow('decisions', v)}
   />
-  <div class="stepper-row">
+  <div
+    class="border-border text-(--txt2) mt-0.5 flex items-center justify-between border-t pt-2.5 text-[12.5px] font-semibold"
+  >
     <span>{te('editor.setting.recapRows', language)}</span>
-    <span class="stepper">
-      <button
-        type="button"
+    <span class="border-input inline-flex items-center overflow-hidden rounded-md border">
+      <Button
+        variant="ghost"
+        class="size-[22px] rounded-none p-0 text-[13px]"
         aria-label={te('editor.settings.decrease', language)}
         disabled={settings.recapRows <= 6}
-        onclick={() => setRecapLines(settings.recapRows - 1)}>−</button
+        onclick={() => setRecapLines(settings.recapRows - 1)}>−</Button
       >
-      <span class="val">{settings.recapRows}</span>
-      <button
-        type="button"
+      <span
+        class="border-input h-[22px] w-[26px] border-x text-center text-xs leading-[22px] font-bold"
+        >{settings.recapRows}</span
+      >
+      <Button
+        variant="ghost"
+        class="size-[22px] rounded-none p-0 text-[13px]"
         aria-label={te('editor.settings.increase', language)}
         disabled={settings.recapRows >= 16}
-        onclick={() => setRecapLines(settings.recapRows + 1)}>+</button
+        onclick={() => setRecapLines(settings.recapRows + 1)}>+</Button
       >
     </span>
   </div>

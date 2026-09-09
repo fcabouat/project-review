@@ -9,6 +9,7 @@
   import { te } from '../../i18n'
   import FieldText from '../../editor/FieldText.svelte'
   import Icon from '../../commons/Icon.svelte'
+  import { Button } from '../../commons/ui/button'
   import SlidePreviewDialog from '../../editor/SlidePreviewDialog.svelte'
   import { portfolioWarnings } from '../../editor/validation'
   import type { Dispatch } from '../contracts'
@@ -79,69 +80,90 @@
   }
 </script>
 
-<section class="card">
-  <h2>{te('editor.settings.categories', language)}</h2>
+<section class="bg-background border-border rounded-lg border p-4">
+  <h2 class="text-primary mb-3 text-xs font-bold tracking-[0.06em] uppercase">
+    {te('editor.settings.categories', language)}
+  </h2>
 
   {#if warnings.length > 0}
-    <ul class="softcheck">
+    <ul
+      class="bg-(--warn-bg) border-(--warn)/30 m-0 mb-3.5 flex list-none flex-col gap-[5px] rounded-md border px-3 py-2.5"
+    >
       {#each warnings as warning, i (i)}
-        <li>{te(warning.key, language, warning.slots)}</li>
+        <li class="text-(--warn) text-xs font-semibold">
+          {te(warning.key, language, warning.slots)}
+        </li>
       {/each}
     </ul>
   {/if}
 
   {#each portfolio.categories as category, index (category.id)}
-    <div class="catrow">
-      <span class="cat-dot" style="--c:{catColor(category.color)}" aria-hidden="true"></span>
-      <span class="cname truncate">{category.name}</span>
-      <span class="ccount">{usageLabel(category)}</span>
-      <button
-        class="icon-btn"
-        type="button"
+    <div
+      class="border-border flex items-center gap-[9px] border-b py-[7px] text-[13px] first:pt-0 last:border-b-0 last:pb-0"
+    >
+      <span
+        class="inline-block size-2.5 flex-none rounded-full"
+        style="background:{catColor(category.color)}"
+        aria-hidden="true"
+      ></span>
+      <span class="min-w-0 flex-1 truncate font-semibold">{category.name}</span>
+      <span class="text-muted-foreground text-[11px] whitespace-nowrap">{usageLabel(category)}</span
+      >
+      <Button
+        variant="ghost"
+        size="icon-xs"
+        class="text-muted-foreground"
         title={te('editor.projects.moveUp', language)}
         aria-label="{te('editor.projects.moveUp', language)} {category.name}"
         disabled={index === 0}
-        onclick={() => move(category, -1)}><span class="glyph-rot-up">▸</span></button
+        onclick={() => move(category, -1)}><span class="inline-block -rotate-90">▸</span></Button
       >
-      <button
-        class="icon-btn"
-        type="button"
+      <Button
+        variant="ghost"
+        size="icon-xs"
+        class="text-muted-foreground"
         title={te('editor.projects.moveDown', language)}
         aria-label="{te('editor.projects.moveDown', language)} {category.name}"
         disabled={index === portfolio.categories.length - 1}
-        onclick={() => move(category, 1)}><span class="glyph-rot-down">▸</span></button
+        onclick={() => move(category, 1)}><span class="inline-block rotate-90">▸</span></Button
       >
-      <button
-        class="icon-btn"
-        type="button"
+      <Button
+        variant="ghost"
+        size="icon-xs"
+        class="text-muted-foreground"
         title={te('editor.projects.edit', language)}
         aria-label="{te('editor.projects.edit', language)} {category.name}"
         onclick={() =>
           (editingCategoryId = editingCategoryId === category.id ? undefined : category.id)}
-        >✎</button
+        >✎</Button
       >
-      <button
-        class="icon-btn"
-        type="button"
+      <Button
+        variant="ghost"
+        size="icon-xs"
+        class="text-muted-foreground"
         title={te('editor.preview.open', language)}
         aria-label="{te('editor.preview.open', language)} {category.name}"
         disabled={!hasDivider(category)}
-        onclick={() => (previewCategory = category)}><Icon name="eye-line" /></button
+        onclick={() => (previewCategory = category)}><Icon name="eye-line" /></Button
       >
-      <button
-        class="icon-btn"
-        type="button"
+      <Button
+        variant="ghost"
+        size="icon-xs"
+        class="text-muted-foreground"
         title={usage(category) > 0
           ? te('editor.settings.deleteBlocked', language, { n: usage(category) })
           : te('editor.projects.delete', language)}
         aria-label="{te('editor.projects.delete', language)} {category.name}"
         disabled={usage(category) > 0}
-        onclick={() => dispatch({ type: 'DeleteCategory', id: category.id })}>✕</button
+        onclick={() => dispatch({ type: 'DeleteCategory', id: category.id })}
+        ><Icon name="close-line" /></Button
       >
     </div>
 
     {#if editingCategoryId === category.id}
-      <div class="cat-popover">
+      <div
+        class="border-border bg-secondary relative mt-0.5 mb-2 rounded-lg border px-3 pt-3 pb-2.5"
+      >
         <FieldText
           {language}
           label={te('editor.field.name', language)}
@@ -153,20 +175,35 @@
               after: v ?? category.name,
             })}
         />
-        <span class="pop-label">{te('editor.settings.color', language)}</span>
-        <div class="swatchgrid">
+        <span class="text-muted-foreground text-[10.5px] font-bold tracking-[0.05em] uppercase"
+          >{te('editor.settings.color', language)}</span
+        >
+        <div class="mt-[9px] grid grid-cols-4 gap-x-1.5 gap-y-2.5">
           {#each COLORS as color (color)}
             <!-- The ADT value ("lightGreen"-style code) never shows raw:
                  the swatch speaks the catalog's language. -->
             <button
               type="button"
-              class="swatch"
-              class:selected={category.color === color}
+              class="{category.color === color
+                ? 'text-primary font-bold'
+                : 'text-muted-foreground'} focus-visible:outline-ring flex cursor-pointer flex-col items-center gap-1 rounded px-0 py-0.5 text-center text-[9.5px] focus-visible:outline-2 focus-visible:outline-offset-1"
               aria-pressed={category.color === color}
               title={te(`editor.color.${color}`, language)}
               onclick={() => dispatch({ type: 'RecolorCategory', id: category.id, after: color })}
             >
-              <span class="swatch-dot" style="--c:{catColor(color)}"></span>
+              <span
+                class="relative size-5 rounded-full {category.color === color
+                  ? 'shadow-[0_0_0_2px_#fff,0_0_0_3.5px_var(--accent)]'
+                  : 'shadow-[0_0_0_1px_rgb(0_0_0/0.06)]'}"
+                style="background:{catColor(color)}"
+              >
+                {#if category.color === color}
+                  <span
+                    class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white"
+                    >✓</span
+                  >
+                {/if}
+              </span>
               {te(`editor.color.${color}`, language)}
             </button>
           {/each}
@@ -175,11 +212,8 @@
     {/if}
   {/each}
 
-  <button
-    class="btn btn-secondary btn-sm"
-    type="button"
-    style="width:100%;justify-content:center;margin-top:12px"
-    onclick={addCategory}>{te('editor.settings.add', language)}</button
+  <Button variant="outline" size="sm" class="mt-3 w-full" onclick={addCategory}
+    >{te('editor.settings.add', language)}</Button
   >
 </section>
 

@@ -70,38 +70,47 @@
   {logo}
 >
   {#snippet heading()}
-    <h2 class="slide-heading">{t('d1.title', language)}</h2>
+    <h2
+      class="slide-heading mt-(--slide-step) flex-none text-[30px] leading-9 font-bold tracking-[-0.01em] print:mt-4 print:text-[28.5px] print:leading-[34px]"
+    >
+      {t('d1.title', language)}
+    </h2>
   {/snippet}
 
-  <div class="stats">
+  <div class="flex h-[88px] flex-none gap-3.5 print:h-[92px] print:gap-3">
     {#each indicators as indicator (indicator.key)}
       <StatChip value={indicator.value} label={t(indicator.key, language)} tone={indicator.tone} />
     {/each}
   </div>
-  <div class="label label--accent breakdown">{t('d1.breakdown', language)}</div>
-  <div class="category-rows">
+  <!-- the only measure that belongs to this slide alone: the air between the
+       indicator row and the breakdown (34 px) -->
+  <div class="label label--accent mt-[34px]">{t('d1.breakdown', language)}</div>
+  <div class="mt-(--slide-step) flex min-h-0 flex-1 flex-col justify-between">
     {#each rows as row (row.bar.categoryId)}
-      <div class="category-row" style:--cat={row.color}>
-        <span class="category-name">{row.name}</span>
-        <span class="category-count">{row.count}</span>
+      <div
+        class="category-row flex h-[27px] items-center gap-3 print:h-[30px]"
+        style:--cat={row.color}
+      >
+        <span
+          class="category-name w-[170px] flex-none text-[13px] font-semibold print:text-[12.5px]"
+          >{row.name}</span
+        >
+        <span
+          class="category-count w-6 flex-none text-right text-[13px] font-bold print:text-[12.5px]"
+          >{row.count}</span
+        >
         <CategoryBarView bar={row.bar} />
       </div>
     {/each}
   </div>
 
   {#snippet footMid()}
-    <span class="legend">
+    <span class="flex items-center justify-center">
       {#each legend as item (item.kind)}
-        <i class="legend-key legend-key--{item.kind}"></i>{t(item.key, language)}
+        <i
+          class="legend-key legend-key--{item.kind} mr-[5px] ml-3.5 inline-block h-[9px] w-[13px] rounded-[2px] first:ml-0"
+        ></i>{t(item.key, language)}
       {/each}
     </span>
   {/snippet}
 </SlideChrome>
-
-<style>
-  /* the only measure that belongs to this slide alone: the air between the
-     indicator row and the breakdown (34 px) */
-  .breakdown {
-    margin-top: 34px;
-  }
-</style>
