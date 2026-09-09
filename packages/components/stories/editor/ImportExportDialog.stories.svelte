@@ -50,9 +50,11 @@
   </div>
 </Story>
 
-<!-- Merge mode with a parsed contribution: the mode choice, the derived
-     preview ("merge: 2 replaced, 1 added") and the undoable hint, all visible
-     BEFORE anything is dispatched. -->
+<!-- Merge mode with a parsed contribution: the mode choice, the NOMINAL list
+     of the projects the file would replace (id · present name, read off the
+     decided event's before side), the derived preview ("merge: 2 replaced,
+     1 added") and the undoable hint, all visible BEFORE anything is
+     dispatched. -->
 <Story name="Import — fusion" asChild>
   <div class="editor">
     <ImportExportDialog

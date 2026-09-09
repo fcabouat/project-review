@@ -18,6 +18,7 @@
     "@fontsource/roboto": "^5.3.0",
     "@project-review/components": "workspace:*",
     "@project-review/core": "workspace:*",
-    "@project-review/infrastructure": "workspace:*"
+    "@project-review/infrastructure": "workspace:*",
+    "reveal.js": "^6.0.1"
   }
 }

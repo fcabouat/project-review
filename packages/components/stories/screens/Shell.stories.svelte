@@ -47,6 +47,8 @@
     portfolio={store.present}
     past={store.past}
     future={store.future}
+    canUndo={store.canUndo}
+    canRedo={store.canRedo}
     dispatch={store.dispatch}
     undo={store.undo}
     redo={store.redo}

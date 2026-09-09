@@ -13,6 +13,10 @@ import type { UriFetcher } from '../../src/dom-export'
 
 export const REVEAL_OPTIONS = { controls: true, hash: false, center: false } as const
 
+/** Fixed nonce: the tests assert WHERE it lands (CSP meta, both scripts);
+ * freshness is `generateNonce`'s own test. */
+export const NONCE = 'TESTNONCE+bytes/16='
+
 export const parts = {
   lang: 'fr',
   title: 'Revue des projets',
@@ -21,6 +25,7 @@ export const parts = {
     '<section class="slide">S1</section><section class="stack"><section class="slide">S2</section></section>',
   revealSource: 'window.Reveal = function () {};',
   revealOptions: REVEAL_OPTIONS,
+  nonce: NONCE,
 } as const
 
 /** Fetcher double: answers from a table, records what it was asked. */

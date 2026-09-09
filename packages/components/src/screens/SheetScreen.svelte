@@ -27,7 +27,12 @@
     SheetMode,
     Stage,
   } from '@project-review/core/model/project'
-  import { HEALTH_LEVELS, PRIORITIES, STAGES } from '@project-review/core/model/project'
+  import {
+    HEALTH_LEVELS,
+    PRIORITIES,
+    SHEET_MODES,
+    STAGES,
+  } from '@project-review/core/model/project'
   import {
     categoryOf,
     isPreProject,
@@ -653,8 +658,8 @@
           <FieldSegmented
             label={te('editor.field.sheet', language)}
             value={project.sheet}
-            options={(['auto', 'always', 'never'] as const).map((mode) => ({
-              value: mode as SheetMode,
+            options={SHEET_MODES.map((mode) => ({
+              value: mode,
               label: te(`editor.sheetMode.${mode}`, language),
             }))}
             hint={sheetHint}

@@ -17,6 +17,19 @@ describe('defaultStorage', () => {
   it('returns null outside a browser (never required)', () => {
     expect(defaultStorage()).toBeNull()
   })
+
+  it('hands back the page localStorage when one exists (globalThis stub)', () => {
+    // The node suite has no window: a stub on globalThis stands in for the
+    // browser, proving the adapter returns THE ambient object, not a copy.
+    const stub = { getItem: () => null, setItem: () => {}, removeItem: () => {} }
+    const host = globalThis as { localStorage?: unknown }
+    host.localStorage = stub
+    try {
+      expect(defaultStorage()).toBe(stub)
+    } finally {
+      delete host.localStorage
+    }
+  })
 })
 
 describe('timeoutScheduler', () => {

@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest'
 import { parsePortfolio } from '../../src/services/parse/index'
 import type { Portfolio } from '../../src/model/portfolio'
-import type { Slide } from '../../src/model/slide'
+import type { Slide } from '../../src/projections/slide'
 import { UNSORTED_CATEGORY } from '../../src/model/category'
 import { deck, dividerMode } from '../../src/projections/index'
 import { rawPortfolio, rawProject } from '../fixtures/raw-portfolios'

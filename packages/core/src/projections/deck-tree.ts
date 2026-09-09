@@ -3,7 +3,7 @@
  * canonical mockup `mockups/slides-demo.html`.
  */
 import type { Portfolio } from '../model/portfolio'
-import type { Slide } from '../model/slide'
+import type { Slide } from './slide'
 import { deck } from './deck'
 
 /**

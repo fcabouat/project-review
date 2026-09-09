@@ -27,6 +27,6 @@ docs/api
 dist-single
 storybook-static
 
-# Agent working notes — never published
+# Local working notes, kept out of the published tree
 internal
 _site

@@ -6,6 +6,7 @@
  *
  * One module per projection theme; consumers import from this barrel:
  *
+ *   slide.ts       deck vocabulary (Slide, DecisionRef) — types only
  *   projects.ts    project predicates, order, lookups  ← projects, categories
  *   milestones.ts  milestone state, next milestone     ← milestones, reviewDate
  *   gauges.ts      progress gauge, risks band          ← one project
@@ -15,6 +16,7 @@
  *   deck.ts        THE deck (slide sequence)           ← the whole portfolio
  *   deck-tree.ts   deck folded into slideshow drawers  ← deck.ts
  */
+export * from './slide'
 export * from './projects'
 export * from './milestones'
 export * from './gauges'

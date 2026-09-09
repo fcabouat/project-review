@@ -511,6 +511,10 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
     fr: `entier 6–16 attendu (reçu «${NBSP}{value}${NBSP}»)`,
     en: 'integer 6–16 expected (got "{value}")',
   },
+  'editor.error.invalidFont': {
+    fr: `police «${NBSP}{value}${NBSP}» refusée (lettres, chiffres, espaces, - et _ ; 64 caractères max)`,
+    en: 'font "{value}" refused (letters, digits, spaces, - and _; 64 characters max)',
+  },
   'editor.error.invalidLogo': {
     fr: 'data URI image attendue (data:image/…)',
     en: 'image data URI expected (data:image/…)',
@@ -544,6 +548,10 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
   'editor.io.mode.merge': {
     fr: 'Fusionner les projets dans le portefeuille courant',
     en: 'Merge the projects into the current portfolio',
+  },
+  'editor.io.mergeReplacedList': {
+    fr: `Projets remplacés par le fichier${NBSP}:`,
+    en: 'Projects the file replaces:',
   },
   'editor.io.mergePreview': {
     fr: `fusionner${NBSP}: {n} remplacé(s), {m} ajouté(s)`,

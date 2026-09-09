@@ -8,9 +8,11 @@
  * infrastructure provides both (`local-storage.ts`, `scheduler.ts`); tests
  * plug in-memory fakes into the very same seams.
  *
- * Decoupled from the parse: we write an already valid `Portfolio` and read
- * back `unknown`. Replaying through the strict parse belongs to application
- * startup, not here.
+ * Decoupled from the parse for the SNAPSHOT: we write an already valid
+ * `Portfolio` and read back `unknown` — replaying it through the strict parse
+ * belongs to application startup. The stored HISTORY is the one exception: a
+ * `PortfolioReplaced` embeds whole portfolios, so `loadHistory` replays those
+ * through the same parse before any event may reach `apply`/`invert`.
  *
  * Every write is TOTAL: a storage that throws (quota, private browsing) makes
  * the write functions return `false`, never propagate — losing a save must not
@@ -20,6 +22,7 @@
 import type { Portfolio } from '../model/portfolio'
 import type { DomainEvent } from '../events'
 import { HISTORY_LIMIT, type History } from '../events/history'
+import { parsePortfolio } from './parse'
 
 /* ------------------------------ interfaces ------------------------------ */
 
@@ -142,12 +145,23 @@ const isEventList = (x: unknown): x is readonly DomainEvent[] =>
   )
 
 /**
- * Stored history, or `null` when absent, corrupted or stamped with another
- * schema version — a broken history must never keep the application from
- * starting (same rule as the snapshot), and events from another schema must
- * never reach `apply`/`invert`. The shape check stays shallow on purpose: a
- * matching stamp means we are reading back our own writes, and `apply` is
- * total anyway.
+ * Per-variant shape guard, on top of the shallow `type` check: a
+ * `PortfolioReplaced` carries two WHOLE portfolios that `apply`/`invert` will
+ * install verbatim, so both sides must still satisfy the data contract —
+ * anyone can hand-edit localStorage. Replayed through the same strict parse an
+ * imported file goes through; the other variants stay under the version stamp
+ * plus `apply`'s totality (they touch one aggregate at a time, never install
+ * a whole portfolio).
+ */
+const isSoundEvent = (e: DomainEvent): boolean =>
+  e.type !== 'PortfolioReplaced' || (parsePortfolio(e.before).ok && parsePortfolio(e.after).ok)
+
+/**
+ * Stored history, or `null` when absent, corrupted, stamped with another
+ * schema version or carrying an event that fails its variant guard — a broken
+ * history must never keep the application from starting (same rule as the
+ * snapshot), and events from another schema (or forged portfolios) must never
+ * reach `apply`/`invert`.
  */
 export const loadHistory = (storage: KeyValueStorage): History | null => {
   const raw = storage.getItem(HISTORY_KEY)
@@ -158,6 +172,7 @@ export const loadHistory = (storage: KeyValueStorage): History | null => {
     const { v, past, future } = parsed as { v?: unknown; past?: unknown; future?: unknown }
     if (v !== HISTORY_VERSION) return null
     if (!isEventList(past) || !isEventList(future)) return null
+    if (![...past, ...future].every(isSoundEvent)) return null
     return { past, future }
   } catch {
     return null

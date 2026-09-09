@@ -30,6 +30,10 @@ export const PARSE_ERROR_CODES = [
   'invalidProgress',
   /** `recapRows` not an integer in 6–16. */
   'invalidRecapRows',
+  /** A font family outside the letters/digits/space/`_`/`-` charset (max 64) —
+   * the name is emitted into the exported deck's stylesheet, so the charset is
+   * the contract. */
+  'invalidFont',
   /** A logo that is not a `data:image/…` URI. */
   'invalidLogo',
   /** A logo data URI beyond the size guard — `params.max` gives the bound. */

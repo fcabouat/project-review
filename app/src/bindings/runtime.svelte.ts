@@ -27,8 +27,6 @@ export interface Store {
   readonly dispatch: (command: Command) => DomainEvent | undefined
   readonly undo: () => void
   readonly redo: () => void
-  /** Sugar: global replacement (import), undoable like everything else. */
-  readonly replace: (next: Portfolio) => void
 }
 
 /**
@@ -71,9 +69,6 @@ export const createStore = (initial: Portfolio, log?: History): Store => {
     },
     redo: () => {
       state = redo(state)
-    },
-    replace: (next: Portfolio) => {
-      void dispatch({ type: 'ReplacePortfolio', portfolio: next })
     },
   }
 }

@@ -4,7 +4,7 @@
  */
 import type { Decision, Project } from '../model/project'
 import type { Portfolio } from '../model/portfolio'
-import type { DecisionRef } from '../model/slide'
+import type { DecisionRef } from './slide'
 import { isTracked, orderedProjects, projectById } from './projects'
 import { paginate } from './paginate'
 

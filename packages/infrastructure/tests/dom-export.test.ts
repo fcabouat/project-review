@@ -6,9 +6,14 @@
  * at the seam by the app); here a stub proves it is serialised verbatim.
  */
 import { describe, expect, it } from 'vitest'
-import { buildStandaloneHtml, embedStyleAssets, exportFileName } from '../src/dom-export'
+import {
+  buildStandaloneHtml,
+  embedStyleAssets,
+  exportFileName,
+  generateNonce,
+} from '../src/dom-export'
 import { fontStack } from '../src/fonts'
-import { CSS, REVEAL_OPTIONS, fetcherOf, parts } from './fixtures/standalone-export-stubs'
+import { CSS, NONCE, REVEAL_OPTIONS, fetcherOf, parts } from './fixtures/standalone-export-stubs'
 
 describe('buildStandaloneHtml', () => {
   const html = buildStandaloneHtml(parts)
@@ -50,7 +55,9 @@ describe('buildStandaloneHtml', () => {
   })
 
   it('no font link for the bundled families, one for a Google family', () => {
-    expect(html).not.toContain('fonts.googleapis.com')
+    // The CSP <meta> ALLOWS fonts.googleapis.com in every file; what a bundled
+    // family must not produce is the stylesheet <link> itself.
+    expect(html).not.toContain('<link rel="stylesheet"')
     const withFont = buildStandaloneHtml({
       ...parts,
       fontHref: 'https://fonts.googleapis.com/css2?family=Roboto',
@@ -69,6 +76,48 @@ describe('buildStandaloneHtml', () => {
     expect(tricky).toContain('<title>A &lt;b&gt;&amp; &quot;B&quot;</title>')
     expect(tricky).not.toContain('const s = "</script>')
     expect(tricky).toContain('const s = "<\\/script>')
+  })
+})
+
+describe('buildStandaloneHtml — security', () => {
+  const html = buildStandaloneHtml(parts)
+
+  it('carries the nonce CSP <meta>: nothing loads but the file itself and Google Fonts', () => {
+    expect(html).toContain(
+      `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; ` +
+        `script-src 'nonce-${NONCE}'; ` +
+        `style-src 'unsafe-inline' https://fonts.googleapis.com; img-src data:; ` +
+        `font-src data: https://fonts.gstatic.com; connect-src 'none'">`,
+    )
+  })
+
+  it('stamps the nonce on BOTH emitted scripts — and nowhere else', () => {
+    const nonced = html.match(/<script nonce="[^"]*"/g) ?? []
+    expect(nonced).toHaveLength(2)
+    for (const attr of nonced) expect(attr).toBe(`<script nonce="${NONCE}"`)
+    // No un-nonced script survives: under the CSP it would simply not run.
+    expect(html.match(/<script(?! nonce=)/g)).toBeNull()
+  })
+
+  it('a hostile font name cannot close the <style> element (defence in depth)', () => {
+    // Built in BYPASS of the parse (which refuses such names — invalidFont):
+    // even then, the emitted stack must not contain a raw `</style`.
+    const attacked = buildStandaloneHtml({
+      ...parts,
+      fontFamily: 'Bad</style><script>alert(1)</script>',
+    })
+    const closings = attacked.match(/<\/style/g) ?? []
+    expect(closings).toHaveLength(1) // the file's own closing tag, nothing else
+    expect(attacked).not.toContain('<script>alert(1)')
+  })
+})
+
+describe('generateNonce', () => {
+  it('yields 128 bits of base64, fresh on every export', () => {
+    const a = generateNonce()
+    const b = generateNonce()
+    expect(a).toMatch(/^[A-Za-z0-9+/]{22}==$/)
+    expect(b).not.toBe(a)
   })
 })
 
@@ -143,6 +192,7 @@ describe('theme stamp', () => {
       slidesHtml: '<section></section>',
       revealSource: '',
       revealOptions: REVEAL_OPTIONS,
+      nonce: NONCE,
     })
     // The frozen palette keeps the exported deck's category colors whatever
     // the live app later switches to (palettes.css scopes on this attribute).
@@ -157,6 +207,7 @@ describe('theme stamp', () => {
       slidesHtml: '<section></section>',
       revealSource: '',
       revealOptions: REVEAL_OPTIONS,
+      nonce: NONCE,
     })
     expect(html).toContain('<html lang="en">')
   })

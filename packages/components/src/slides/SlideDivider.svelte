@@ -17,6 +17,7 @@
   import { catColor } from '../commons/cat-color'
   import { t } from '@project-review/core/services/i18n'
   import Cartouche from '../commons/Cartouche.svelte'
+  import { categoryName } from './labels'
   import './theme.css'
   import './print.css'
   import './flat.css'
@@ -62,7 +63,8 @@
     </div>
     <div class="flat-divider-plate">
       <div class="flat-divider-num">{numeral}</div>
-      <h2>{category.name}</h2>
+      <!-- categoryName, not .name: the unsorted sentinel carries a catalog KEY. -->
+      <h2>{categoryName(category, language)}</h2>
       <div class="flat-divider-count">
         {t('divider.count', language, { n: tracked.length, m: sheets })}
       </div>
@@ -88,7 +90,8 @@
     </div>
     <div class="divider-numeral">{numeral}</div>
     <div class="divider-block">
-      <h2>{category.name}</h2>
+      <!-- categoryName, not .name: the unsorted sentinel carries a catalog KEY. -->
+      <h2>{categoryName(category, language)}</h2>
       <div class="divider-count">
         {t('divider.count', language, { n: tracked.length, m: sheets })}
       </div>

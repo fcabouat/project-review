@@ -347,13 +347,6 @@
   background: var(--err-bg);
   color: var(--err);
 }
-.editor .chip-onHold {
-  background: var(--vig-bg);
-  color: var(--vig-txt);
-  font-size: 11px;
-  padding: 3px 8px;
-}
-
 .editor .switch {
   position: relative;
   display: inline-flex;
@@ -1458,7 +1451,7 @@
 
 /* ---- export: selection by category (checkbox tree) ---- */
 .editor .export-groups {
-  border: 1px solid var(--line);
+  border: 1px solid var(--border2);
   border-radius: 6px;
   padding: 10px 14px 12px;
   margin: 0 0 12px;
@@ -1492,7 +1485,7 @@
 
 /* ---- import: mode choice and merge preview ---- */
 .editor .import-mode {
-  border: 1px solid var(--line);
+  border: 1px solid var(--border2);
   border-radius: 6px;
   padding: 10px 14px 12px;
   margin: 12px 0 0;
@@ -1516,6 +1509,20 @@
 .editor .merge-preview {
   margin-top: 10px;
   font-size: 13px;
+  font-weight: 700;
+}
+.editor .merge-replaced {
+  margin-top: 10px;
+  font-size: 12.5px;
+  color: var(--txt2);
+}
+.editor .merge-replaced ul {
+  margin: 4px 0 0;
+  padding: 0 0 0 16px;
+  max-height: 120px;
+  overflow: auto;
+}
+.editor .merge-replaced b {
   font-weight: 700;
 }
 

@@ -115,6 +115,45 @@ describe('local-save preference and stored history', () => {
     expect(loadHistory(storage)).toBeNull()
   })
 
+  it('discards a history whose PortfolioReplaced carries a forged portfolio', () => {
+    // localStorage is user-editable: a stored PortfolioReplaced embeds two
+    // whole portfolios that undo/redo would install verbatim, so both sides
+    // repass the strict parse — one forged side throws the whole history away
+    // (the snapshot, revalidated at startup, survives on its own).
+    const storage = createMemoryStorage()
+    const replaced = (after: unknown) => ({
+      v: HISTORY_VERSION,
+      past: [{ type: 'PortfolioReplaced', before: testPortfolio(), after }],
+      future: [],
+    })
+
+    storage.setItem(HISTORY_KEY, JSON.stringify(replaced({ version: 3, forged: true })))
+    expect(loadHistory(storage)).toBeNull()
+
+    // Same guard on the future stack (an undone import is still an import),
+    // and on the `before` side.
+    storage.setItem(
+      HISTORY_KEY,
+      JSON.stringify({ v: HISTORY_VERSION, past: [], future: replaced({}).past }),
+    )
+    expect(loadHistory(storage)).toBeNull()
+    storage.setItem(
+      HISTORY_KEY,
+      JSON.stringify({
+        v: HISTORY_VERSION,
+        past: [{ type: 'PortfolioReplaced', before: 42, after: otherPortfolio() }],
+        future: [],
+      }),
+    )
+    expect(loadHistory(storage)).toBeNull()
+
+    // A SOUND PortfolioReplaced round-trips whole: the guard refuses forgery,
+    // never the legitimate import it exists to protect.
+    const sound = replaced(otherPortfolio())
+    storage.setItem(HISTORY_KEY, JSON.stringify(sound))
+    expect(loadHistory(storage)).toEqual({ past: sound.past, future: [] })
+  })
+
   it('stamps the schema version and discards a history stamped otherwise', () => {
     const storage = createMemoryStorage()
     saveHistory(storage, { past: [], future: [] })

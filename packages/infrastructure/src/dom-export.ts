@@ -13,9 +13,11 @@
  *   `saveStandalone`) harvests those pieces from the live document.
  *
  * `saveStandalone` is what the app injects into the components' SlideshowHost
- * (`exportStandalone` prop), reveal options included: the option set lives in
- * `@project-review/components/slideshow/reveal-options`, and this package
- * never imports components — the app hands the options over at the seam.
+ * (`exportStandalone` prop), reveal options AND engine-source loader included:
+ * the option set lives in `@project-review/components/slideshow/reveal-options`
+ * and the raw UMD source behind a Vite `?raw` import the app owns — this
+ * package never imports components nor names a node_modules path; the app
+ * hands both over at the seam.
  */
 
 import type { Portfolio } from '@project-review/core/model/portfolio'
@@ -51,6 +53,20 @@ export interface StandaloneParts {
   readonly revealOptions: Record<string, unknown>
   /** Google Fonts stylesheet URL, or null for the bundled families. */
   readonly fontHref?: string | null
+  /** CSP nonce for the two emitted `<script>` elements — one fresh value per
+   * export ({@link generateNonce}); tests pass a fixed one. */
+  readonly nonce: string
+}
+
+/**
+ * Fresh CSP nonce — 128 random bits, base64. Generated once per export and
+ * stamped on the `<meta>` policy AND the emitted `<script>` elements, so the
+ * only scripts the standalone file will ever run are the two it was born with.
+ */
+export function generateNonce(): string {
+  const bytes = new Uint8Array(16)
+  crypto.getRandomValues(bytes)
+  return btoa(String.fromCharCode(...bytes))
 }
 
 function escapeHtml(text: string): string {
@@ -93,26 +109,40 @@ export function buildStandaloneHtml(parts: StandaloneParts): string {
     parts.slideStyle === undefined ? '' : ` data-slide-style="${escapeHtml(parts.slideStyle)}"`
   const paletteAttr =
     parts.palette === undefined ? '' : ` data-palette="${escapeHtml(parts.palette)}"`
+  const nonce = escapeHtml(parts.nonce)
+  // The file's whole diet: its own nonced scripts, inline styles plus the one
+  // Google Fonts stylesheet, data: images and fonts (plus gstatic, where the
+  // Google stylesheet points) — and no connection at all.
+  const csp =
+    `default-src 'none'; script-src 'nonce-${nonce}'; ` +
+    `style-src 'unsafe-inline' https://fonts.googleapis.com; img-src data:; ` +
+    `font-src data: https://fonts.gstatic.com; connect-src 'none'`
+  // `escapeHtml` on the font stack: `<style>` is a raw-text context where
+  // `</style` would end the element — the parse refuses such names upstream
+  // (invalidFont), this escape is the belt to that brace. HTML entities are
+  // not decoded in raw text, so a hostile name degrades to garbage CSS while
+  // a clean name (letters, digits, spaces, - _ and quotes) passes byte-for-byte.
   return `<!doctype html>
 <html lang="${escapeHtml(parts.lang)}"${styleAttr}${paletteAttr}>
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="${csp}">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${escapeHtml(parts.title)}</title>
 ${fontLink}<style>
 ${parts.styles}
 /* Chosen font — emitted LAST so it wins over the collected theme defaults. */
-:root{--font:${fontStack(parts.fontFamily ?? '')}}
+:root{--font:${escapeHtml(fontStack(parts.fontFamily ?? ''))}}
 </style>
 </head>
 <body>
 <div class="rp-stage"><div class="reveal"><div class="slides">
 ${parts.slidesHtml}
 </div></div></div>
-<script>
+<script nonce="${nonce}">
 ${escapeScriptClose(parts.revealSource)}
 </script>
-<script>
+<script nonce="${nonce}">
 new window.Reveal(document.querySelector('.reveal'), ${JSON.stringify(parts.revealOptions)}).initialize().then(function () {
   // Same fix as the live host: the inlined Tailwind preflight hides [hidden]
   // with !important, while reveal drives non-present sections through inline
@@ -180,12 +210,19 @@ export async function embedStyleAssets(
 
 /* ------------------------------- DOM half ------------------------------- */
 /* v8 ignore start -- live-document harvesters (fetch, FileReader, styleSheets,
-   cloneNode): exercised by SlideshowHost in the browser, out of the node
-   coverage perimeter by design (see the module header). */
+   cloneNode): exercised by the file:// Playwright smoke test, which saves the
+   standalone deck and re-opens it (`bun run smoke`) — out of the node coverage
+   perimeter by design (see the module header). */
 
 /** `fetch` + `FileReader` — the one mechanic for images and style assets. */
 const fetchAsDataUri: UriFetcher = async (url) => {
   try {
+    // The Fetch API refuses the file: scheme outright AND logs a console
+    // error no try/catch can silence. Running from file:// (the deliverable),
+    // every asset that is not already a data: URI resolves to file: — e.g.
+    // the optional Marianne faces when the woff2 files are not deployed —
+    // so answer "unreachable" without asking (same outcome, quiet console).
+    if (new URL(url, document.baseURI).protocol === 'file:') return null
     const blob = await (await fetch(url)).blob()
     return await new Promise<string>((resolve, reject) => {
       const reader = new FileReader()
@@ -261,22 +298,21 @@ export async function inlineImages(root: HTMLElement): Promise<void> {
 
 /**
  * The whole « Enregistrer » flow. The app injects it into the components'
- * SlideshowHost with the reveal options bound:
- * `(el, p) => saveStandalone(el, p, STANDALONE_REVEAL_OPTIONS)`.
- * The engine SOURCE (`?raw`, UMD build) and the base stylesheet are dynamic
- * chunks like the engine itself — nothing of the export weighs on the
- * editor's bundle.
+ * SlideshowHost with the reveal options AND the engine-source loader bound:
+ * `(el, p) => saveStandalone(el, p, STANDALONE_REVEAL_OPTIONS, loadEngine)` —
+ * the raw UMD build lives behind Vite's `?raw` escape hatch, which only the
+ * app's wiring names (this package never spells out a node_modules path).
+ * The engine source and the base stylesheet are dynamic chunks like the
+ * engine itself — nothing of the export weighs on the editor's bundle.
  */
 export async function saveStandalone(
   slidesEl: HTMLElement,
   portfolio: Portfolio,
   revealOptions: Record<string, unknown>,
+  loadEngineSource: () => Promise<string>,
 ): Promise<void> {
-  // Relative path on purpose: the package's `exports` map does not expose
-  // `./dist/reveal.js` (the UMD build), only the entry points — a direct
-  // file import is the supported Vite escape hatch for `?raw`.
   const [engineSource, base] = await Promise.all([
-    import('../../../node_modules/reveal.js/dist/reveal.js?raw'),
+    loadEngineSource(),
     import('reveal.js/reveal.css?inline'),
   ])
   const clone = serializeSlides(slidesEl)
@@ -294,9 +330,10 @@ export async function saveStandalone(
     styles: `${base.default}\n${styles}`,
     fontFamily: portfolio.settings.theme.font,
     slidesHtml: clone.innerHTML,
-    revealSource: engineSource.default,
+    revealSource: engineSource,
     revealOptions,
     fontHref: googleFontsUrl(portfolio.settings.theme.font),
+    nonce: generateNonce(),
   })
 
   const url = URL.createObjectURL(new Blob([html], { type: 'text/html' }))

@@ -18,7 +18,7 @@
   import StatChip, { type StatTone } from '../commons/StatChip.svelte'
   import CategoryBarView from '../commons/CategoryBar.svelte'
   import SlideChrome from './SlideChrome.svelte'
-  import { railText } from './labels'
+  import { categoryName, railText } from './labels'
 
   interface Props {
     readonly portfolio: Portfolio
@@ -46,7 +46,8 @@
       const category = categoryOf(portfolio, bar.categoryId)
       return {
         bar,
-        name: category.name,
+        // categoryName, not .name: the unsorted sentinel carries a catalog KEY.
+        name: categoryName(category, language),
         color: catColor(category.color),
         count: projectsOfCategory(portfolio, bar.categoryId).filter(isTracked).length,
       }

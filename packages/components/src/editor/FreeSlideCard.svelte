@@ -15,7 +15,7 @@
   import type { Anchor, FreeSlide } from '@project-review/core/model/free-slide'
   import type { Portfolio } from '@project-review/core/model/portfolio'
   import { categoryId } from '@project-review/core/values/ids'
-  import type { Command } from '@project-review/core/commands'
+  import type { Dispatch } from '../contracts'
   import { te } from '../i18n'
   import FieldText from './FieldText.svelte'
   import Icon from '../commons/Icon.svelte'
@@ -23,7 +23,7 @@
 
   interface Props {
     readonly portfolio: Portfolio
-    readonly dispatch: (command: Command) => unknown
+    readonly dispatch: Dispatch
     readonly slide: FreeSlide
   }
 

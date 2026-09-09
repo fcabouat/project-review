@@ -20,6 +20,17 @@
     projects: [...sample.projects.filter((p) => p.categoryId !== 'infra'), ...filler],
   }
 
+  /* Orphan divider: two projects whose categoryId resolves to NO category —
+     the deck derives the implicit "À classer" group for them, and the divider
+     must show the LOCALIZED sentinel name (categoryName), never the raw
+     catalog key the sentinel carries in `name`. */
+  const orphaned: Portfolio = {
+    ...sample,
+    projects: sample.projects.map((p, i) =>
+      i < 2 ? { ...p, categoryId: 'unsorted' as Project['categoryId'] } : p,
+    ),
+  }
+
   const { Story } = defineMeta({
     title: 'Slides/Divider',
     component: SlideDivider,
@@ -41,3 +52,10 @@
 
 <!-- 8 projects: the list goes to two columns rather than running past the floor. -->
 <Story name="Compact" args={{ portfolio: crowded, categoryId: 'infra', number: 2 }} />
+
+<!-- Orphan projects: the implicit "À classer" divider — the heading is the
+     LOCALIZED sentinel label, never the raw `category.unsorted` key. -->
+<Story
+  name="À classer (orphelins)"
+  args={{ portfolio: orphaned, categoryId: 'unsorted', number: 5 }}
+/>

@@ -15,6 +15,9 @@ export interface ScreenStore {
   readonly present: Portfolio
   readonly past: readonly DomainEvent[]
   readonly future: readonly DomainEvent[]
+  /** Same predicates the app's store exposes — the Shell takes them as props. */
+  readonly canUndo: boolean
+  readonly canRedo: boolean
   readonly dispatch: (command: Command) => DomainEvent | undefined
   readonly undo: () => void
   readonly redo: () => void
@@ -32,6 +35,12 @@ export const createScreenStore = (initial: Portfolio): ScreenStore => {
     },
     get future() {
       return state.log.future
+    },
+    get canUndo() {
+      return state.log.past.length > 0
+    },
+    get canRedo() {
+      return state.log.future.length > 0
     },
     dispatch: (command) => {
       const result = execute(state, command)

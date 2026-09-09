@@ -14,10 +14,10 @@
   import type { Category } from '@project-review/core/model/category'
   import type { Language, PaletteFamily, ThemeStyle } from '@project-review/core/model/theme'
   import { COLORS } from '@project-review/core/model/category'
-  import { LANGUAGES, THEME_STYLES } from '@project-review/core/model/theme'
+  import { LANGUAGES, PALETTES, THEME_STYLES } from '@project-review/core/model/theme'
   import type { Color } from '@project-review/core/model/category'
   import { catColor } from '../commons/cat-color'
-  import { isTracked, projectsOfCategory } from '@project-review/core/projections'
+  import { deck, projectsOfCategory } from '@project-review/core/projections'
   import { LOGO_MAX_CHARS, parsePortfolio } from '@project-review/core/services/parse'
   import { emptyPortfolio } from '@project-review/core/data/empty-portfolio'
   import sampleFr from '@project-review/core/samples/sample-portfolio.fr.json'
@@ -162,9 +162,6 @@
   /** The four dots of a palette preview — a sample, not the whole family. */
   const PREVIEW: readonly Color[] = ['blue', 'teal', 'green', 'red']
 
-  /** Display order: the default family comes first. */
-  const PALETTE_ORDER: readonly PaletteFamily[] = ['material', 'tailwind', 'dsfr']
-
   function usage(category: Category): number {
     return projectsOfCategory(portfolio, category.id).length
   }
@@ -177,14 +174,23 @@
       : te('editor.settings.categoryUsage', language, { n })
   }
 
-  /** A category with no tracked project emits no divider at all. */
+  /** The dividers the deck ACTUALLY emits, number by category id — read off
+   * `deck()` itself rather than re-derived here, so the divider preview can
+   * never disagree with the slideshow (one derivation, law 3). */
+  const dividerNumbers = $derived(
+    new Map(
+      deck(portfolio).flatMap((s) =>
+        s.type === 'divider' ? [[s.categoryId, s.number] as const] : [],
+      ),
+    ),
+  )
+
   function hasDivider(category: Category): boolean {
-    return projectsOfCategory(portfolio, category.id).some(isTracked)
+    return dividerNumbers.has(category.id)
   }
 
-  /** Divider numbering counts only the categories that actually emit one. */
   function dividerNumber(category: Category): number {
-    return portfolio.categories.filter(hasDivider).indexOf(category) + 1
+    return dividerNumbers.get(category.id) ?? 0
   }
 
   function addCategory(): void {
@@ -301,7 +307,7 @@
       <div class="field-group">
         <span class="label">{te('editor.setting.palette', language)}</span>
         <div class="palette-radios">
-          {#each PALETTE_ORDER as family (family)}
+          {#each PALETTES as family (family)}
             <label class="palette-option" class:checked={palette === family}>
               <input
                 type="radio"

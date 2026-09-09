@@ -37,7 +37,7 @@ export interface DecisionOutcome {
  * One question brought to a review. "Pending" is not a stored flag: it is
  * `taken === undefined`, so settling a decision never desynchronizes a status
  * field. Decisions carry no id — they are addressed positionally
- * (`DecisionRef`, model/slide.ts) and replaced wholesale by the edit events.
+ * (`DecisionRef`, projections/slide.ts) and replaced wholesale by the edit events.
  */
 export interface Decision {
   readonly question: string

@@ -339,5 +339,13 @@ export const EVENT_SAMPLES: EventSamples = {
       before: { projects: [], categories: [] },
       after: { projects: [{ value: NEW_PROJECT, index: 2 }], categories: [] },
     },
+    // Out-of-range arrival index: `replaceSlice` clamps the insertion (apply
+    // stays total) and the inverse still removes by ID — the round-trip law
+    // must hold on the clamped event too.
+    {
+      type: 'ProjectsMerged',
+      before: { projects: [], categories: [] },
+      after: { projects: [{ value: NEW_PROJECT, index: 99 }], categories: [] },
+    },
   ],
 }

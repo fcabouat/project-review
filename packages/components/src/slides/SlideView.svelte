@@ -6,7 +6,7 @@
    * No layout of its own: the templates are the frames.
    */
   import type { Portfolio } from '@project-review/core/model/portfolio'
-  import type { Slide } from '@project-review/core/model/slide'
+  import type { Slide } from '@project-review/core/projections/slide'
   import SlideTitle from './SlideTitle.svelte'
   import SlideFreeform from './SlideFreeform.svelte'
   import SlidePortfolioDashboard from './SlidePortfolioDashboard.svelte'

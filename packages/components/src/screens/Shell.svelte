@@ -38,6 +38,10 @@
     readonly past: readonly DomainEvent[]
     /** Undone events, in redo order. */
     readonly future: readonly DomainEvent[]
+    /** The store's own predicates — the shell displays them, never re-derives
+     * them from the stacks (one source of truth for "can undo"). */
+    readonly canUndo: boolean
+    readonly canRedo: boolean
     readonly dispatch: Dispatch
     readonly undo: () => void
     readonly redo: () => void
@@ -61,6 +65,8 @@
     portfolio,
     past,
     future,
+    canUndo,
+    canRedo,
     dispatch,
     undo,
     redo,
@@ -94,9 +100,6 @@
     identityLine(' · ', portfolio.settings.identity.org, portfolio.settings.identity.unit),
   )
   const initial = $derived(portfolio.review.title.trim().slice(0, 1).toUpperCase() || 'R')
-
-  const canUndo = $derived(past.length > 0)
-  const canRedo = $derived(future.length > 0)
 
   /** Real href for accessibility, `navigate` for the actual move. */
   function follow(event: MouseEvent, next: Route): void {

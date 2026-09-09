@@ -84,7 +84,8 @@
       </tr>
     </thead>
     <tbody>
-      {#each rows as row (row.ref.projectId + row.ref.index)}
+      <!-- `:` separator: "P-1"+11 and "P-11"+1 must not share a key. -->
+      {#each rows as row (`${row.ref.projectId}:${row.ref.index}`)}
         <tr style:--cat={row.color}>
           <td>
             <span class="project-cell">

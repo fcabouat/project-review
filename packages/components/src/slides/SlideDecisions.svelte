@@ -5,7 +5,7 @@
    * Paginated by 7; the "page i / n" mention only shows when there is more than
    * one page.
    */
-  import type { DecisionRef } from '@project-review/core/model/slide'
+  import type { DecisionRef } from '@project-review/core/projections/slide'
   import type { Portfolio } from '@project-review/core/model/portfolio'
   import { categoryOf, decisionByRef, projectById } from '@project-review/core/projections'
   import { catColor } from '../commons/cat-color'
@@ -82,7 +82,8 @@
       </tr>
     </thead>
     <tbody>
-      {#each rows as row (row.ref.projectId + row.ref.index)}
+      <!-- `:` separator: "P-1"+11 and "P-11"+1 must not share a key. -->
+      {#each rows as row (`${row.ref.projectId}:${row.ref.index}`)}
         <tr style:--cat={row.color}>
           <td>
             <span class="project-cell">

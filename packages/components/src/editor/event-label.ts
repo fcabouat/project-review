@@ -239,6 +239,11 @@ export function eventLabel(event: DomainEvent, language: Language, nameOf?: Name
     }
   }
 
-  // Unreachable while the union is covered; kept total on purpose.
+  // Exhaustiveness sentinel — the compile-time pin that makes eventLabel the
+  // fourth function a new variant must teach (events/index.ts). The fallback
+  // under it stays on purpose: totality is ALSO a runtime promise (a rogue
+  // event from storage must never break the history screen), and the rogue
+  // test walks this very line.
+  const _unreachable: never = event
   return hasLabel(byType) ? te(byType, language) : byType
 }

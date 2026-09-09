@@ -1,9 +1,10 @@
 /**
  * Deck vocabulary — the slide types the deck derivation emits,
  * each constructor = one template. Everything here is DERIVED (recomputed by
- * `deck()`, projections/deck.ts — never stored), so slides hold ids and page
- * splits, not copies of the content: the template reads the live portfolio
- * through them.
+ * `deck()`, ./deck.ts — never stored), so slides hold ids and page splits,
+ * not copies of the content: the template reads the live portfolio through
+ * them. It lives in projections/, not model/: a `Slide` never appears in a
+ * portfolio, an event or a command — it only ever comes OUT of a projection.
  *
  * PURE module: types only.
  */

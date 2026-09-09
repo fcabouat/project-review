@@ -14,5 +14,9 @@ jobs:
       - run: bun run check
       - run: bun run test
       - run: bun run build
+      # file:// smoke on the deliverable the build just produced (precondition
+      # of `bun run smoke`: an up-to-date app/dist/).
+      - run: npx playwright install --with-deps chromium
+      - run: bun run smoke
       - run: bun audit
         continue-on-error: true # advisories inform, they do not gate

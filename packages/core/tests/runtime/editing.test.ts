@@ -9,20 +9,13 @@
 
 import { describe, expect, it } from 'vitest'
 import type { Portfolio } from '../../src/model/portfolio'
-import type { Project } from '../../src/model/project'
 import { apply, type DomainEvent } from '../../src/events'
 import { HISTORY_LIMIT } from '../../src/events/history'
 import type { Command } from '../../src/commands'
 import { progressOf } from '../../src/values/progress'
 import { projectId } from '../../src/values/ids'
 import { execute, hydrate, redo, undo, type RuntimeState } from '../../src/runtime/editing'
-import { otherPortfolio, testPortfolio } from '../fixtures/hand-built-portfolios'
-
-const projectOf = (p: Portfolio, id: string): Project => {
-  const x = p.projects.find((y) => y.id === id)
-  if (x === undefined) throw new Error(`project ${id} missing`)
-  return x
-}
+import { otherPortfolio, projectOf, testPortfolio } from '../fixtures/hand-built-portfolios'
 
 /** Five families of commands in rotation, each a real change against any state. */
 const commandN = (n: number): Command => {

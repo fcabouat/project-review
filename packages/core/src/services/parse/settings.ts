@@ -13,6 +13,14 @@ import { at, bool, checkKeys, enumVal, fail, optStr, record, str } from './json'
 /** Inline-logo guard (~300 KB of binary once base64-encoded): keeps the JSON portable. */
 export const LOGO_MAX_CHARS = 400_000
 
+/**
+ * Font families are letters, digits, spaces, `_` and `-` (64 chars max) — the
+ * charset Google Fonts names actually use. The bound is a SECURITY line, not
+ * taste: the name is re-emitted inside the exported deck's `<style>` (raw-text
+ * context), so `<`, `>`, quotes and the like are refused at the door.
+ */
+export const FONT_NAME = /^[A-Za-z0-9 _-]{1,64}$/
+
 /** Parses the `settings` block, collecting every violation. */
 export function parseSettings(x: unknown, errors: Errors): Settings {
   const root = record(x, 'settings', errors)
@@ -48,6 +56,12 @@ export function parseSettings(x: unknown, errors: Errors): Settings {
   const themeBlock = record(o['theme'], themePath, errors)
   if (themeBlock) checkKeys(themeBlock, themePath, [], ['style', 'palette', 'font'], errors)
   const th = themeBlock ?? {}
+  const fontPath = at(themePath, 'font')
+  let font = optStr(th['font'], fontPath, errors)
+  if (font !== undefined && !FONT_NAME.test(font)) {
+    fail(errors, fontPath, 'invalidFont', { value: font.slice(0, 64) })
+    font = undefined
+  }
 
   /* ---- show (required, all four toggles) ---- */
   const showPath = at('settings', 'show')
@@ -87,7 +101,7 @@ export function parseSettings(x: unknown, errors: Errors): Settings {
     theme: {
       style: enumVal(th['style'], THEME_STYLES, at(themePath, 'style'), errors) ?? 'flat',
       palette: enumVal(th['palette'], PALETTES, at(themePath, 'palette'), errors) ?? 'material',
-      font: optStr(th['font'], at(themePath, 'font'), errors) ?? 'Roboto',
+      font: font ?? 'Roboto',
     },
     show: {
       healthDashboard:

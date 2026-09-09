@@ -89,9 +89,12 @@ single undoable event.
 ## What is guaranteed visually
 
 The Svelte components carry no unit tests by design: the component catalog
-(`bun run storybook`, 58 stories) is the visual contract for every slide,
+(`bun run storybook`, 59 stories) is the visual contract for every slide,
 widget and screen, and a Playwright smoke run on the built `file://`
-deliverable covers the wired app (load, navigation, zero console errors).
+deliverable (`bun run smoke`, after a build; CI runs it on every push) covers
+the wired app: load in both languages, hash navigation, the FR | EN switch,
+the derived slideshow, the standalone export re-opened — zero console errors
+tolerated anywhere.
 
 ## Going further
 

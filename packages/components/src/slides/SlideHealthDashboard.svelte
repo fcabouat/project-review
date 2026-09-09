@@ -51,8 +51,11 @@
       .filter(isTracked)
       .flatMap((project) =>
         project.milestones
-          .filter((m) => milestoneState(m, portfolio.review.reviewDate) === 'overdue')
-          .map((m) => ({ project, milestone: m })),
+          // Index BEFORE filtering: `${id}:${index}` keys each row to its slot
+          // in the project's milestone list — unique by construction, where a
+          // label-based key could collide (two same-named milestones).
+          .map((milestone, index) => ({ project, milestone, index }))
+          .filter((x) => milestoneState(x.milestone, portfolio.review.reviewDate) === 'overdue'),
       ),
   )
 
@@ -63,6 +66,7 @@
       if (!project || !decision) return []
       return [
         {
+          ref,
           project,
           decision,
           color: catColor(categoryOf(portfolio, project.categoryId).color),
@@ -104,7 +108,7 @@
     {#if overdue.length > 0}
       <div class="callout">
         <div class="label">{t('d2.overdueMilestones', language, { n: overdue.length })}</div>
-        {#each overdue as item (item.project.id + item.milestone.label)}
+        {#each overdue as item (`${item.project.id}:${item.index}`)}
           <p>
             <b>{item.project.id}</b>
             {item.milestone.label}
@@ -128,7 +132,9 @@
         <col />
       </colgroup>
       <tbody>
-        {#each shown as row (row.project.id + row.decision.question)}
+        <!-- The ref (projectId + index in `decisions`) is the identity of a
+             pending decision; the `:` separator keeps "P-1"+11 ≠ "P-11"+1. -->
+        {#each shown as row (`${row.ref.projectId}:${row.ref.index}`)}
           <tr class="level--{row.project.health ?? 'notAssessed'}" style:--cat={row.color}>
             <td><span class="id-chip">{row.project.id}</span></td>
             <td class="name">{row.project.name}</td>

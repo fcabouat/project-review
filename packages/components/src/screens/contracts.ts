@@ -6,11 +6,11 @@
  * props. `Route` is structurally the same union the infrastructure's hash
  * router parses — declared here too because neither package may import the
  * other; TypeScript's structural typing makes the two interchangeable at the
- * app's seam.
+ * app's seam. `Dispatch` is package-wide (`../contracts`), re-exported here
+ * so the screens keep a single import site.
  */
 
-import type { Command } from '@project-review/core/commands'
-import type { DomainEvent } from '@project-review/core/events'
+export type { Dispatch } from '../contracts'
 
 /** One screen address. `sheet` carries the project id read from the hash. */
 export type Route =
@@ -19,13 +19,6 @@ export type Route =
   | { readonly name: 'settings' }
   | { readonly name: 'history' }
   | { readonly name: 'sheet'; readonly id: string }
-
-/**
- * The one edit channel of every screen: a command in, the recorded event out —
- * or `undefined` for a refused/trivial command (see `decide`'s contract),
- * which is exactly what a view needs to react to (e.g. a refused renumbering).
- */
-export type Dispatch = (command: Command) => DomainEvent | undefined
 
 /** UI contract of the local-save switch, however the host wires it. */
 export interface PersistenceControl {

@@ -6,12 +6,15 @@
 
 import { describe, expect, it } from 'vitest'
 import { parsePortfolio } from '../../src/services/parse'
+import { decide } from '../../src/commands/index'
 import {
   partialPortfolio,
   portfolioFileName,
   serializePortfolio,
 } from '../../src/services/portfolio-json'
 import { testPortfolio } from '../fixtures/hand-built-portfolios'
+import { SAMPLE_SETS } from '../fixtures/sample-sets'
+import { intBelow, mulberry32 } from '../fixtures/seeded-random'
 
 describe('serializePortfolio', () => {
   it('round-trips through the strict parse without losing anything', () => {
@@ -58,5 +61,34 @@ describe('partialPortfolio', () => {
     const parsed = parsePortfolio(JSON.parse(serializePortfolio(part)))
     expect(parsed.ok).toBe(true)
     if (parsed.ok) expect(parsed.portfolio).toEqual(part)
+  })
+
+  it('PROPERTY — a partial export merged straight back is refused as identity', () => {
+    // The full multi-user loop with an UNTOUCHED contribution: whatever subset
+    // the colleague was sent (seeded draws, replayable from the seed), sending
+    // the file back through partialPortfolio → serialize → parse → decide
+    // (MergeProjects) must complete to `undefined` — an import that changes
+    // nothing must never become an undo step that undoes nothing.
+    for (const [name, portfolio] of SAMPLE_SETS) {
+      const rng = mulberry32(0xc0ffee)
+      for (let round = 0; round < 25; round += 1) {
+        const ids = portfolio.projects.map((x) => String(x.id))
+        const selected = new Set(ids.filter(() => rng() < 0.5))
+        // An empty selection exports no project — a merge with zero incoming
+        // projects is refused upfront; keep the draw meaningful instead.
+        if (selected.size === 0) selected.add(ids[intBelow(rng, ids.length)]!)
+
+        const file = serializePortfolio(partialPortfolio(portfolio, selected))
+        const parsed = parsePortfolio(JSON.parse(file))
+        expect(parsed.ok).toBe(true)
+        if (!parsed.ok) continue
+        const event = decide(portfolio, {
+          type: 'MergeProjects',
+          projects: parsed.portfolio.projects,
+          categories: parsed.portfolio.categories,
+        })
+        expect(event, `${name} set, round ${round}, ${selected.size} project(s)`).toBeUndefined()
+      }
+    }
   })
 })

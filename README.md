@@ -42,7 +42,7 @@ ever edited by hand.
   translated.
 - **Print-perfect A4** — the deck prints one page per slide through the
   browser's dialog; PDF is a print, not an export pipeline.
-- **Visual contract** — 58 Storybook stories covering every slide, widget and
+- **Visual contract** — 59 Storybook stories covering every slide, widget and
   screen, including a fully playable in-memory editor.
 
 ## Architecture
@@ -87,19 +87,20 @@ bun run build    # all deliverables into app/dist/
 | `app/dist/index.html` + `assets/` + `fonts/` | Static-hosting build (module scripts, lazy chunks)  |
 | `app/dist/project-review.html`               | The deliverable: one multilingual single-file build |
 
-| Script              | Does                              |
-| ------------------- | --------------------------------- |
-| `bun run dev`       | Vite dev server                   |
-| `bun run test`      | Vitest suite (four projects)      |
-| `bun run check`     | svelte-check + tsc, per package   |
-| `bun run lint`      | ESLint (incl. boundary rules)     |
-| `bun run format`    | Prettier, write mode              |
-| `bun run knip`      | Unused files/exports/dependencies |
-| `bun run audit`     | Dependency vulnerability audit    |
-| `bun run docs:api`  | TypeDoc API reference             |
-| `bun run docs:site` | Assemble the GitHub Pages site    |
-| `bun run build`     | Static build + single file        |
-| `bun run storybook` | Component catalog on port 6006    |
+| Script              | Does                                       |
+| ------------------- | ------------------------------------------ |
+| `bun run dev`       | Vite dev server                            |
+| `bun run test`      | Vitest suite (four projects)               |
+| `bun run smoke`     | Playwright `file://` smoke (after a build) |
+| `bun run check`     | svelte-check + tsc, per package            |
+| `bun run lint`      | ESLint (incl. boundary rules)              |
+| `bun run format`    | Prettier, write mode                       |
+| `bun run knip`      | Unused files/exports/dependencies          |
+| `bun run audit`     | Dependency vulnerability audit             |
+| `bun run docs:api`  | TypeDoc API reference                      |
+| `bun run docs:site` | Assemble the GitHub Pages site             |
+| `bun run build`     | Static build + single file                 |
+| `bun run storybook` | Component catalog on port 6006             |
 
 ## Contributing
 

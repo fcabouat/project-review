@@ -20,8 +20,9 @@ export type ThemeStyle = 'flat' | 'classic'
 /** Every {@link Language}, default first. */
 export const LANGUAGES: readonly Language[] = ['fr', 'en']
 
-/** Every {@link PaletteFamily}, in settings order. */
-export const PALETTES: readonly PaletteFamily[] = ['dsfr', 'tailwind', 'material']
+/** Every {@link PaletteFamily}, in display order: the default family first —
+ * the Settings screen renders its radios straight from this list. */
+export const PALETTES: readonly PaletteFamily[] = ['material', 'tailwind', 'dsfr']
 
 /** Every {@link ThemeStyle}, default first. */
 export const THEME_STYLES: readonly ThemeStyle[] = ['flat', 'classic']

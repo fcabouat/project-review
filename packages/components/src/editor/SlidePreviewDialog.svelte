@@ -17,7 +17,7 @@
    * 16:9 frame, on the dark ground of the mockup.
    */
   import type { Portfolio } from '@project-review/core/model/portfolio'
-  import type { Slide } from '@project-review/core/model/slide'
+  import type { Slide } from '@project-review/core/projections/slide'
   import { deck } from '@project-review/core/projections'
   import SlideView from '../slides/SlideView.svelte'
   import { autofocus } from './autofocus'

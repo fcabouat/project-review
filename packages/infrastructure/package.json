@@ -1,8 +1,8 @@
 {
   "name": "@project-review/infrastructure",
   "private": true,
-  "version": "0.6.0",
-  "description": "Browser adapters behind the core's ports: localStorage + setTimeout scheduler, hash router, runtime font loader, standalone slideshow export. Depends only on @project-review/core.",
+  "version": "0.5.0",
+  "description": "Browser adapters behind the core's declared interfaces: localStorage + setTimeout scheduler, hash router, runtime font loader, standalone slideshow export. Depends only on @project-review/core.",
   "license": "MIT",
   "type": "module",
   "files": [

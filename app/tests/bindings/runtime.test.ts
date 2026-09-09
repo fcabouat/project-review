@@ -60,12 +60,14 @@ describe('createStore — binding', () => {
     expect(s.canRedo).toBe(false)
   })
 
-  it('replace is dispatch sugar: one undoable PortfolioReplaced', () => {
+  it('a global replacement is just a dispatch: one undoable PortfolioReplaced', () => {
+    // No sugar member for this: the import dialog dispatches ReplacePortfolio
+    // itself — the binding exposes exactly one write channel.
     const s = createStore(testPortfolio())
-    s.replace(otherPortfolio())
+    const event = s.dispatch({ type: 'ReplacePortfolio', portfolio: otherPortfolio() })
+    expect(event?.type).toBe('PortfolioReplaced')
     expect(s.present).toStrictEqual(otherPortfolio())
     expect(s.past).toHaveLength(1)
-    expect(s.past[0]?.type).toBe('PortfolioReplaced')
     s.undo()
     expect(s.present).toStrictEqual(testPortfolio())
   })
@@ -85,17 +87,7 @@ describe('createStore — binding', () => {
     // core still guarantees.
     const s = createStore(testPortfolio())
     expect(Object.keys(s).sort()).toEqual(
-      [
-        'canRedo',
-        'canUndo',
-        'dispatch',
-        'future',
-        'past',
-        'present',
-        'redo',
-        'replace',
-        'undo',
-      ].sort(),
+      ['canRedo', 'canUndo', 'dispatch', 'future', 'past', 'present', 'redo', 'undo'].sort(),
     )
   })
 })

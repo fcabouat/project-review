@@ -30,16 +30,18 @@
     portfolioFileName,
     serializePortfolio,
   } from '@project-review/core/services/portfolio-json'
+  import { orphanProjects } from '@project-review/core/projections'
   import type { Portfolio } from '@project-review/core/model/portfolio'
   import { UNSORTED_CATEGORY } from '@project-review/core/model/category'
-  import { decide, type Command, type MergeProjects } from '@project-review/core/commands'
+  import { decide, type MergeProjects } from '@project-review/core/commands'
   import { mergeReport, type MergeReport } from '@project-review/core/events'
+  import type { Dispatch } from '../contracts'
   import { autofocus } from './autofocus'
   import { te } from '../i18n'
 
   interface Props {
     readonly portfolio: Portfolio
-    readonly dispatch: (command: Command) => unknown
+    readonly dispatch: Dispatch
     readonly tab: 'export' | 'import'
     readonly close: () => void
     /** Opening content of the import box, and the mode pre-selected under it
@@ -69,8 +71,9 @@
   type ImportOutcome = ParseResult | { readonly ok: false; readonly badJson: true }
   /** `undefined` until something has been submitted — no report on an empty box. */
   let result = $state<ImportOutcome | undefined>(undefined)
-  /** Figures of an APPLIED merge — the after-report the panel shows. Captured
-   * before dispatch: once merged, `decide` on the new present says "no effect". */
+  /** Figures of an APPLIED merge — the after-report the panel shows, read off
+   * the event `dispatch` returns: what the panel announces is exactly what
+   * entered the log. */
   let mergedDone = $state<MergeReport | undefined>(undefined)
 
   const language = $derived(portfolio.settings.language)
@@ -91,15 +94,15 @@
   }
 
   /** Every project, category by category, orphans last — export is data, so
-   * archived projects are listed too (unlike the Projects screen). */
+   * archived projects are listed too (unlike the Projects screen). Orphan
+   * membership comes from the projection, never re-derived here. */
   const groups = $derived.by((): readonly ExportGroup[] => {
-    const known = new Set(portfolio.categories.map((c) => String(c.id)))
     const byCategory = portfolio.categories.map((category) => ({
       id: String(category.id),
       name: category.name,
       projects: portfolio.projects.filter((x) => x.categoryId === category.id),
     }))
-    const orphans = portfolio.projects.filter((x) => !known.has(x.categoryId))
+    const orphans = orphanProjects(portfolio)
     return [
       ...byCategory,
       ...(orphans.length > 0
@@ -199,11 +202,12 @@
   function confirmImport(): void {
     if (!result?.ok) return
     if (mode === 'merge') {
-      const report = mergePreview
-      if (mergeCommand === undefined || report === undefined) return
+      if (mergeCommand === undefined) return
       // Undoable like everything else: one ProjectsMerged on the past stack.
-      dispatch(mergeCommand)
-      mergedDone = report
+      // The report derives from the RECORDED event, not from the preview —
+      // `dispatch` returns it (or `undefined` for a merge void of effect).
+      const event = dispatch(mergeCommand)
+      if (event?.type === 'ProjectsMerged') mergedDone = mergeReport(event)
       return
     }
     const next = keepSettings
@@ -410,8 +414,22 @@
           </fieldset>
 
           {#if mode === 'merge'}
-            <!-- The figures come from the DECIDED event, before any dispatch:
-                 what the preview announces is exactly what the merge records. -->
+            <!-- The names AND the figures come from the DECIDED event, before
+                 any dispatch: what the preview announces is exactly what the
+                 merge would record. `before.projects` is the present side —
+                 the very versions the incoming homonyms would overwrite. -->
+            {@const replaced =
+              mergeEvent?.type === 'ProjectsMerged' ? mergeEvent.before.projects : []}
+            {#if replaced.length > 0}
+              <div class="merge-replaced">
+                {te('editor.io.mergeReplacedList', language)}
+                <ul>
+                  {#each replaced as entry (entry.value.id)}
+                    <li><b>{entry.value.id}</b> · {entry.value.name}</li>
+                  {/each}
+                </ul>
+              </div>
+            {/if}
             <p class="merge-preview">
               {#if mergePreview}
                 {te('editor.io.mergePreview', language, {

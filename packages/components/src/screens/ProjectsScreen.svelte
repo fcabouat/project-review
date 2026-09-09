@@ -19,9 +19,12 @@
   import type { Category, UnsortedCategory } from '@project-review/core/model/category'
   import type { Project } from '@project-review/core/model/project'
   import { UNSORTED_CATEGORY } from '@project-review/core/model/category'
+  import { SHEET_MODES } from '@project-review/core/model/project'
   import {
+    displayedStatus,
     isArchived,
     isTracked,
+    orphanProjects,
     pendingDecisionsOf,
     projectGauge,
     projectsOfCategory,
@@ -59,10 +62,11 @@
     readonly projects: readonly Project[]
   }
 
-  /** Tracked projects, category by category; a category with none is skipped. */
+  /** Tracked projects, category by category; a category with none is skipped.
+   * Membership comes from the projections (orphanProjects/knownCategoryIds) —
+   * the screen only filters by search and tracking. */
   const groups = $derived.by((): readonly Group[] => {
     const result: Group[] = []
-    const knownIds = new Set(portfolio.categories.map((c) => c.id))
     for (const category of portfolio.categories) {
       const projects = projectsOfCategory(portfolio, category.id)
         .filter(isTracked)
@@ -70,9 +74,7 @@
       if (projects.length > 0) result.push({ category, projects })
     }
     // Orphan `categoryId` values fall back to "À classer" — never dropped.
-    const orphans = portfolio.projects.filter(
-      (p) => isTracked(p) && !knownIds.has(p.categoryId) && matchingIds.has(p.id),
-    )
+    const orphans = orphanProjects(portfolio).filter((p) => isTracked(p) && matchingIds.has(p.id))
     if (orphans.length > 0) result.push({ category: UNSORTED_CATEGORY, projects: orphans })
     return result
   })
@@ -183,10 +185,9 @@
     <span class="pid">{project.id}</span>
     <span class="pnom" title={project.name}>{project.name}</span>
     <span class="etapecell">
-      <span class="chip chip-{project.stage}">{t(`stage.${project.stage}`, language)}</span>
-      {#if project.onHold && isTracked(project)}
-        <span class="chip chip-onHold">{t('stage.onHold', language)}</span>
-      {/if}
+      <!-- displayedStatus owns the whole wording, on-hold suffix included —
+           and its rule (no suffix on an archived project) with it. -->
+      <span class="chip chip-{project.stage}">{displayedStatus(project, language)}</span>
     </span>
     <span
       class="health-dot health-{project.health ?? 'ne'}"
@@ -217,7 +218,7 @@
       {decisions > 0 ? '✓' : ''}
     </span>
     <span class="ficheseg" title={te('editor.field.sheet', language)}>
-      {#each ['auto', 'always', 'never'] as const as mode (mode)}
+      {#each SHEET_MODES as mode (mode)}
         {#if project.sheet === mode}
           <b title={te(`editor.sheetMode.${mode}`, language)}>
             {te(`editor.sheetMode.${mode}.short`, language)}

@@ -6,7 +6,7 @@
 import type { FreeSlide } from '../model/free-slide'
 import type { Portfolio } from '../model/portfolio'
 import type { Project } from '../model/project'
-import type { Slide } from '../model/slide'
+import type { Slide } from './slide'
 import { UNSORTED_CATEGORY } from '../model/category'
 import {
   isArchived,

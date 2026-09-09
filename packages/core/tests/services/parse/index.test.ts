@@ -132,6 +132,76 @@ describe('refusal — structure', () => {
       'projects[0].done[1] wrongType',
     ])
   })
+
+  it('a project with EVERY field mistyped reports every fault, each at its path', () => {
+    // One row, 25 faults: the reader never stops at the first one, and every
+    // field family (id, scalars, enums, dates, lists, rows) speaks with its
+    // own code — the exhaustive wrongType census of the project row.
+    const r = parsePortfolio(
+      rawPortfolio({
+        projects: [
+          {
+            id: 7,
+            name: 1,
+            categoryId: [],
+            stage: 0,
+            onHold: 'yes',
+            goal: {},
+            done: 'x',
+            ongoing: 3,
+            next: {},
+            decisions: 'none',
+            milestones: {},
+            sheet: 4,
+            priority: [],
+            health: 9,
+            progress: 'high',
+            lead: 5,
+            sponsor: [],
+            scope: {},
+            budget: 0,
+            start: 6,
+            targetEnd: [],
+            actualEnd: {},
+            risks: 1,
+            updatedOn: false,
+            author: [],
+          },
+        ],
+      }),
+    )
+    expect(faults(r)).toEqual([
+      'projects[0].categoryId wrongType',
+      'projects[0].progress invalidProgress',
+      'projects[0].id wrongType',
+      'projects[0].name wrongType',
+      'projects[0].priority invalidEnum',
+      'projects[0].stage invalidEnum',
+      'projects[0].onHold wrongType',
+      'projects[0].health invalidEnum',
+      'projects[0].lead wrongType',
+      'projects[0].sponsor wrongType',
+      'projects[0].scope wrongType',
+      'projects[0].goal wrongType',
+      'projects[0].budget wrongType',
+      'projects[0].start wrongType',
+      'projects[0].targetEnd wrongType',
+      'projects[0].actualEnd wrongType',
+      'projects[0].done wrongType',
+      'projects[0].ongoing wrongType',
+      'projects[0].next wrongType',
+      'projects[0].risks wrongType',
+      'projects[0].decisions wrongType',
+      'projects[0].milestones wrongType',
+      'projects[0].sheet invalidEnum',
+      'projects[0].updatedOn wrongType',
+      'projects[0].author wrongType',
+    ])
+  })
+
+  it('refuses a non-array projects collection at the root', () => {
+    expect(faults(parsePortfolio(rawPortfolio({ projects: 'x' })))).toEqual(['projects wrongType'])
+  })
 })
 
 describe('refusal — values', () => {
@@ -211,6 +281,27 @@ describe('refusal — values', () => {
     expect(faults(r)).toEqual(['projects[1].id duplicateId', 'projects[2].id emptyId'])
   })
 
+  it('refuses a font name outside the letters/digits charset — it lands in the exported <style>', () => {
+    const settings = (font: string) => ({
+      identity: { org: 'a', unit: 'b' },
+      theme: { font },
+      show: { healthDashboard: true, recap: true, archives: true, decisions: true },
+      recapRows: 11,
+    })
+    // The PoC payload: a name that would close the RAWTEXT <style> of the
+    // standalone export. Refused at the door, whole file.
+    expect(
+      faults(parsePortfolio(rawPortfolio({ settings: settings('X</style><script>') }))),
+    ).toEqual(['settings.theme.font invalidFont'])
+    expect(faults(parsePortfolio(rawPortfolio({ settings: settings('A'.repeat(65)) })))).toEqual([
+      'settings.theme.font invalidFont',
+    ])
+    // Real-world names pass: spaces, digits, hyphens are the Google Fonts idiom.
+    const ok = parsePortfolio(rawPortfolio({ settings: settings('Noto Sans JP') }))
+    if (!ok.ok) throw new Error(JSON.stringify(ok.errors))
+    expect(ok.portfolio.settings.theme.font).toBe('Noto Sans JP')
+  })
+
   it('keeps a valid inline logo and refuses an invalid or oversized one', () => {
     const identity = (logo: string) => ({
       identity: { org: 'a', unit: 'b', logo },
@@ -265,6 +356,16 @@ describe('refusal — rows and slides', () => {
       'projects[0].milestones[1].label missingKey',
       'projects[0].milestones[1].date invalidDate',
     ])
+  })
+
+  it('refuses a block that is not an array, and a line that is not a string', () => {
+    const slide = { id: 'sl-1', title: 'T', anchor: { type: 'closing' } }
+    expect(
+      faults(parsePortfolio(rawPortfolio({ freeSlides: [{ ...slide, blocks: ['x'] }] }))),
+    ).toEqual(['freeSlides[0].blocks[0] wrongType'])
+    expect(
+      faults(parsePortfolio(rawPortfolio({ freeSlides: [{ ...slide, blocks: [['a', 7]] }] }))),
+    ).toEqual(['freeSlides[0].blocks[0][1] wrongType'])
   })
 
   it('refuses a free slide with a malformed anchor or no block', () => {

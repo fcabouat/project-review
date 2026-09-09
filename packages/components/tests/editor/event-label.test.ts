@@ -56,6 +56,20 @@ describe('eventLabel — composed wording (no catalog entry for the pair)', () =
     expect(eventLabel(cleared, 'en')).toBe('P-02 · Lead: Camille NOËL ▸ (empty)')
   })
 
+  it('shortens a free-text value beyond 40 characters — the history stays one line', () => {
+    const long = 'Un porteur au patronyme démesurément long pour une ligne d’historique'
+    const cleared: DomainEvent = {
+      type: 'ProjectFieldChanged',
+      id: 'P-02',
+      field: 'lead',
+      before: undefined,
+      after: long,
+    }
+    const label = eventLabel(cleared, 'fr')
+    expect(label).toContain(`${long.slice(0, 39)}…`)
+    expect(label).not.toContain(long)
+  })
+
   it('shows an ISO date in its short display form', () => {
     const date: DomainEvent = {
       type: 'ReviewFieldChanged',

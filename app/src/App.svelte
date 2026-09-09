@@ -96,10 +96,21 @@
   const router = createRouter()
   const persistence = createPersistenceControl(store, storage, persistEnabled, timeoutScheduler)
 
-  /** « Enregistrer » — infrastructure's DOM export, reveal options bound here:
-   * the infrastructure never imports components, the app hands the set over. */
+  /**
+   * The reveal.js UMD source (`window.Reveal`), fetched lazily as raw text.
+   * Relative path on purpose: the package's `exports` map does not expose
+   * `./dist/reveal.js` (the UMD build), only the entry points — a direct file
+   * import is the supported Vite escape hatch for `?raw`, and naming it is the
+   * WIRING's job: the infrastructure package receives a loader, never a path.
+   */
+  const loadEngineSource = async (): Promise<string> =>
+    (await import('../../node_modules/reveal.js/dist/reveal.js?raw')).default
+
+  /** « Enregistrer » — infrastructure's DOM export, reveal options and engine
+   * loader bound here: the infrastructure never imports components nor names
+   * node_modules, the app hands both over. */
   const exportStandalone = (slidesEl: HTMLElement, portfolio: Portfolio): Promise<void> =>
-    saveStandalone(slidesEl, portfolio, STANDALONE_REVEAL_OPTIONS)
+    saveStandalone(slidesEl, portfolio, STANDALONE_REVEAL_OPTIONS, loadEngineSource)
 
   // Reads `present`, so it re-runs on every dispatch/undo/redo — debounced to
   // 500 ms; the wiring re-checks the switch at fire time.
@@ -158,6 +169,8 @@
     portfolio={store.present}
     past={store.past}
     future={store.future}
+    canUndo={store.canUndo}
+    canRedo={store.canRedo}
     dispatch={store.dispatch}
     undo={store.undo}
     redo={store.redo}

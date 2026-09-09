@@ -3,11 +3,12 @@ import { defineConfig } from 'vitest/config'
 /**
  * Workspace test runner: one command, four projects (each package carries its
  * own project config). Coverage can only live here (root-level in projects
- * mode); the thresholds are keyed per package, calibrated ~2 points under the
- * measured coverage so a regression trips early — core keeps the strictest
- * bar, components has few testable .ts files (the Svelte components are out of
- * scope), infrastructure's DOM halves are exercised by the file:// smoke test
- * (v8-ignored), app is wiring only.
+ * mode); the thresholds are keyed per package — LINES are pinned at the
+ * measured 100 % (the README says so, the gate enforces it: one uncovered
+ * line trips), BRANCHES stay a few points under their measured figure so a
+ * regression trips early without freezing every ternary. Infrastructure's
+ * DOM halves are exercised by the file:// smoke test (v8-ignored), app is
+ * wiring only.
  */
 export default defineConfig({
   test: {
@@ -25,10 +26,10 @@ export default defineConfig({
         '**/vitest.config.ts',
       ],
       thresholds: {
-        'packages/core/src/**': { lines: 98, branches: 95 },
-        'packages/components/src/**': { lines: 98, branches: 95 },
-        'packages/infrastructure/src/**': { lines: 98, branches: 92 },
-        'app/src/**': { lines: 98, branches: 88 },
+        'packages/core/src/**': { lines: 100, branches: 95 },
+        'packages/components/src/**': { lines: 100, branches: 95 },
+        'packages/infrastructure/src/**': { lines: 100, branches: 92 },
+        'app/src/**': { lines: 100, branches: 88 },
       },
     },
   },

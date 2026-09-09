@@ -77,6 +77,13 @@ describe('fuzzyScoreOf', () => {
     expect(best).toBeLessThan(1)
   })
 
+  it('a LATER field wins when it scores better — the best is updated, not the first kept', () => {
+    const scattered = fuzzyScore('res', 'Renouvellement des stations') as number
+    const prefix = fuzzyScore('res', 'Réseau') as number
+    expect(prefix).toBeLessThan(scattered)
+    expect(fuzzyScoreOf('res', ['Renouvellement des stations', 'Réseau'])).toBe(prefix)
+  })
+
   it('skips undefined fields without matching them', () => {
     expect(fuzzyScoreOf('x', [undefined, undefined])).toBeUndefined()
   })

@@ -60,8 +60,9 @@ export * from './invert'
  * share. Adding a variant means teaching FOUR functions: `apply` (apply.ts)
  * and `invert` (invert.ts) — both pinned by a `never` sentinel —, `decide`
  * with its `Command` mirror (commands/, pinned too), and `eventLabel` in the
- * components' `editor/event-label.ts` — plus bumping `HISTORY_VERSION`
- * (app persistence) if the change breaks replay of stored events.
+ * components' `editor/event-label.ts` (pinned too) — plus bumping
+ * `HISTORY_VERSION` (services/persistence.ts) if the change breaks replay of
+ * stored events.
  */
 export type DomainEvent =
   | ReviewFieldChanged

@@ -194,6 +194,19 @@ describe('decide — MergeProjects (the merge contract, src/commands/merge.ts)',
     expect(q.categories.map((x) => x.id)).toEqual(['infra', 'poste', 'metier'])
   })
 
+  it('a 100 % homonym contribution with ONE reworked project still emits, in place', () => {
+    // The refusal walks `equal` over every incoming/present pair ONLY when all
+    // incoming ids are homonyms (merge.ts) — this is the case where that deep
+    // walk must say "different" and let the merge through: nothing added, one
+    // replacement, order untouched.
+    const e = merged({ type: 'MergeProjects', projects: [MERGED_P02], categories: [] })
+    expect(mergeReport(e)).toEqual({ replaced: 1, added: 0, createdCategories: 0 })
+    const q = apply(p, e)
+    expect(q.projects.map((x) => x.id)).toEqual(['P-01', 'P-02', 'P-03'])
+    expect(projectOf(q, 'P-02').goal).toBe(MERGED_P02.goal)
+    expect(q.categories).toEqual(p.categories)
+  })
+
   it('mergeReport derives the exact figures from the event alone', () => {
     // The same helper feeds the import preview, the post-merge report and the
     // history label: if this breaks, three screens lie at once.
