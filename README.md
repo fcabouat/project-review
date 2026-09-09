@@ -79,13 +79,13 @@ The whole design fits on one page: **[docs/overview.md](docs/overview.md)**.
 ```sh
 bun install
 bun run dev      # editor on the Vite dev server
-bun run build    # all deliverables into app/dist/
+bun run build    # all deliverables into dist/
 ```
 
-| Artifact                                     | Contents                                            |
-| -------------------------------------------- | --------------------------------------------------- |
-| `app/dist/index.html` + `assets/` + `fonts/` | Static-hosting build (module scripts, lazy chunks)  |
-| `app/dist/project-review.html`               | The deliverable: one multilingual single-file build |
+| Artifact                                 | Contents                                            |
+| ---------------------------------------- | --------------------------------------------------- |
+| `dist/index.html` + `assets/` + `fonts/` | Static-hosting build (module scripts, lazy chunks)  |
+| `dist/project-review.html`               | The deliverable: one multilingual single-file build |
 
 | Script              | Does                                       |
 | ------------------- | ------------------------------------------ |

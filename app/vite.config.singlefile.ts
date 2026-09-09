@@ -7,8 +7,9 @@ import { defineConfig } from 'vite'
 /**
  * Single-file build: one self-contained HTML that
  * works from file:// — no module fetch, no lazy chunk (reveal is folded in by
- * `inlineDynamicImports`), assets inlined. The classic dist/ remains the
- * static-hosting build; this one is the "double-click" deliverable.
+ * `inlineDynamicImports`), assets inlined. The classic build (repo-root dist/)
+ * remains the static-hosting one; this one is the "double-click" deliverable,
+ * packaged into dist/ as well by build:package.
  */
 export default defineConfig({
   base: './',

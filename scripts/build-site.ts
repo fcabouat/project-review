@@ -66,7 +66,7 @@ mkdirSync(join(OUT, 'guide'), { recursive: true })
 
 // The real app, served as the live demo — the artifact IS the product.
 // ONE multilingual file: the language is auto-detected and switchable in-app.
-cpSync('app/dist/project-review.html', join(OUT, 'demo', 'project-review.html'))
+cpSync('dist/project-review.html', join(OUT, 'demo', 'project-review.html'))
 cpSync('docs/api', join(OUT, 'api'), { recursive: true })
 cpSync('packages/components/storybook-static', join(OUT, 'storybook'), { recursive: true })
 if (existsSync('docs/images')) cpSync('docs/images', join(OUT, 'images'), { recursive: true })

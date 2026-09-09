@@ -7,6 +7,13 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   base: './',
   plugins: [svelte(), tailwindcss()],
+  build: {
+    // Deliverables land at the repo root: dist/ is the product of the whole
+    // workspace, not an implementation detail of app/. emptyOutDir must be
+    // explicit — Vite refuses to clear a directory outside its own root.
+    outDir: '../dist',
+    emptyOutDir: true,
+  },
   test: {
     name: 'app',
     environment: 'node',

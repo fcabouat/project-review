@@ -5,7 +5,7 @@
  * the `v8 ignore` justifications of the DOM halves (hash-router, dom-export,
  * route binding) point at.
  *
- * PRECONDITION: `bun run build` first — the script drives app/dist/ as built
+ * PRECONDITION: `bun run build` first — the script drives dist/ as built
  * (`bun run smoke` from the root; CI runs it right after the build step).
  *
  * Covered, with zero console errors tolerated anywhere:
@@ -26,7 +26,7 @@ import { pathToFileURL } from 'node:url'
 import process from 'node:process'
 import { chromium } from 'playwright'
 
-const DIST = resolve(import.meta.dirname, '../dist/project-review.html')
+const DIST = resolve(import.meta.dirname, '../../dist/project-review.html')
 const APP_URL = pathToFileURL(DIST).href
 /** The sample data set (fr and en alike) holds 20 projects, deriving 34 slides. */
 const SAMPLE_PROJECTS = 20
