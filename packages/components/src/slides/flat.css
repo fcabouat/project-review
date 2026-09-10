@@ -7,8 +7,8 @@
    Every rule sits under `:root[data-slide-style='flat']` — the attribute is
    set at runtime by App.svelte from `settings.theme.style`, so switching the
    setting re-themes the live DOM (editor preview, slideshow, ?print) without
-   a reload. With the attribute at 'institutional' (or absent), this sheet is
-   inert and the institutional theme of `theme.css` renders untouched.
+   a reload. With the attribute at anything else (or absent), this sheet is
+   inert and the other themes render untouched.
 
    Title, divider and the two sheet compositions are transposed 1:1 from the
    institutional theme; the remaining templates (dashboards, recap, decisions,

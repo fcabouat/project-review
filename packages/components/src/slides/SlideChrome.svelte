@@ -9,7 +9,10 @@
    *
    * Layout lives in the utility classes (screen values, `print:` for the A4
    * transposition); the stylesheets keep the THEMED side — colors, fonts,
-   * the flat restructuring and the atom-interior reaches.
+   * surfaces, the flat restructuring and the atom-interior reaches. Only
+   * `flat` needs a template arm at all: it moves the chrome about (no rail,
+   * a colour-plane sheet header). `institutional` and `modern` share this
+   * one, restyled entirely from their sheets.
    */
   import type { Language } from '@project-review/core/model/theme'
   import type { Portfolio } from '@project-review/core/model/portfolio'
@@ -20,6 +23,7 @@
   import './theme.css'
   import './print.css'
   import './flat.css'
+  import './modern.css'
   import type { Snippet } from 'svelte'
 
   interface Props {

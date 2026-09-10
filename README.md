@@ -56,6 +56,10 @@ ever edited by hand.
 - **Bilingual by construction** — French or English auto-detected on first
   launch, switchable live from the top bar; entered content is never
   translated.
+- **The organization's identity travels in the file** — logo, typeface and a
+  palette of twelve colours ride inside the `.json`, so a portfolio carries
+  its house look with no deployment and no network; three slide themes and
+  three bundled palettes are there for everyone else.
 - **Works on a phone** — below desktop widths the sidebar becomes a drawer,
   forms stack and wide tables scroll inside their own frame; the slideshow
   scales to the screen with a touch-visible exit bar.
@@ -63,16 +67,20 @@ ever edited by hand.
   axe-core pass (zero serious/critical across every screen, both schemes) and
   a scripted keyboard walk; motion honours `prefers-reduced-motion`. The
   editor holds AA text contrast, and the slides' semantic inks (labels,
-  health and risk scales, both themes) were measured and brought to AA text
-  contrast; the category-tinted accents (id chips, divider text) remain
-  below 4.5:1 by design. No formal RGAA audit.
+  health and risk scales, all three themes) were measured and brought to AA
+  text contrast; the category-tinted accents (id chips, divider text) remain
+  below 4.5:1 in the two borrowed palettes, by design. The `uniform` palette
+  is the exception — it holds AA on all twelve — and `modern` + `uniform` is
+  the one pairing an axe pass over the whole 34-page deck finds nothing in.
+  No formal RGAA audit.
 - **Light and dark editor** — System/Light/Dark reader preference, stored on
   the device, never in the portfolio file; the slides are the artifact and
   stay light in both schemes.
 - **Print-perfect A4** — the deck prints one page per slide through the
   browser's dialog; PDF is a print, not an export pipeline.
-- **Visual contract** — 68 Storybook stories covering every slide, widget and
-  screen, including a fully playable in-memory editor.
+- **Visual contract** — 69 Storybook stories covering every slide, widget and
+  screen, including a fully playable in-memory editor; the toolbar reads any
+  of them in three slide themes, three palettes and both schemes.
 
 ## Architecture
 
@@ -152,28 +160,56 @@ format; a display language is data:
    by the strict parse and the acceptance tests.
 5. `docs/user-guide.<lang>.md` — the guide.
 
-**Add a color palette (~10 minutes).** A palette is one CSS block:
+**Add a color palette (~1 hour).** A palette is one CSS block — the hour goes
+into choosing the twelve values, not into wiring them:
 
 1. `packages/components/src/palettes.css` — add a `[data-palette='<name>']`
    block mapping the 12 generic category colors to hex values.
 2. `packages/core/src/model/theme.ts` — extend the `PaletteFamily` union and
-   `PALETTES`.
-3. `packages/components/src/i18n.ts` — one `editor.palette.<name>` label.
+   `PALETTES` (this one edit also opens the parse and the command contract:
+   both read that list).
+3. `packages/core/samples/portfolio.schema.json` — the `settings.theme.palette`
+   enum, the published contract outside tooling reads.
+4. `packages/components/src/i18n.ts` — one `editor.palette.<name>` label.
+5. `packages/components/.storybook/preview.ts` — one toolbar item, so the
+   stories can be read under the new family.
 
-**Add a slide theme (~1–2 hours).** A theme RESTYLES the slides — colors,
-borders, shadows, typography accents — and never changes their structure:
-the layout belongs to the templates' utility classes, which stay untouched.
-The pattern is proven by `flat`:
+The twelve values are the real work: each one carries text (the category pill,
+the id chip, the rail, the divider), so measure the ratios against white and
+against its own 12 % tint, and keep the twelve far enough apart to be told
+one from another. `uniform` is a worked example — its generation rule is
+written at the top of its block.
 
-1. `packages/components/src/slides/flat.css` — copy it to `<name>.css` and
-   restyle under `[data-slide-style='<name>']`. The swap works because these
-   theme rules are UNLAYERED and therefore outrank the templates' layered
-   Tailwind utilities — keep every rule scoped under the attribute.
-2. Follow `flat`'s print pattern for the `print:` context, so the A4 pages
-   restyle with the screen.
+**Add a slide theme (~half a day).** A theme RESTYLES the slides — colors,
+surfaces, borders, shadows, typography accents — and never changes their
+structure: the layout belongs to the templates' utility classes, which stay
+untouched. `flat` and `modern` are the two worked examples, and they differ in
+an important way: `flat` needed template arms (it moves the chrome about),
+`modern` needed NONE — it restyles the same markup `institutional` renders.
+Aim for the second kind; a template arm is a cost every future template pays.
+
+1. `packages/components/src/slides/<name>.css` — a new sheet, every rule nested
+   under `:root[data-slide-style='<name>']`, plus its own `@media print` block
+   (shadows do not print: restate them as hairlines there). The swap works
+   because these theme rules are UNLAYERED and therefore outrank the
+   templates' layered Tailwind utilities — keep every rule under the gate.
+2. Import the sheet in the three templates that already import `flat.css` —
+   `SlideChrome`, `SlideTitle`, `SlideDivider`. Nothing else pulls it into the
+   bundle, and a sheet nobody imports is silently inert.
 3. `packages/core/src/model/theme.ts` — extend the `ThemeStyle` union and
-   `THEME_STYLES`.
-4. `packages/components/src/i18n.ts` — one `editor.style.<name>` label.
+   `THEME_STYLES` (again, the parse and the command contract follow).
+4. `packages/core/samples/portfolio.schema.json` — the `settings.theme.style`
+   enum.
+5. `packages/components/src/i18n.ts` — one `editor.style.<name>` label.
+6. `packages/components/.storybook/preview.ts` — one toolbar item AND the
+   decorator's guard, which lists the styles it accepts.
+
+Then the part that actually takes the time. Walk the 34 frames of the deck in
+each palette, on screen and in `?print`: nothing may overflow, nothing may be
+clipped. Re-measure every ink/ground pair the theme retunes — and expect to
+find, as `modern` did, a base rule holding a literal color no theme can reach
+(`theme.css` says so where it happens). Leave the health scale and the
+progress ramp alone unless you mean to re-check all ten of their pairs.
 
 Before opening a PR, read [docs/overview.md](docs/overview.md) — the
 architecture, the three laws and where the guarantees live — and run
@@ -204,7 +240,8 @@ licenses in [THIRD-PARTY.md](THIRD-PARTY.md) — and in the application itself,
 under **About and licenses**, so a file handed on without this repository still
 carries them.
 
-The two colour palettes are derived from the Tailwind CSS and Material Design
-colour systems, credited above with the rest; any font a deployment serves or a
-portfolio embeds is the deployer's own choice and their own licensing
-question.
+Two of the three colour palettes are derived from the Tailwind CSS and
+Material Design colour systems, credited above with the rest; the third
+(`uniform`) is generated from scratch in OKLCH and owes nothing to anyone.
+Any font a deployment serves, any palette or logo a portfolio carries, is the
+deployer's own choice and their own licensing question.

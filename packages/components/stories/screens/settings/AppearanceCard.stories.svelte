@@ -14,7 +14,7 @@
       docs: {
         description: {
           component:
-            "Slide theme, reader scheme, palette, font — with the embedded-faces zone — and language. No font is ever fetched from a third party, so the card names the three LOCAL sources and says which one applies. With a family the build does not carry («Atelier» here), the card states the files a deployment must serve under `fonts/<family>/` and shows the HOST-PROBED verdict (`fontStatus`): «served», «missing» and «probing» pin the three states. «Font embedded» shows the strongest source — the portfolio itself carries the woff2 faces (listed with family, weight and size; each removable), the license line stays visible, and the status answers without probing — and «Font bundled» the family that ships with the app. «Font refused» shows what a value outside the format's charset does: the entry stays in the field under the parse's own rule, and nothing is committed. The embed buttons read files through the injected `readFontFile` (here a tiny stub); the scheme picker mock stamps the `dark` class exactly as the app does.",
+            "Two halves. ABOVE, what the build offers: slide theme, reader scheme, language. BELOW, PORTFOLIO IDENTITY — the three assets the .json carries itself (palette, font, logo), in one section, with one licence line for the three: they raise the same question. No font is ever fetched from a third party, so the card names the three LOCAL sources and says which one applies. With a family the build does not carry («Atelier» here), the card states the files a deployment must serve under `fonts/<family>/` and shows the HOST-PROBED verdict (`fontStatus`): «served», «missing» and «probing» pin the three states. «Font embedded» shows the strongest source — the portfolio itself carries the woff2 faces (listed with family, weight and size; each removable) — and «Font bundled» the family that ships with the app. «Font refused» shows what a value outside the format's charset does: the entry stays in the field under the parse's own rule, and nothing is committed. «Portfolio palette» shows the twelve colours arriving through the DATA file: they head the list, they apply (the bundled families wait), and «Remove» is the whole editor there is — a palette is data, so it comes in with the data. The embed buttons read files through the injected `readFontFile` (here a tiny stub); the scheme picker mock stamps the `dark` class exactly as the app does.",
         },
       },
     },
@@ -56,6 +56,35 @@
     },
   }
 
+  /** Same portfolio carrying its OWN twelve colours — the palette arrives
+   * through the data file, and then takes precedence over every family. */
+  const housePalette = {
+    ...sample,
+    settings: {
+      ...sample.settings,
+      theme: {
+        ...sample.settings.theme,
+        customPalette: {
+          label: 'Couleurs maison',
+          colors: {
+            blue: '#3460d8',
+            indigo: '#7a4ecf',
+            teal: '#017661',
+            cyan: '#016770',
+            green: '#027a1f',
+            olive: '#666f02',
+            amber: '#7e5e01',
+            orange: '#a35301',
+            red: '#c52b30',
+            purple: '#a43cab',
+            brown: '#7d4e2c',
+            taupe: '#6b6456',
+          },
+        },
+      },
+    },
+  }
+
   /** Story stub of the host's reader: accepts every pick as a tiny face. */
   const readFontFile = () => Promise.resolve('data:font/woff2;base64,d09GMgAB')
 </script>
@@ -65,6 +94,7 @@
   const embeddedStore = createScreenStore(embedded)
   const bundledStore = createScreenStore(sample)
   const refusedStore = createScreenStore(sample)
+  const paletteStore = createScreenStore(housePalette)
 
   /** Story-local mock of the app's appearance control (see Shell stories). */
   let scheme = $state<'system' | 'light' | 'dark'>('light')
@@ -149,6 +179,20 @@
       dispatch={refusedStore.dispatch}
       {appearance}
       fontStatus="bundled"
+    />
+  </div>
+</Story>
+
+<!-- The palette the FILE carries: first in the list, applied, and removable —
+     removal is undoable, so the twelve colours are one Ctrl+Z away. -->
+<Story name="Portfolio palette" asChild>
+  <div class="editor max-w-[520px] p-6">
+    <AppearanceCard
+      portfolio={paletteStore.present}
+      dispatch={paletteStore.dispatch}
+      {appearance}
+      fontStatus="bundled"
+      {readFontFile}
     />
   </div>
 </Story>

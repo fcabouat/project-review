@@ -12,12 +12,12 @@ tests. When this page and the code disagree, the page is wrong.
 
 ## Four packages, one-way flow
 
-| Package                   | Role                                                                                                        |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `packages/core`           | Pure domain: no DOM, no clock, no storage, zero dependencies — embeddable anywhere                          |
-| `packages/components`     | Svelte views: slides, editor widgets, slideshow host, five pure-props screens                               |
-| `packages/infrastructure` | Browser adapters for the interfaces the core declares (localStorage, scheduler, hash router, fonts, export) |
-| `app`                     | The deliverable — wiring only: `src/bindings/` binds core state to runes, `App.svelte` injects and mounts   |
+| Package                   | Role                                                                                                                 |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `packages/core`           | Pure domain: no DOM, no clock, no storage, zero dependencies — embeddable anywhere                                   |
+| `packages/components`     | Svelte views: slides, editor widgets, slideshow host, five pure-props screens                                        |
+| `packages/infrastructure` | Browser adapters for the interfaces the core declares (localStorage, scheduler, hash router, fonts, palette, export) |
+| `app`                     | The deliverable — wiring only: `src/bindings/` binds core state to runes, `App.svelte` injects and mounts            |
 
 Dependency rule: core imports nothing; components and infrastructure import
 only core; the app imports all three. Views render and emit commands, never
@@ -25,7 +25,10 @@ mutate; adapters implement, never decide.
 
 ## The core's grammar — eight layers
 
-- `values/` — refined scalars: ISO dates, progress, ids (constructors + allocators).
+- `values/` — refined scalars: ISO dates, progress, ids (constructors + allocators),
+  and the shapes the file format pins for what a portfolio CARRIES (font family
+  and face, inline logo, palette colour) — read once, judged identically by the
+  strict parse and by the commands the editor emits.
 - `model/` — the portfolio and its parts: plain immutable types, closed enumerations.
 - `data/` — initialisation data: empty portfolio, fr/en message tables (the sample sets and the JSON schema ship beside the code, in `packages/core/samples/`).
 - `commands/` — the use-cases (`Command` union) and their handlers (`decide`: intent → completed event).

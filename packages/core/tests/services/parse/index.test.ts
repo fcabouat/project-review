@@ -447,6 +447,119 @@ describe('refusal — values', () => {
       'settings.theme.fontFaces wrongType',
     ])
   })
+
+  /* ---- the portfolio's own palette (settings.theme.customPalette) ---- */
+
+  const withPalette = (customPalette: unknown) => ({
+    identity: { org: 'a', unit: 'b' },
+    theme: { customPalette },
+    show: { healthDashboard: true, recap: true, archives: true, decisions: true },
+    recapRows: 11,
+  })
+  /** The twelve names, all valid — the base every refusal below breaks. */
+  const twelve = (over: Record<string, unknown> = {}): Record<string, unknown> => ({
+    blue: '#3460d8',
+    indigo: '#7a4ecf',
+    teal: '#017661',
+    cyan: '#016770',
+    green: '#027a1f',
+    olive: '#666f02',
+    amber: '#7e5e01',
+    orange: '#a35301',
+    red: '#c52b30',
+    purple: '#a43cab',
+    brown: '#7d4e2c',
+    taupe: '#6b6456',
+    ...over,
+  })
+
+  it('accepts the twelve colours, with or without a label', () => {
+    const r = parsePortfolio(
+      rawPortfolio({ settings: withPalette({ label: 'House', colors: twelve() }) }),
+    )
+    if (!r.ok) throw new Error(JSON.stringify(r.errors))
+    expect(r.portfolio.settings.theme.customPalette).toEqual({
+      label: 'House',
+      colors: twelve(),
+    })
+    const bare = parsePortfolio(rawPortfolio({ settings: withPalette({ colors: twelve() }) }))
+    if (!bare.ok) throw new Error(JSON.stringify(bare.errors))
+    expect('label' in bare.portfolio.settings.theme.customPalette!).toBe(false)
+  })
+
+  it('leaves the key absent when the portfolio carries no palette of its own', () => {
+    const r = parsePortfolio(rawPortfolio())
+    if (!r.ok) throw new Error(JSON.stringify(r.errors))
+    expect('customPalette' in r.portfolio.settings.theme).toBe(false)
+  })
+
+  it('refuses anything but an exact six-digit hex — the value lands in CSS', () => {
+    const bad = [
+      '#abc', // three-digit shorthand
+      '#3460d8ff', // eight-digit alpha form
+      '3460d8', // no hash
+      'rebeccapurple', // named colour
+      'rgb(52 96 216)', // functional notation
+      'var(--x)', // a CSS reference
+      '#3460d8;}', // a declaration break
+      'inherit', // a CSS-wide keyword
+    ]
+    for (const value of bad) {
+      const r = parsePortfolio(
+        rawPortfolio({ settings: withPalette({ colors: twelve({ blue: value }) }) }),
+      )
+      expect(faults(r)).toEqual(['settings.theme.customPalette.colors.blue invalidPaletteColor'])
+    }
+  })
+
+  it('demands the twelve names — an incomplete table is refused, name by name', () => {
+    const partial = twelve()
+    delete partial['taupe']
+    delete partial['brown']
+    const r = parsePortfolio(rawPortfolio({ settings: withPalette({ colors: partial }) }))
+    expect(faults(r)).toEqual([
+      'settings.theme.customPalette.colors.brown missingKey',
+      'settings.theme.customPalette.colors.taupe missingKey',
+    ])
+  })
+
+  it('refuses a thirteenth name — including the grey sentinel, which is not a category colour', () => {
+    const r = parsePortfolio(
+      rawPortfolio({ settings: withPalette({ colors: twelve({ grey: '#757575' }) }) }),
+    )
+    expect(faults(r)).toEqual(['settings.theme.customPalette.colors.grey unknownKey'])
+  })
+
+  it('collects every faulty colour in one pass, and the structural faults with them', () => {
+    const r = parsePortfolio(
+      rawPortfolio({
+        settings: withPalette({
+          tint: 'warm',
+          colors: twelve({ blue: '#xyzxyz', red: 42, purple: '#a43cab77' }),
+        }),
+      }),
+    )
+    expect(faults(r)).toEqual([
+      'settings.theme.customPalette.tint unknownKey',
+      'settings.theme.customPalette.colors.blue invalidPaletteColor',
+      'settings.theme.customPalette.colors.red wrongType',
+      'settings.theme.customPalette.colors.purple invalidPaletteColor',
+    ])
+  })
+
+  it('refuses a palette that is not an object, and a colours table that is not one', () => {
+    expect(faults(parsePortfolio(rawPortfolio({ settings: withPalette('house') })))).toEqual([
+      'settings.theme.customPalette wrongType',
+    ])
+    const r = parsePortfolio(rawPortfolio({ settings: withPalette({ colors: ['#3460d8'] }) }))
+    expect(faults(r)).toContain('settings.theme.customPalette.colors wrongType')
+  })
+
+  it('refuses a palette with no colours table at all', () => {
+    expect(
+      faults(parsePortfolio(rawPortfolio({ settings: withPalette({ label: 'House' }) }))),
+    ).toEqual(['settings.theme.customPalette.colors missingKey'])
+  })
 })
 
 describe('refusal — rows and slides', () => {

@@ -21,7 +21,7 @@ import type { Category } from '../../src/model/category'
 import type { FreeSlide } from '../../src/model/free-slide'
 import type { Portfolio } from '../../src/model/portfolio'
 import type { Project } from '../../src/model/project'
-import type { EmbeddedFontFace } from '../../src/model/theme'
+import type { CustomPalette, EmbeddedFontFace } from '../../src/model/theme'
 import { isoDate } from '../../src/values/date'
 import { FONT_FACE_MAX_CHARS, FONT_FACES_TOTAL_MAX_CHARS } from '../../src/values/font'
 import { LOGO_MAX_CHARS } from '../../src/values/logo'
@@ -50,6 +50,27 @@ const face = (over: Partial<EmbeddedFontFace> = {}): EmbeddedFontFace => ({
   dataUri: woff2(64),
   ...over,
 })
+
+/** A complete twelve-colour table, one entry breakable at a time. */
+const housePalette = (over: Record<string, unknown> = {}): CustomPalette =>
+  forged({
+    label: 'House',
+    colors: {
+      blue: '#3460d8',
+      indigo: '#7a4ecf',
+      teal: '#017661',
+      cyan: '#016770',
+      green: '#027a1f',
+      olive: '#666f02',
+      amber: '#7e5e01',
+      orange: '#a35301',
+      red: '#c52b30',
+      purple: '#a43cab',
+      brown: '#7d4e2c',
+      taupe: '#6b6456',
+      ...over,
+    },
+  })
 
 /* ====================================================================== */
 /* POSITIVE — what the editor emits, the format reads back                */
@@ -270,6 +291,100 @@ describe('theme — the embedded-face rules', () => {
       { type: 'ChangeSetting', setting: 'fontFaces', after: [] },
     ],
   ])
+})
+
+describe('theme — the portfolio palette rules', () => {
+  refused([
+    [
+      'a colour is an EXACT six-digit hex, not a shorthand (invalidPaletteColor)',
+      { type: 'ChangeSetting', setting: 'customPalette', after: housePalette({ blue: '#abc' }) },
+    ],
+    [
+      'a colour carries no alpha channel (invalidPaletteColor)',
+      {
+        type: 'ChangeSetting',
+        setting: 'customPalette',
+        after: housePalette({ blue: '#3460d8ff' }),
+      },
+    ],
+    [
+      'a colour is not a CSS reference — it lands inside a declaration (invalidPaletteColor)',
+      {
+        type: 'ChangeSetting',
+        setting: 'customPalette',
+        after: housePalette({ red: 'var(--anything)' }),
+      },
+    ],
+    [
+      'a colour cannot break out of its declaration (invalidPaletteColor)',
+      {
+        type: 'ChangeSetting',
+        setting: 'customPalette',
+        after: housePalette({ red: '#c52b30;} :root{--x:1' }),
+      },
+    ],
+    [
+      'a colour is a string (wrongType)',
+      {
+        type: 'ChangeSetting',
+        setting: 'customPalette',
+        after: housePalette({ green: forged(0x027a1f) }),
+      },
+    ],
+    [
+      'the table carries the twelve names — an incomplete one is refused (missingKey)',
+      {
+        type: 'ChangeSetting',
+        setting: 'customPalette',
+        after: forged({ colors: { blue: '#3460d8' } }),
+      },
+    ],
+    [
+      'the table carries NO thirteenth name (unknownKey)',
+      {
+        type: 'ChangeSetting',
+        setting: 'customPalette',
+        after: housePalette({ grey: '#757575' }),
+      },
+    ],
+    [
+      'the colours are a table, not a list (wrongType)',
+      { type: 'ChangeSetting', setting: 'customPalette', after: forged({ colors: ['#3460d8'] }) },
+    ],
+    [
+      'the palette is an object (wrongType)',
+      { type: 'ChangeSetting', setting: 'customPalette', after: forged('house') },
+    ],
+    [
+      'a label is a string (wrongType)',
+      {
+        type: 'ChangeSetting',
+        setting: 'customPalette',
+        after: forged({ label: 12, colors: housePalette().colors }),
+      },
+    ],
+  ])
+
+  it('accepts a complete table, and accepts dropping it', () => {
+    const set = decide(p, {
+      type: 'ChangeSetting',
+      setting: 'customPalette',
+      after: housePalette(),
+    })
+    expect(set).toBeDefined()
+    const carried = apply(p, set!)
+    expect(parsePortfolio(JSON.parse(serializePortfolio(carried))).ok).toBe(true)
+
+    const drop = decide(carried, {
+      type: 'ChangeSetting',
+      setting: 'customPalette',
+      after: undefined,
+    })
+    expect(drop).toBeDefined()
+    // Dropping ERASES the key: the chosen family applies again, and the file
+    // goes back to being byte-identical to one that never carried a palette.
+    expect('customPalette' in apply(carried, drop!).settings.theme).toBe(false)
+  })
 })
 
 describe('settings — the display rules', () => {

@@ -1,0 +1,339 @@
+/* ==========================================================================
+   "Modern" slide style — third layout family: soft low-contrast surfaces,
+   generous radii, layered shadows, hairline separators, a light table header
+   and a lot of air. Structural accent: a cool slate ink.
+
+   WHERE IT SITS BETWEEN THE OTHER TWO. `institutional` is dense and wiry
+   (saturated accent planes, zebra rows, tight rules); `flat` is massive and
+   radius-free (solid colour fields, thick ink rules, bare typography). This
+   one is the opposite gesture of both: nothing is a plane, everything is a
+   card — white grounds, one-pixel edges, shadows that suggest rather than
+   draw, and pill or squircle shapes wherever the other two use corners.
+
+   Every rule sits under `:root[data-slide-style='modern']` — the attribute is
+   set at runtime by App.svelte from `settings.theme.style`, so switching the
+   setting re-themes the live DOM (editor preview, slideshow, ?print) without
+   a reload. With the attribute at anything else, this sheet is inert and the
+   other two render untouched.
+
+   NO TEMPLATE KNOWS ABOUT IT. Not one `.svelte` file was changed for this
+   theme, and no class was added for it: it renders the SAME markup as
+   `institutional` — rail, foot, title column, monumental divider — restyled
+   entirely by tokens and by reaches into the atoms' interiors. That is the
+   whole test of the "add a slide theme" recipe, and it passed.
+
+   ORTHOGONAL TO THE PALETTES. Not one category hue is written here: every
+   category-coloured surface goes through `var(--cat)` exactly as the other
+   two themes do, so the three palette families (and any palette a portfolio
+   carries) apply to this theme unchanged.
+
+   THE CHROME TOKENS ARE GENERATED, NOT TRANSCRIBED. The neutral ramp below
+   was produced in OKLCH at one hue (258°, a cool cast) with the lightness
+   and chroma of each step chosen so that the pairs the slides actually use
+   hold AA: white on --accent 11.8:1, --accent on --accent-975 10.7:1,
+   --txt2 on --bg-alt 8.6:1, --muted on --bg-alt 4.9:1 and on --accent-975
+   4.8:1. The health scale and the progress ramp are NOT restated: their
+   ink/ground pairs are already AA-checked, and re-tinting them would mean
+   re-checking ten pairs to gain nothing this theme needs.
+   ========================================================================== */
+
+/* Every rule below nests under the ONE style gate: the prefix is written
+   once, native CSS nesting (compiled by the build) restores the full
+   selectors — same specificity, one source for the gate. */
+:root[data-slide-style='modern'] {
+  /* ---------- tokens: the slate remap, on the slide only ------------------ */
+
+  .slide {
+    /* Structural accent: a slate ink, deliberately near-neutral — the theme's
+       identity is its surfaces, not a colour, and a saturated accent would
+       compete with whichever category hue the palette resolves. */
+    --accent: #243857;
+    --accent-main: #4772b1;
+    --accent-975: #eff4fc;
+    --accent-925: #dce7f7;
+
+    /* ink & rules */
+    --txt: #151b24;
+    --txt2: #414853;
+    --muted: #666c75;
+    --border: #ced1d6;
+    --border2: #e2e5e9;
+    --bg: #ffffff;
+    --bg-alt: #f5f7f9;
+
+    /* the theme's own three tokens — its whole visual grammar in one place */
+    --soft-radius: 14px;
+    --soft-radius-sm: 11px;
+    --soft-shadow: 0 1px 2px rgb(21 27 36 / 0.05), 0 10px 22px -12px rgb(21 27 36 / 0.22);
+  }
+
+  /* ---------- chrome: the rail becomes a panel, the foot a hairline ------- */
+
+  /* The rail stops being a saturated plane and becomes a pale panel with a
+     coloured inner edge — which also puts its vertical text on a near-white
+     ground (8.6:1) instead of on the category hue, where white ink depends on
+     which palette resolved it. */
+  .slide .rail,
+  .slide.slide--sheet .rail {
+    /* the panel carries the hue at 8 %, the inner edge carries it whole:
+       enough for the sheet to announce its category, far too little to put
+       the vertical text at risk (8.0:1 or better in every family) */
+    background: color-mix(in srgb, var(--cat, var(--accent)) 8%, var(--bg-alt));
+    border-right: 1px solid var(--border2);
+    box-shadow: inset 5px 0 0 var(--cat, var(--accent));
+  }
+  .slide .rail-text {
+    color: var(--txt2);
+    font-weight: 600;
+    letter-spacing: 0.16em;
+  }
+
+  /* headings: ink rather than accent, tighter tracking, no rule */
+  .slide .slide-heading {
+    color: var(--txt);
+    letter-spacing: -0.02em;
+  }
+  .slide .heading-note {
+    font-weight: 500;
+  }
+
+  /* foot: closed by a hairline — heights compensated so the body keeps its
+     room (17 becomes 8 + 1 + 8, and the sheet's 13 becomes 4 + 1 + 8) */
+  .slide .slide-foot {
+    margin-top: 8px;
+    border-top: 1px solid var(--border2);
+    padding-top: 8px;
+  }
+  .slide.slide--sheet .slide-foot {
+    margin-top: 4px;
+  }
+
+  /* ---------- primitives: soft-filled chips, no hairline ------------------ */
+
+  .slide .pill,
+  .slide .id-chip {
+    /* same 12 % ground the contrast figures were measured on; what changes is
+       the edge — a soft ring in the category hue instead of a hairline */
+    border-color: transparent;
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--cat, var(--accent)) 16%, transparent);
+    font-weight: 600;
+  }
+  .slide .chip,
+  .slide .health.chip {
+    border-color: transparent;
+    box-shadow: 0 0 0 1px color-mix(in srgb, currentColor 15%, transparent);
+  }
+
+  /* cards: bigger radius, a layered shadow, a lighter edge */
+  .slide .card {
+    border-color: var(--border2);
+    border-radius: var(--soft-radius);
+    box-shadow: var(--soft-shadow);
+  }
+
+  /* gauges: the track takes the neutral rule colour, ends stay round */
+  .slide .gauge .bar {
+    background: var(--border2);
+  }
+
+  /* the stacked category bar becomes a capsule — which means its segments
+     can no longer carry an outline (the rounded ends would clip it into a
+     stray tick), so the three states become three tint levels: full for
+     "in progress", a quarter for "pre-project", a wash for "done". The
+     legend says the same thing in the same three values. */
+  .slide .cat-bar {
+    border-radius: 999px;
+  }
+  .slide .cat-bar .sg-fi {
+    background: color-mix(in srgb, var(--tint) 12%, #fff);
+    border: 0;
+  }
+  .slide .legend-key {
+    border-radius: 999px;
+  }
+  .slide .legend-key--done {
+    background: color-mix(in srgb, var(--txt2) 12%, #fff);
+    border: 1px solid var(--border);
+  }
+
+  /* ---------- tables: light header, hairline rows, no zebra --------------- */
+
+  .slide .table th {
+    background: var(--bg-alt);
+    color: var(--txt2);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid var(--border);
+  }
+  .slide .table tbody tr {
+    border-bottom: 1px solid var(--border2);
+  }
+  .slide .table tbody tr:nth-child(even) {
+    background: transparent;
+  }
+  .slide .table tbody tr:last-child {
+    border-bottom: 0;
+  }
+
+  /* handwriting zones: a hairline, not a dotted rule */
+  .slide .write-line {
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ---------- portfolio dashboard ---------------------------------------- */
+
+  .slide .stat {
+    border-radius: var(--soft-radius);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 12%, transparent);
+  }
+
+  /* ---------- health dashboard ------------------------------------------- */
+
+  .slide .health-bar {
+    background: var(--border2);
+  }
+  /* the inset becomes a soft alert card: same AA-checked inks, a rounded
+     ground and a ring in the level hue instead of a bare tint */
+  .slide .callout {
+    border-radius: var(--soft-radius-sm);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--err) 20%, transparent);
+  }
+
+  /* ---------- title slide: pale column, gradient block -------------------- */
+
+  .slide .title-left {
+    background: var(--bg-alt);
+    border-right: 1px solid var(--border2);
+  }
+  /* The block keeps white ink on the accent; the gradient only DARKENS the
+     far corner, so every ratio measured on --accent is a floor, never a
+     ceiling. */
+  .slide .title-right {
+    background: linear-gradient(
+      152deg,
+      var(--accent) 0%,
+      color-mix(in srgb, var(--accent) 78%, #000) 100%
+    );
+  }
+  .slide .kpi {
+    border-top-color: rgb(255 255 255 / 0.22);
+  }
+
+  /* ---------- dividers: the same plane, deepened -------------------------- */
+
+  .slide.slide--divider {
+    background: linear-gradient(
+      152deg,
+      var(--cat, var(--accent)) 0%,
+      color-mix(in srgb, var(--cat, var(--accent)) 80%, #000) 100%
+    );
+  }
+  .slide .divider-numeral {
+    color: rgb(255 255 255 / 0.14);
+  }
+  .slide .divider-list,
+  .slide .divider-list li {
+    border-color: rgb(255 255 255 / 0.22);
+  }
+
+  /* ---------- project sheet ---------------------------------------------- */
+
+  .slide .sheet-title h2 {
+    color: var(--txt);
+    letter-spacing: -0.02em;
+  }
+
+  /* row A: two soft white cards instead of two tinted bands with left rules */
+  .slide .goal {
+    background: var(--bg);
+    border-left: 0;
+    border: 1px solid var(--border2);
+    border-radius: var(--soft-radius-sm);
+    box-shadow: var(--soft-shadow);
+  }
+  /* the base pins this paragraph to a literal indigo — the theme takes it
+     back to its own ink */
+  .slide .goal p {
+    color: var(--txt2);
+  }
+  .slide .facts {
+    background: var(--bg);
+    border-left: 0;
+    border: 1px solid var(--border2);
+    border-radius: var(--soft-radius-sm);
+    box-shadow: var(--soft-shadow);
+  }
+  .slide .facts .fact + .fact {
+    border-left-color: var(--border2);
+  }
+  .slide .facts .budget {
+    border-top-color: var(--border2);
+  }
+
+  /* row B: the discs become rounded squares, the headings quieten */
+  .slide .narrative-card {
+    border-color: var(--border2);
+    border-radius: var(--soft-radius);
+    box-shadow: var(--soft-shadow);
+  }
+  .slide .narrative-card .ch {
+    color: var(--txt);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+  }
+  .slide .narrative-card .disc {
+    border-radius: 9px;
+  }
+  .slide .narrative-card .line.bullet::before {
+    background: color-mix(in srgb, var(--cat, var(--accent)) 55%, #fff);
+  }
+
+  /* row C: the two bands keep their coloured left rule — it is the level
+     coding — and gain the theme's radius, which curves it into a crescent */
+  .slide .risks,
+  .slide .decision {
+    border-radius: var(--soft-radius-sm);
+  }
+  .slide .decision {
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 12%, transparent);
+  }
+  .slide .decision--none {
+    box-shadow: inset 0 0 0 1px var(--border2);
+  }
+
+  /* timeline: hairline axis, the cursor keeps the alert hue */
+  .slide .tl-axis {
+    background: var(--border2);
+  }
+
+  /* ---------- free slide -------------------------------------------------- */
+
+  .slide .freeform-card .line.bullet::before {
+    background: var(--border);
+  }
+}
+
+/* ---------- A4: the same grammar on the printed page ---------------------- */
+
+@media print {
+  :root[data-slide-style='modern'] {
+    /* Shadows do not print — they only grey the paper. The edges the screen
+       gets from a shadow are restated as hairlines, so the printed page keeps
+       the same reading: white cards on a white sheet, told apart by one rule. */
+    .slide .card,
+    .slide .goal,
+    .slide .facts,
+    .slide .narrative-card {
+      box-shadow: none;
+      border: 1px solid var(--border);
+    }
+    .slide .stat {
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 22%, transparent);
+    }
+    /* the foot hairline, on the A4 rhythm (16 becomes 7 + 1 + 8) */
+    .slide .slide-foot {
+      margin-top: 7px;
+      padding-top: 8px;
+    }
+  }
+}

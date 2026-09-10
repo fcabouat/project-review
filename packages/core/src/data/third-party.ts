@@ -138,15 +138,16 @@ export const THIRD_PARTY_NOTICES: readonly ThirdPartyNotice[] = [
   },
   {
     name: 'Material Design colour system',
-    version: 'Material Design 2 palette',
+    version: 'Material Design 2 palette (material-design-lite, mdl-1.x)',
     license: 'Apache License 2.0',
-    copyright: 'Copyright Google LLC',
-    url: 'https://m2.material.io/design/color/the-color-system.html',
+    copyright: 'Copyright 2015 Google Inc. All Rights Reserved.',
+    url: 'https://github.com/google/material-design-lite/blob/mdl-1.x/src/_color-definitions.scss',
     use: 'the colour values of the "material" category palette (the default)',
     note:
-      'A borrowed set of VALUES, not an installed package: unlike every other line here, ' +
-      'this license could not be read from node_modules — it is the one Google publishes ' +
-      'the Material Design specification and its reference implementations under. ' +
+      'A borrowed set of VALUES, not an installed package — so the source is named ' +
+      'instead: the file above publishes the same palette (blue 700, indigo 500, ' +
+      'teal 600, green 600, light-green 800, deep-orange 600, red 600, purple 500, ' +
+      'brown 500, blue-grey 600 …) and carries the Apache-2.0 header quoted here. ' +
       'Credited because a palette transcribed from a design system is a borrowing like ' +
       'any other, whether or not a package manager records it.',
   },

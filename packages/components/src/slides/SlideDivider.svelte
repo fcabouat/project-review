@@ -8,7 +8,7 @@
    *
    * Layout lives in the utility classes (screen values, `print:` for the A4
    * transposition); the stylesheets keep the ink-on-category colors and the
-   * flat composition.
+   * flat composition. `modern` reuses this one and restyles it — no third arm.
    */
   import type { Portfolio } from '@project-review/core/model/portfolio'
   import {
@@ -25,6 +25,7 @@
   import './theme.css'
   import './print.css'
   import './flat.css'
+  import './modern.css'
 
   interface Props {
     readonly portfolio: Portfolio

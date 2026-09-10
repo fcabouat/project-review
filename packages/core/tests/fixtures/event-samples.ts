@@ -89,6 +89,25 @@ const NEW_SETTINGS = {
       dataUri: 'data:font/woff2;base64,d09GMgABAA==',
     },
   ],
+  // Appearance of the portfolio's OWN palette — `before` is undefined on the
+  // fixture portfolio, so the inverse exercises the key-erasing path too.
+  customPalette: {
+    label: 'House colours',
+    colors: {
+      blue: '#3460d8',
+      indigo: '#7a4ecf',
+      teal: '#017661',
+      cyan: '#016770',
+      green: '#027a1f',
+      olive: '#666f02',
+      amber: '#7e5e01',
+      orange: '#a35301',
+      red: '#c52b30',
+      purple: '#a43cab',
+      brown: '#7d4e2c',
+      taupe: '#6b6456',
+    },
+  },
   healthDashboard: false,
   recap: false,
   archives: false,

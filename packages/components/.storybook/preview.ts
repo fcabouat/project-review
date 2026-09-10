@@ -26,7 +26,7 @@ const preview: Preview = {
       },
     },
   },
-  // Toolbar switch between the two slide styles. The app keys its style CSS off
+  // Toolbar switch between the three slide styles. The app keys its style CSS off
   // `data-slide-style` on <html> (see App.svelte / flat.css): the decorator
   // mirrors that attribute so every story can be read in both styles, without
   // touching the stories themselves.
@@ -39,6 +39,7 @@ const preview: Preview = {
         items: [
           { value: 'flat', title: 'Flat' },
           { value: 'institutional', title: 'Institutional' },
+          { value: 'modern', title: 'Modern' },
         ],
         dynamicTitle: true,
       },
@@ -70,6 +71,7 @@ const preview: Preview = {
         items: [
           { value: 'material', title: 'Material' },
           { value: 'tailwind', title: 'Tailwind' },
+          { value: 'uniform', title: 'Uniform' },
         ],
         dynamicTitle: true,
       },
@@ -77,8 +79,9 @@ const preview: Preview = {
   },
   decorators: [
     (story, context) => {
+      const style = context.globals['style']
       document.documentElement.dataset.slideStyle =
-        context.globals['style'] === 'institutional' ? 'institutional' : 'flat'
+        style === 'institutional' || style === 'modern' ? style : 'flat'
       document.documentElement.dataset.palette =
         typeof context.globals['palette'] === 'string' ? context.globals['palette'] : 'material'
       document.documentElement.classList.toggle('dark', context.globals['scheme'] === 'dark')

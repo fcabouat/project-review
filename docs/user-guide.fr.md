@@ -209,17 +209,34 @@ simplement plus confortable pour saisir.
 
 ## Apparence
 
-<img src="images/fr-settings.png" width="720" alt="Vue Paramètres : identité, langue et palette, catégories et slides libres — les interrupteurs de slides d’agrégat et la carte Données suivent plus bas">
+<img src="images/fr-settings.png" width="720" alt="Vue Paramètres : identité, apparence, catégories et slides libres — les interrupteurs de slides d’agrégat et la carte Données suivent plus bas">
 
-**Paramètres > Langue & palette** :
+La carte a deux moitiés : ce que cette version propose, et les trois actifs
+que votre fichier de portefeuille porte lui-même.
 
-- **Thème** — Flat (défaut) ou Institutionnel. Il habille les slides.
+**Paramètres > Apparence** :
+
+- **Thème** — Flat (défaut), Institutionnel ou Moderne. Il habille les
+  slides : Flat est massif et carré, Institutionnel dense et filaire, Moderne
+  souple et aéré. Les trois rendent le même contenu — choisissez celui qui va
+  à la salle où vous présentez.
 - **Thème de l'interface** — Système (défaut), Clair ou Sombre. Une
   préférence de l'appareil, rangée hors du fichier de portefeuille :
   l'éditeur bascule, les slides restent claires (elles sont l'artefact). Les
   trois mêmes états sont dans le menu de schéma de la barre du haut, à côté
   du menu de langue.
-- **Palette** — Material (défaut) ou Tailwind.
+- **Langue** — français ou anglais ; le changement redessine l'application à
+  chaud. La langue se change aussi par le menu de langue de la barre du
+  haut.
+
+**Paramètres > Apparence > Identité du portefeuille** — palette, police et
+logo. Les trois voyagent DANS le fichier `.json` : ils suivent le portefeuille
+partout, export autonome et impression compris, sans déploiement et sans
+réseau.
+
+- **Palette** — Material (défaut), Tailwind ou Uniforme. Elle résout les douze
+  couleurs de catégorie ; les slides ne nomment jamais une couleur, seulement
+  une catégorie.
 - **Police** — Roboto et Inter sont fournies avec l'application, Roboto sert
   de défaut. Aucune police n'est téléchargée auprès d'un tiers : une famille
   vient de l'une des trois sources locales, et le statut vivant de la carte dit
@@ -230,13 +247,53 @@ simplement plus confortable pour saisir.
   `…-Medium.woff2`, `…-Bold.woff2` — et la carte nomme les fichiers exacts
   qu'elle a cherchés. Une famille qu'aucune des trois ne couvre s'affiche sur
   la pile système, et la carte le dit plutôt que de vous laisser le découvrir.
-- **Langue** — français ou anglais ; le changement redessine l'application à
-  chaud. La langue se change aussi par le menu de langue de la barre du
-  haut.
+- **Logo** — la marque de votre organisation, embarquée dans le fichier (SVG
+  ou PNG, 300 Ko max) ; sans logo, le diaporama affiche celui de l'exemple.
+
+Une palette, une police ou un logo importés restent soumis à leurs droits
+propres — les embarquer dans un fichier diffusé constitue une redistribution :
+vérifiez que leur licence l'autorise. La licence MIT de ce logiciel ne s'y
+étend pas. La carte le dit une fois, pour les trois ensemble.
+
+### Une palette à vous
+
+Un portefeuille peut porter ses douze couleurs plutôt que de choisir parmi les
+familles fournies. Il n'y a pas d'éditeur de couleurs : une palette est une
+DONNÉE, elle arrive donc avec le fichier de données. Ajoutez un bloc
+`customPalette` à `settings.theme` — un `label` facultatif et une table
+`colors` portant exactement les douze noms de catégorie, chacun en
+hexadécimal à six chiffres :
+
+```json
+"theme": {
+  "style": "modern",
+  "palette": "material",
+  "font": "Roboto",
+  "customPalette": {
+    "label": "Couleurs maison",
+    "colors": {
+      "blue": "#3460d8", "indigo": "#7a4ecf", "teal": "#017661",
+      "cyan": "#016770", "green": "#027a1f", "olive": "#666f02",
+      "amber": "#7e5e01", "orange": "#a35301", "red": "#c52b30",
+      "purple": "#a43cab", "brown": "#7d4e2c", "taupe": "#6b6456"
+    }
+  }
+}
+```
+
+Douze noms, ni plus ni moins : une table incomplète est refusée à la porte,
+chaque couleur manquante ou fautive nommée à son propre chemin. Une fois
+chargée, la palette prend la tête de la liste dans la carte — sous votre
+libellé, avec un aperçu — et elle S'APPLIQUE : les familles fournies attendent
+que vous la retiriez. **Retirer** fait exactement cela, et c'est annulable
+comme toute autre modification.
+
+C'est ainsi qu'une organisation transmet ses couleurs à ses collègues : un
+`.json` portant la palette maison, importé comme n'importe quel fichier.
 
 ### Police embarquée
 
-<img src="images/fr-embedded-font.png" width="720" alt="La carte Langue & palette : thème, thème d’interface, palette, police, le statut vivant « Police embarquée dans le portefeuille », et la zone Police embarquée listant deux fontes avec leur graisse et leur taille, les deux sélecteurs, et l’avertissement de licence">
+<img src="images/fr-embedded-font.png" width="720" alt="La carte Apparence, moitié identité du portefeuille : la liste des palettes menée par les douze couleurs du portefeuille, le champ Police avec son statut vivant « Police embarquée dans le portefeuille », les deux fontes embarquées avec leur graisse et leur taille, les deux sélecteurs, le logo, et l’unique ligne de licence qui couvre les trois">
 
 La zone **Police embarquée** de la même carte embarque des fichiers `.woff2`
 — choisis un à un ou par dossier entier — DANS le portefeuille, en data URI.
@@ -249,10 +306,6 @@ par le fichier — mettez le nom de famille dans le champ **Police** et la
 ligne de statut répond « Police embarquée dans le portefeuille ». Les tailles
 sont plafonnées (~400 Ko par fonte, ~1,5 Mo au total) pour garder le
 portefeuille portable.
-
-Embarquer une police dans un fichier diffusé constitue une redistribution —
-vérifiez que sa licence l'autorise. Une police importée reste soumise à ses
-droits propres : la licence MIT de ce logiciel ne s'y étend pas.
 
 Pour habiller le diaporama de la typographie de votre organisation : nom de
 votre famille maison dans le champ **Police**, puis embarquez ses woff2 ici,

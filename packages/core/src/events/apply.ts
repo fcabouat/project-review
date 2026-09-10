@@ -22,6 +22,10 @@ const applySetting = (s: Settings, e: SettingChanged): Settings => {
       // `withField`: an `undefined` after ERASES the key, so undoing the very
       // first embed restores a theme with no `fontFaces` key at all.
       return { ...s, theme: withField(s.theme, 'fontFaces', e.after) }
+    case 'customPalette':
+      // Same erasure rule: dropping the portfolio's own palette must leave no
+      // `customPalette` key behind, so the chosen family applies again.
+      return { ...s, theme: withField(s.theme, 'customPalette', e.after) }
     case 'recapRows':
       return { ...s, recapRows: e.after }
     case 'healthDashboard':

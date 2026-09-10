@@ -23,7 +23,8 @@
 <script lang="ts">
   const store = createScreenStore(sample)
 
-  /** Story-local mock of the app's persistence control — flips, saves nothing. */
+  /** Story-local mock of the app's persistence control — flips, saves nothing;
+   * with no storage behind it there is never a stored copy to arbitrate. */
   let persistEnabled = $state(true)
   const persistence = {
     get enabled() {
@@ -33,6 +34,10 @@
     toggle: (next: boolean) => {
       persistEnabled = next
     },
+    pendingRestore: false,
+    restore: () => {},
+    keepOpen: () => {},
+    dismissRestore: () => {},
   }
 
   /** Story-local mock of the app's appearance control — same contract, and it

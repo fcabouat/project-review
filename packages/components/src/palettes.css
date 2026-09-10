@@ -25,6 +25,42 @@
   --cat-taupe: #78716c;
 }
 
+/* "Uniform" — the house family, generated rather than transcribed: no value
+   here comes from anyone else's colour system.
+
+   THE FORMULA, so it can be regenerated or extended. Every colour is built in
+   OKLCH, a perceptual space, from ONE lightness (L 0.55) and ONE chroma cap
+   (C 0.19) on a REGULAR 30° hue grid anchored at 25°. The ten chromatic names
+   take the grid points nearest their meaning — 25 red, 55 orange, 85 amber,
+   115 olive, 145 green, 175 teal, 205 cyan, 265 blue, 295 indigo, 325 purple:
+   the twelve domain names are ten hues plus two neutrals, not a tiling of the
+   wheel, so one grid point (235°) stays unused. `brown` and `taupe` reuse the
+   55° and 85° points at 42 % and 12 % of the chroma cap.
+
+   Two adjustments then lower L in 0.005 steps (the chroma re-clamped to the
+   sRGB gamut at each step), and nothing else is hand-tuned:
+     1. CONTRAST — every colour reaches 4.6:1 both against white and against
+        its own 12 % tint over white, the two grounds a category colour
+        carries text on (the pill, the id chip, the divider, the rail);
+     2. SEPARATION — every colour stands at least 0.060 Oklab ΔE from the grey
+        sentinel and from every colour placed before it.
+   The result holds 5.47:1 or better on white throughout, and its closest pair
+   is 0.060 ΔE. */
+[data-palette='uniform'] {
+  --cat-blue: #3460d8;
+  --cat-indigo: #7a4ecf;
+  --cat-teal: #017661;
+  --cat-cyan: #016770;
+  --cat-green: #027a1f;
+  --cat-olive: #666f02;
+  --cat-amber: #7e5e01;
+  --cat-orange: #a35301;
+  --cat-red: #c52b30;
+  --cat-purple: #a43cab;
+  --cat-brown: #7d4e2c;
+  --cat-taupe: #6b6456;
+}
+
 [data-palette='material'] {
   --cat-blue: #1976d2;
   --cat-indigo: #3f51b5;

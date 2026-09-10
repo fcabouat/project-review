@@ -21,12 +21,33 @@ export type Route =
   | { readonly name: 'about' }
   | { readonly name: 'sheet'; readonly id: string }
 
-/** UI contract of the local-save switch, however the host wires it. */
+/**
+ * UI contract of the local-save switch, however the host wires it — including
+ * the one question the switch cannot answer on its own.
+ *
+ * Turning the save back ON writes over whatever the storage holds, so the host
+ * reads it first. When it finds a snapshot that is still READABLE — the save
+ * was off long enough for one to be sitting there — nothing is written and
+ * {@link pendingRestore} goes true: the open document and the stored one are
+ * two candidates, and choosing between them is a person's call, not a
+ * switch's. The three answers are exhaustive and all reversible: restore the
+ * stored copy (an undoable replacement), keep the open one (the stored copy is
+ * replaced, deliberately), or step back and leave the save off.
+ */
 export interface PersistenceControl {
   readonly enabled: boolean
   /** Last write failure, `null` while writes land — cleared by the next success. */
   readonly lastError: string | null
   readonly toggle: (enabled: boolean) => void
+  /** `true` while the switch is waiting on that choice; the save stays off
+   * and not one byte has been written. */
+  readonly pendingRestore: boolean
+  /** Load the stored snapshot into the editor (undoable), then save. */
+  readonly restore: () => void
+  /** Keep the open document and let it replace the stored copy. */
+  readonly keepOpen: () => void
+  /** Step back: the stored copy is untouched and the save stays off. */
+  readonly dismissRestore: () => void
 }
 
 /**

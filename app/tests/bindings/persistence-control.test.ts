@@ -6,6 +6,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { Portfolio } from '@project-review/core/model/portfolio'
 import { testPortfolio } from '../../../packages/core/tests/fixtures/hand-built-portfolios'
 import { createStore } from '../../src/bindings/runtime.svelte'
 import { createPersistenceControl } from '../../src/bindings/persistence-control.svelte'
@@ -35,7 +36,7 @@ const stored = (storage: KeyValueStorage): unknown => {
 }
 
 describe('createPersistenceControl', () => {
-  it('toggle(on) writes snapshot AND history right away', () => {
+  it('toggle(on) on an empty storage writes snapshot AND history right away', () => {
     const storage = createMemoryStorage()
     const store = createStore(testPortfolio())
     const wiring = createPersistenceControl(store, storage, false, timeoutScheduler)
@@ -146,7 +147,13 @@ describe('blocked on an unreadable snapshot', () => {
     storage.setItem(HISTORY_KEY, '{"v":3,"past":[],"future":[]}')
     storage.writes = 0 // the seeding is not the wiring's doing
     const store = createStore(testPortfolio())
-    const wiring = createPersistenceControl(store, storage, enabled, timeoutScheduler, true)
+    const wiring = createPersistenceControl(
+      store,
+      storage,
+      enabled,
+      timeoutScheduler,
+      readSnapshot(storage),
+    )
     return { storage, store, wiring }
   }
 
@@ -217,5 +224,124 @@ describe('blocked on an unreadable snapshot', () => {
     wiring.discard()
 
     expect(stored(storage)).toEqual(testPortfolio())
+  })
+})
+
+/**
+ * THE SAME INVARIANT AT THE SWITCH — the path a boot cannot see. Local save
+ * OFF, a snapshot sitting in the storage: turning the save back on used to
+ * write the open document straight over it. It now READS first, and the three
+ * outcomes below are the whole of the rule.
+ */
+describe('turning the save back on reads the storage first', () => {
+  /** A storage already holding `seeded`, and a wiring on ANOTHER document. */
+  const seededSetup = (seeded: Portfolio) => {
+    const storage = createMemoryStorage()
+    storage.setItem(STORAGE_KEY, JSON.stringify(seeded))
+    storage.writes = 0
+    const store = createStore(testPortfolio())
+    const wiring = createPersistenceControl(
+      store,
+      storage,
+      false,
+      timeoutScheduler,
+      readSnapshot(storage),
+    )
+    return { storage, store, wiring }
+  }
+
+  /** The stored document, told apart from the open one by its title. */
+  const otherPortfolio = (): Portfolio => ({
+    ...testPortfolio(),
+    review: { ...testPortfolio().review, title: 'The stored one' },
+  })
+
+  it('a readable snapshot suspends the switch: nothing written, nothing enabled', () => {
+    const { storage, wiring } = seededSetup(otherPortfolio())
+
+    wiring.control.toggle(true)
+
+    expect(wiring.control.pendingRestore).toBe(true)
+    expect(wiring.control.enabled).toBe(false)
+    expect(storage.writes).toBe(0)
+    expect(storage.getItem(PREF_KEY)).toBeNull()
+    expect(stored(storage)).toEqual(otherPortfolio())
+  })
+
+  it('restore() loads the stored copy — undoably — and then saves', () => {
+    const { storage, store, wiring } = seededSetup(otherPortfolio())
+
+    wiring.control.toggle(true)
+    wiring.control.restore()
+
+    expect(store.present).toEqual(otherPortfolio())
+    expect(store.canUndo).toBe(true) // an ordinary replacement, Ctrl+Z away
+    expect(wiring.control.enabled).toBe(true)
+    expect(wiring.control.pendingRestore).toBe(false)
+    expect(stored(storage)).toEqual(otherPortfolio())
+  })
+
+  it('keepOpen() is the deliberate overwrite: the open document wins, once asked', () => {
+    const { storage, store, wiring } = seededSetup(otherPortfolio())
+
+    wiring.control.toggle(true)
+    wiring.control.keepOpen()
+
+    expect(store.present).toEqual(testPortfolio())
+    expect(wiring.control.enabled).toBe(true)
+    expect(stored(storage)).toEqual(testPortfolio())
+  })
+
+  it('dismissRestore() steps back: the stored copy is intact and the save stays off', () => {
+    const { storage, wiring } = seededSetup(otherPortfolio())
+
+    wiring.control.toggle(true)
+    wiring.control.dismissRestore()
+
+    expect(wiring.control.pendingRestore).toBe(false)
+    expect(wiring.control.enabled).toBe(false)
+    expect(storage.writes).toBe(0)
+    expect(stored(storage)).toEqual(otherPortfolio())
+  })
+
+  it('an UNREADABLE snapshot met at the switch blocks the wiring, exactly as at boot', () => {
+    const storage = createMemoryStorage()
+    storage.setItem(STORAGE_KEY, '{"version":1,"was":"a portfolio, once"}')
+    storage.writes = 0
+    const store = createStore(testPortfolio())
+    // Nothing was stored when this wiring was built: the storage was written
+    // to behind its back, which is exactly how this case happens.
+    const wiring = createPersistenceControl(store, storage, false, timeoutScheduler)
+
+    wiring.control.toggle(true)
+
+    expect(wiring.blocked).toBe(true)
+    expect(wiring.unreadable?.raw).toBe('{"version":1,"was":"a portfolio, once"}')
+    expect(wiring.control.enabled).toBe(false)
+    expect(storage.writes).toBe(0)
+  })
+
+  it('the decision hooks are inert when nothing is pending', () => {
+    const storage = createMemoryStorage()
+    const store = createStore(testPortfolio())
+    const wiring = createPersistenceControl(store, storage, false, timeoutScheduler)
+
+    wiring.control.restore()
+    wiring.control.keepOpen()
+    wiring.control.dismissRestore()
+
+    expect(wiring.control.enabled).toBe(false)
+    expect(storage.writes).toBe(0)
+  })
+
+  it('with no storage at all the switch just flips — there is nothing to read', () => {
+    const store = createStore(testPortfolio())
+    const wiring = createPersistenceControl(store, null, false, timeoutScheduler)
+
+    wiring.control.toggle(true)
+    expect(wiring.control.enabled).toBe(true)
+    expect(wiring.control.pendingRestore).toBe(false)
+    wiring.control.toggle(false)
+    expect(wiring.control.enabled).toBe(false)
   })
 })

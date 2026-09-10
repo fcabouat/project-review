@@ -44,6 +44,10 @@ export const PARSE_ERROR_CODES = [
   /** An embedded face `weight` that is not an integer in 400–800 nor an
    * ascending "min max" pair of such integers. */
   'invalidFontWeight',
+  /** A color of the portfolio's own palette that is not an exact `#rrggbb` —
+   * the twelve values land verbatim in the exported deck's stylesheet, so the
+   * shape is the contract (`params.value` shows what was offered). */
+  'invalidPaletteColor',
   /** One embedded face beyond the per-face size guard — `params.max`. */
   'oversizedFontFace',
   /** All embedded faces together beyond the total size guard — `params.max`. */

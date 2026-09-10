@@ -158,6 +158,11 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
   /* History wording of the `fontFaces` setting (the value side is
      `editor.value.fontFaces`). */
   'editor.setting.fontFaces': { fr: 'Police embarquée', en: 'Embedded font' },
+  /* Same pairing for the palette the portfolio carries itself. */
+  'editor.setting.customPalette': {
+    fr: 'Palette du portefeuille',
+    en: 'Portfolio palette',
+  },
   'editor.setting.healthDashboard': { fr: 'Dashboard santé', en: 'Health dashboard' },
   'editor.setting.recap': { fr: 'Récapitulatif', en: 'Recap' },
   'editor.setting.archives': { fr: 'Archives', en: 'Archives' },
@@ -171,9 +176,16 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
   'editor.value.image': { fr: 'image', en: 'image' },
   // Data URIs would flood the history: faces are counted, never spelled out.
   'editor.value.fontFaces': { fr: '{n} fonte(s)', en: '{n} face(s)' },
+  // Twelve hex values would flood it just as much: the palette is named.
+  'editor.value.customPalette': { fr: '12 couleurs', en: '12 colours' },
   'editor.value.pct': { fr: `{n}${NBSP}%`, en: `{n}${NBSP}%` },
   'editor.palette.tailwind': { fr: 'Tailwind', en: 'Tailwind' },
   'editor.palette.material': { fr: 'Material', en: 'Material' },
+  /* The house family — its name says how it is built (one lightness, one
+     chroma, a regular hue step), not who it belongs to. */
+  'editor.palette.uniform': { fr: 'Uniforme', en: 'Uniform' },
+  /* The palette the PORTFOLIO carries, when it brought no label of its own. */
+  'editor.palette.portfolio': { fr: 'Palette du portefeuille', en: 'Portfolio palette' },
   'editor.sheetMode.auto': {
     fr: 'Auto — slide de détail affichée si le projet est prêt, en cours ou en reliquats, ou s’il porte une décision attendue',
     en: 'Auto — detail slide shown when the project is ready, in progress or in residuals, or carries a pending decision',
@@ -245,7 +257,7 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
   },
 
   /* -------------------------- settings screen ---------------------------- */
-  'editor.settings.appearance': { fr: 'Langue & palette', en: 'Language & palette' },
+  'editor.settings.appearance': { fr: 'Apparence', en: 'Appearance' },
   'editor.settings.aggregates': { fr: "Slides d'agrégat", en: 'Aggregate slides' },
   'editor.settings.categories': { fr: 'Catégories', en: 'Categories' },
   'editor.settings.freeSlides': { fr: 'Slides libres', en: 'Free slides' },
@@ -313,14 +325,25 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
     fr: `Les fichiers .woff2 voyagent dans le .json${NBSP}: la police suit le portefeuille, export autonome compris.`,
     en: 'The .woff2 files travel inside the .json: the font follows the portfolio, standalone export included.',
   },
-  /* License line — one sober sentence: embedding = redistribution. It says
-     the same thing as the README's IP clause and the About screen: what a
-     person imports stays under its own rights. */
-  'editor.settings.embedLicense': {
-    fr: `Embarquer une police dans un fichier diffusé constitue une redistribution — vérifiez que sa licence l'autorise. Une police importée reste soumise à ses droits propres.`,
-    en: 'Embedding a font in a distributed file is redistribution — check that its license allows it. An imported font stays under its own rights.',
+  /* ---- portfolio identity: the three assets the .json carries ---- */
+  'editor.settings.portfolioIdentity': {
+    fr: 'Identité du portefeuille',
+    en: 'Portfolio identity',
   },
-  'editor.settings.removeFace': { fr: 'Retirer', en: 'Remove' },
+  'editor.settings.identityHint': {
+    fr: `Palette, police et logo voyagent dans le fichier .json${NBSP}: ils suivent le portefeuille partout, export autonome et impression compris — sans déploiement et sans réseau.`,
+    en: 'Palette, font and logo travel inside the .json file: they follow the portfolio everywhere, standalone export and printing included — no deployment, no network.',
+  },
+  /* ONE licence line for the three — they raise the same question, and
+     answering it three times would only make it easier to skip. It says what
+     the README's IP clause and the About screen say: what a person imports
+     stays under its own rights. */
+  'editor.settings.assetsLicense': {
+    fr: `Une palette, une police ou un logo importés restent soumis à leurs droits propres — les embarquer dans un fichier diffusé constitue une redistribution${NBSP}: vérifiez que leur licence l'autorise.`,
+    en: 'An imported palette, font or logo stays under its own rights — embedding one in a distributed file is redistribution: check that its license allows it.',
+  },
+  /* The same verb for the three assets: one vocabulary, one gesture. */
+  'editor.settings.removeAsset': { fr: 'Retirer', en: 'Remove' },
   'editor.settings.removeFaceAria': {
     fr: 'Retirer la fonte {family} {weight}',
     en: 'Remove the {family} {weight} face',
@@ -346,6 +369,7 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
   'editor.setting.style': { fr: 'Thème', en: 'Theme' },
   'editor.style.flat': { fr: 'Flat', en: 'Flat' },
   'editor.style.institutional': { fr: 'Institutionnel', en: 'Institutional' },
+  'editor.style.modern': { fr: 'Moderne', en: 'Modern' },
   /* Reader scheme (Settings ▸ Appearance) — an app-side preference, never a
      domain event: see `AppearanceControl` (screens/contracts). */
   'editor.setting.scheme': { fr: `Thème de l'interface`, en: 'Interface theme' },
@@ -355,6 +379,22 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
   'editor.settings.schemeHint': {
     fr: `Préférence de cet appareil — ne voyage pas avec le fichier${NBSP}; les slides restent claires.`,
     en: 'A preference of this device — it does not travel with the file; slides stay light.',
+  },
+  'editor.settings.paletteCount': { fr: '{n} couleurs', en: '{n} colours' },
+  /* No palette carried: how one arrives. There is no editor for it on
+     purpose — a palette is data, and it comes in with the data. */
+  'editor.settings.paletteHint': {
+    fr: `Un portefeuille peut porter ses douze couleurs${NBSP}: elles arrivent par le fichier de données (settings.theme.customPalette) et remplacent alors la famille choisie.`,
+    en: 'A portfolio can carry its own twelve colours: they come in with the data file (settings.theme.customPalette) and then replace the chosen family.',
+  },
+  /* One is carried: it applies, and the families wait until it is removed. */
+  'editor.settings.paletteApplies': {
+    fr: `Les douze couleurs du portefeuille s'appliquent. Retirez-les pour revenir à une famille fournie (annulable).`,
+    en: "The portfolio's twelve colours apply. Remove them to go back to a bundled family (undoable).",
+  },
+  'editor.settings.paletteRemoveAria': {
+    fr: 'Retirer la palette du portefeuille',
+    en: "Remove the portfolio's palette",
   },
   'editor.settings.logo': { fr: 'Logo', en: 'Logo' },
   'editor.settings.logoImport': { fr: 'Importer un logo…', en: 'Import a logo…' },
@@ -375,6 +415,21 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
   'editor.data.persistHint': {
     fr: `La base et l'historique annuler/rétablir survivent au rechargement de la page.`,
     en: 'The database and the undo/redo history survive a page reload.',
+  },
+  /* Turning the save back ON found a readable snapshot already stored: the
+     switch wrote nothing and asks. The three answers are the dialog's. */
+  'editor.data.restoreTitle': {
+    fr: 'Une sauvegarde existe déjà dans ce navigateur',
+    en: 'A saved copy already exists in this browser',
+  },
+  'editor.data.restoreBody': {
+    fr: `Rien n'a été écrit. Vous pouvez charger la sauvegarde à la place du document ouvert (annulable), ou garder le document ouvert — la sauvegarde sera alors remplacée.`,
+    en: 'Nothing has been written. You can load the saved copy instead of the open document (undoable), or keep the open document — the saved copy is then replaced.',
+  },
+  'editor.data.restoreStored': { fr: 'Charger la sauvegarde', en: 'Load the saved copy' },
+  'editor.data.restoreKeepOpen': {
+    fr: 'Garder le document ouvert',
+    en: 'Keep the open document',
   },
   'editor.data.persistOffConfirm': {
     fr: `Désactiver la sauvegarde locale efface les données enregistrées dans ce navigateur (la base ouverte reste intacte). Continuer${NBSP}?`,
@@ -647,6 +702,10 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
   'editor.error.invalidFontWeight': {
     fr: `graisse «${NBSP}{value}${NBSP}» refusée (entier 400–800, ou plage «${NBSP}min max${NBSP}»)`,
     en: 'weight "{value}" refused (integer 400–800, or a "min max" range)',
+  },
+  'editor.error.invalidPaletteColor': {
+    fr: `couleur «${NBSP}{value}${NBSP}» refusée (hexadécimal exact attendu, ex.${NBSP}: #1a2b3c)`,
+    en: 'colour "{value}" refused (exact hexadecimal expected, e.g. #1a2b3c)',
   },
   'editor.error.oversizedFontFace': {
     fr: 'plus de {max} k caractères',

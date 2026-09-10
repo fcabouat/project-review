@@ -194,16 +194,30 @@ a desktop simply stays the more comfortable place to edit.
 
 ## Appearance
 
-<img src="images/en-settings.png" width="720" alt="Settings view: identity, language and palette, categories and free slides — the aggregate-slide switches and the data card follow below">
+<img src="images/en-settings.png" width="720" alt="Settings view: identity, appearance, categories and free slides — the aggregate-slide switches and the data card follow below">
 
-**Settings > Language & palette**:
+The card has two halves: what this build offers, and the three assets your
+portfolio file carries itself.
 
-- **Theme** — Flat (default) or Institutional. This styles the slides.
+**Settings > Appearance**:
+
+- **Theme** — Flat (default), Institutional or Modern. This styles the slides:
+  Flat is massive and square, Institutional dense and wiry, Modern soft and
+  spacious. The three render the same content — pick the one that suits the
+  room you present in.
 - **Interface theme** — System (default), Light or Dark. A preference of the
   device, stored outside the portfolio file: the editor chrome flips, the
   slides stay light (they are the artifact). The same three states sit in
   the top bar's scheme menu, next to the language menu.
-- **Palette** — Material (default) or Tailwind.
+- **Language** — French or English; switching redraws the app at runtime. The
+  language can also be switched from the top bar's language menu.
+
+**Settings > Appearance > Portfolio identity** — palette, font and logo. All
+three travel INSIDE the `.json` file: they follow the portfolio everywhere,
+standalone export and printing included, with no deployment and no network.
+
+- **Palette** — Material (default), Tailwind or Uniform. It resolves the
+  twelve category colours; the slides never name a colour, only a category.
 - **Font** — Roboto and Inter ship inside the app; Roboto is the default. No
   font is ever fetched from a third party, so a family comes from one of three
   local sources, and the card's live status says which one applies: embedded in
@@ -213,12 +227,51 @@ a desktop simply stays the more comfortable place to edit.
   `…-Medium.woff2`, `…-Bold.woff2` — and the card names the exact files it
   looked for. A family none of the three covers renders on the system stack,
   and the card says so rather than leaving you to notice.
-- **Language** — French or English; switching redraws the app at runtime. The
-  language can also be switched from the top bar's language menu.
+- **Logo** — your organization's mark, inlined in the file (SVG or PNG,
+  300 KB max); without one the deck shows the bundled sample logo.
+
+An imported palette, font or logo stays under its own rights — embedding one
+in a distributed file is redistribution: check that its license allows it.
+The MIT license of this software does not extend to it. The card says so once,
+for the three together.
+
+### A palette of your own
+
+A portfolio can carry its own twelve colours instead of choosing among the
+bundled families. There is no colour editor: a palette is DATA, so it comes in
+with the data file. Add a `customPalette` block to `settings.theme` — an
+optional `label` and a `colors` table holding exactly the twelve category
+names, each an exact six-digit hexadecimal:
+
+```json
+"theme": {
+  "style": "modern",
+  "palette": "material",
+  "font": "Roboto",
+  "customPalette": {
+    "label": "House colours",
+    "colors": {
+      "blue": "#3460d8", "indigo": "#7a4ecf", "teal": "#017661",
+      "cyan": "#016770", "green": "#027a1f", "olive": "#666f02",
+      "amber": "#7e5e01", "orange": "#a35301", "red": "#c52b30",
+      "purple": "#a43cab", "brown": "#7d4e2c", "taupe": "#6b6456"
+    }
+  }
+}
+```
+
+Twelve names, no more and no less: a partial table is refused at the door,
+with each missing or faulty colour named at its own path. Once loaded, the
+palette heads the list in the card — under your label, with a swatch preview —
+and it APPLIES: the bundled families wait until you take it away. **Remove**
+does exactly that, and it is undoable like every other edit.
+
+That is how an organization hands its own colours to its colleagues: one
+`.json` carrying the house palette, imported like any other file.
 
 ### Embedded font
 
-<img src="images/en-embedded-font.png" width="720" alt="The Language & palette card: theme, interface theme, palette, font, the live «Font embedded in the portfolio» status, and the Embedded font zone listing two faces with their weight and size, the two pickers, and the license warning">
+<img src="images/en-embedded-font.png" width="720" alt="The Appearance card, portfolio-identity half: the palette list headed by the portfolio’s own twelve colours, the font field with its live «Font embedded in the portfolio» status, the two embedded faces with their weight and size, the two pickers, the logo, and the single license line covering the three">
 
 The **Embedded font** zone of the same card embeds `.woff2` files — picked
 one by one or as a whole folder — INSIDE the portfolio, as data URIs. The
@@ -230,10 +283,6 @@ and the print all use the faces carried by the file — set the **Font** field
 to the family name and the status line answers «Font embedded in the
 portfolio». Sizes are capped (~400 KB per face, ~1.5 MB in total) to keep
 the portfolio portable.
-
-Embedding a font in a distributed file is redistribution — check that its
-license allows it. A font you import stays under its own rights: the MIT
-license of this software does not extend to it.
 
 To dress the deck in your organization's typography, set the **Font** field to
 your house family and embed its woff2 files here, so the deck carries its font

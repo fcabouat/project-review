@@ -23,8 +23,8 @@
  *
  * WHERE EACH RULE COMES FROM. Enumerations come from `model/`, the refined
  * scalars from `values/` (`isoDate`, `progressOf`, `isFontFamily`,
- * `isFontWeight`, `isWoff2DataUri`, `isLogo`, `isRecapRows`) — the very
- * constructors and predicates the parse calls. No rule is restated here.
+ * `isFontWeight`, `isWoff2DataUri`, `isLogo`, `isHexColor`, `isRecapRows`) —
+ * the very constructors and predicates the parse calls. No rule is restated here.
  *
  * TYPES ARE NOT THE GUARD. Every command is typed, but a hand-written command,
  * a cast at a form's edge or a replayed payload can carry anything: these
@@ -33,13 +33,13 @@
  *
  * PURE module: no Svelte/DOM import, no clock, no mutation.
  */
-import type { Category } from '../model/category'
+import type { Category, Color } from '../model/category'
 import { COLORS } from '../model/category'
 import type { Anchor, FreeSlide } from '../model/free-slide'
 import type { Identity, Portfolio, Review, Settings } from '../model/portfolio'
 import type { Decision, Milestone, Project } from '../model/project'
 import { HEALTH_LEVELS, PRIORITIES, SHEET_MODES, STAGES } from '../model/project'
-import type { EmbeddedFontFace } from '../model/theme'
+import type { CustomPalette, EmbeddedFontFace } from '../model/theme'
 import { FONT_FACE_STYLES, LANGUAGES, PALETTES, THEME_STYLES } from '../model/theme'
 import { isoDate } from '../values/date'
 import {
@@ -50,6 +50,7 @@ import {
   isWoff2DataUri,
 } from '../values/font'
 import { isLogo } from '../values/logo'
+import { isHexColor } from '../values/palette'
 import { progressOf } from '../values/progress'
 import { isRecapRows } from '../values/recap-rows'
 import { withField } from '../events/collections'
@@ -59,6 +60,10 @@ import type { Command } from './index'
 /* --------------------------- shared vocabulary --------------------------- */
 
 const isText = (x: unknown): x is string => typeof x === 'string'
+
+/** A plain object — the shape a table of colors must have before it is read. */
+const isRecord = (x: unknown): x is Record<string, unknown> =>
+  typeof x === 'object' && x !== null && !Array.isArray(x)
 
 /** A non-empty string — the id motif (values/ids.ts) and the parse's `emptyId`. */
 const isId = (x: unknown): boolean => isText(x) && x !== ''
@@ -164,6 +169,21 @@ const validFontFaces = (faces: readonly EmbeddedFontFace[] | undefined): boolean
   return sound && total <= FONT_FACES_TOTAL_MAX_CHARS
 }
 
+/** The portfolio's own palette — `undefined` is "it carries none". The table
+ * is judged EXHAUSTIVE, exactly as the parse judges it: the twelve names of
+ * the domain, no more and no less, each an exact `#rrggbb`. */
+const validCustomPalette = (palette: CustomPalette | undefined): boolean => {
+  if (palette === undefined) return true
+  if (typeof palette !== 'object' || palette === null) return false
+  if (!absentOr(palette.label, isText)) return false
+  const colors: unknown = palette.colors
+  if (!isRecord(colors)) return false
+  return (
+    Object.keys(colors).length === COLORS.length &&
+    COLORS.every((name: Color) => isText(colors[name]) && isHexColor(colors[name] as string))
+  )
+}
+
 const validIdentity = (i: Identity): boolean =>
   isText(i?.org) &&
   isText(i.unit) &&
@@ -186,6 +206,7 @@ const validSettings = (s: Settings): boolean =>
   isText(s.theme.font) &&
   isFontFamily(s.theme.font) &&
   validFontFaces(s.theme.fontFaces) &&
+  validCustomPalette(s.theme.customPalette) &&
   typeof s.show?.healthDashboard === 'boolean' &&
   typeof s.show.recap === 'boolean' &&
   typeof s.show.archives === 'boolean' &&
@@ -234,6 +255,8 @@ const validSetting = (c: ChangeSetting): boolean => {
       return isText(c.after) && isFontFamily(c.after)
     case 'fontFaces':
       return validFontFaces(c.after)
+    case 'customPalette':
+      return validCustomPalette(c.after)
     case 'recapRows':
       return typeof c.after === 'number' && isRecapRows(c.after)
     case 'healthDashboard':

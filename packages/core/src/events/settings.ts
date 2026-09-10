@@ -31,6 +31,9 @@ export type SettingValues = Settings['show'] & {
   readonly font: Settings['theme']['font']
   /** `undefined` = none embedded — writing it back ERASES the key (apply). */
   readonly fontFaces: Settings['theme']['fontFaces']
+  /** `undefined` = the portfolio carries no palette of its own — writing it
+   * back ERASES the key (apply), so the chosen family takes over again. */
+  readonly customPalette: Settings['theme']['customPalette']
   readonly recapRows: Settings['recapRows']
 }
 
@@ -45,6 +48,7 @@ export const SETTING_KEYS = [
   'palette',
   'font',
   'fontFaces',
+  'customPalette',
   'healthDashboard',
   'recap',
   'archives',
@@ -63,6 +67,7 @@ export const settingValue = <K extends SettingKey>(s: Settings, key: K): Setting
     palette: s.theme.palette,
     font: s.theme.font,
     fontFaces: s.theme.fontFaces,
+    customPalette: s.theme.customPalette,
     ...s.show,
     recapRows: s.recapRows,
   }

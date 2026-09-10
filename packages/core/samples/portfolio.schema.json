@@ -7,6 +7,11 @@
   "additionalProperties": false,
   "required": ["version", "review", "settings", "categories", "projects", "freeSlides"],
   "definitions": {
+    "paletteColor": {
+      "type": "string",
+      "pattern": "^#[0-9a-fA-F]{6}$",
+      "description": "Exact six-digit hexadecimal — the shape the parse and the editor's commands both enforce (core values/palette.ts)"
+    },
     "isoDate": {
       "type": "string",
       "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
@@ -152,11 +157,11 @@
           "additionalProperties": false,
           "properties": {
             "style": {
-              "enum": ["flat", "institutional"],
+              "enum": ["flat", "institutional", "modern"],
               "default": "flat"
             },
             "palette": {
-              "enum": ["tailwind", "material"],
+              "enum": ["material", "tailwind", "uniform"],
               "default": "material"
             },
             "font": {
@@ -190,6 +195,50 @@
                     "type": "string",
                     "pattern": "^data:font\\/woff2;base64,[A-Za-z0-9+/]+={0,2}$",
                     "maxLength": 550000
+                  }
+                }
+              }
+            },
+            "customPalette": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["colors"],
+              "description": "The twelve category colours carried BY THE PORTFOLIO instead of chosen among the built-in families — it takes precedence over \"palette\" for as long as it is there. The table is exhaustive: the twelve names of the domain, no more and no less.",
+              "properties": {
+                "label": {
+                  "type": "string",
+                  "description": "What to call it in the interface; absent → a generic label"
+                },
+                "colors": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "blue",
+                    "indigo",
+                    "teal",
+                    "cyan",
+                    "green",
+                    "olive",
+                    "amber",
+                    "orange",
+                    "red",
+                    "purple",
+                    "brown",
+                    "taupe"
+                  ],
+                  "properties": {
+                    "blue": { "$ref": "#/definitions/paletteColor" },
+                    "indigo": { "$ref": "#/definitions/paletteColor" },
+                    "teal": { "$ref": "#/definitions/paletteColor" },
+                    "cyan": { "$ref": "#/definitions/paletteColor" },
+                    "green": { "$ref": "#/definitions/paletteColor" },
+                    "olive": { "$ref": "#/definitions/paletteColor" },
+                    "amber": { "$ref": "#/definitions/paletteColor" },
+                    "orange": { "$ref": "#/definitions/paletteColor" },
+                    "red": { "$ref": "#/definitions/paletteColor" },
+                    "purple": { "$ref": "#/definitions/paletteColor" },
+                    "brown": { "$ref": "#/definitions/paletteColor" },
+                    "taupe": { "$ref": "#/definitions/paletteColor" }
                   }
                 }
               }

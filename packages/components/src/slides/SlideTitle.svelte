@@ -7,7 +7,8 @@
    *
    * Layout lives in the utility classes (screen values, `print:` for the A4
    * transposition — 434 px column, ×0.95 type scale); the stylesheets keep
-   * the colors and the flat composition.
+   * the colors and the flat composition. `modern` reuses this composition
+   * and restyles it from its own sheet — no third arm.
    */
   import type { Portfolio } from '@project-review/core/model/portfolio'
   import { kpis } from '@project-review/core/projections'
@@ -18,6 +19,7 @@
   import './theme.css'
   import './print.css'
   import './flat.css'
+  import './modern.css'
 
   interface Props {
     readonly portfolio: Portfolio

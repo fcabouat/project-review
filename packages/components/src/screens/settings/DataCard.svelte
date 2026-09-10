@@ -103,6 +103,29 @@
   </p>
 </section>
 
+<!-- Turning the save back ON found a readable snapshot already stored: the
+     host wrote nothing and hands the choice over. Three answers, all
+     reversible — restore (undoable), keep the open document, or step back. -->
+{#if persistence?.pendingRestore}
+  <AlertDialog.Root open onOpenChange={(o) => o || persistence?.dismissRestore()}>
+    <AlertDialog.Content>
+      <AlertDialog.Header>
+        <AlertDialog.Title>{te('editor.data.restoreTitle', language)}</AlertDialog.Title>
+        <AlertDialog.Description>{te('editor.data.restoreBody', language)}</AlertDialog.Description>
+      </AlertDialog.Header>
+      <AlertDialog.Footer>
+        <AlertDialog.Cancel>{te('editor.io.cancel', language)}</AlertDialog.Cancel>
+        <Button variant="outline" onclick={() => persistence?.keepOpen()}>
+          {te('editor.data.restoreKeepOpen', language)}
+        </Button>
+        <AlertDialog.Action onclick={() => persistence?.restore()}>
+          {te('editor.data.restoreStored', language)}
+        </AlertDialog.Action>
+      </AlertDialog.Footer>
+    </AlertDialog.Content>
+  </AlertDialog.Root>
+{/if}
+
 <!-- One dialog for the four confirmations: the pending action names its own
      title and body; Confirm dispatches, anything else drops the intent. -->
 {#if pending}

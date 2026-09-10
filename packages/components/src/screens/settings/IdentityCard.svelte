@@ -1,13 +1,15 @@
 <script lang="ts">
-  /** Identity card: organization, unit and contact fields plus the inline logo import. */
+  /**
+   * Identity card: who publishes the review — organization, unit and contact.
+   * The MARK is not here: the logo is a file the portfolio CARRIES, so it
+   * lives with the other two carried assets (the palette and the embedded
+   * font faces) in the Appearance card's «portfolio identity» section.
+   */
   import type { Portfolio } from '@project-review/core/model/portfolio'
-  import { LOGO_MAX_CHARS } from '@project-review/core/services/parse'
   import type { IdentityField } from '@project-review/core/events'
   import { te } from '../../i18n'
   import FieldText from '../../editor/FieldText.svelte'
-  import { Button } from '../../commons/ui/button'
   import type { Dispatch } from '../contracts'
-  import defaultLogo from '../../assets/logo-dejavu.svg'
 
   interface Props {
     readonly portfolio: Portfolio
@@ -23,37 +25,6 @@
   /** One identity field ↔ one `ChangeIdentityField`, at blur. */
   function setIdentity(field: Exclude<IdentityField, 'logo'>, next: string | undefined): void {
     dispatch({ type: 'ChangeIdentityField', field, after: next } as never)
-  }
-
-  /* ---- inline logo (data URI in the JSON, bundled Déjà Vu fallback) ---- */
-
-  let logoInput = $state<HTMLInputElement | undefined>()
-  let logoError = $state<string | undefined>(undefined)
-
-  function importLogo(files: FileList | null): void {
-    logoError = undefined
-    const file = files?.[0]
-    if (!file) return
-    const reader = new FileReader()
-    reader.onerror = () => (logoError = te('editor.settings.logoUnreadable', language))
-    reader.onload = () => {
-      const uri = typeof reader.result === 'string' ? reader.result : undefined
-      if (!uri || !uri.startsWith('data:image/')) {
-        logoError = te('editor.settings.logoUnreadable', language)
-        return
-      }
-      if (uri.length > LOGO_MAX_CHARS) {
-        logoError = te('editor.settings.logoTooBig', language)
-        return
-      }
-      dispatch({ type: 'ChangeIdentityField', field: 'logo', after: uri })
-    }
-    reader.readAsDataURL(file)
-  }
-
-  function resetLogo(): void {
-    logoError = undefined
-    dispatch({ type: 'ChangeIdentityField', field: 'logo', after: undefined })
   }
 </script>
 
@@ -91,39 +62,4 @@
     value={identity.contact}
     commit={(v) => setIdentity('contact', v)}
   />
-
-  <div class="mt-4 flex flex-col gap-[7px]">
-    <span class="text-(--txt2) text-[12.5px] font-semibold"
-      >{te('editor.settings.logo', language)}</span
-    >
-    <div class="flex items-center gap-3.5">
-      <img
-        class="border-border h-11 w-[124px] rounded-md border bg-white object-contain object-left px-2 py-1"
-        src={identity.logo ?? defaultLogo}
-        alt=""
-      />
-      <div class="flex flex-col gap-1.5">
-        <Button variant="outline" size="sm" onclick={() => logoInput?.click()}>
-          {te('editor.settings.logoImport', language)}
-        </Button>
-        {#if identity.logo !== undefined}
-          <Button variant="outline" size="sm" onclick={resetLogo}>
-            {te('editor.settings.logoReset', language)}
-          </Button>
-        {/if}
-      </div>
-    </div>
-    <input
-      bind:this={logoInput}
-      type="file"
-      accept="image/svg+xml,image/png,image/jpeg,image/webp"
-      class="hidden"
-      onchange={(e) => importLogo(e.currentTarget.files)}
-    />
-    {#if logoError}
-      <p class="text-destructive text-[11.5px]" role="alert">{logoError}</p>
-    {:else}
-      <p class="text-muted-foreground text-[11.5px]">{te('editor.settings.logoHint', language)}</p>
-    {/if}
-  </div>
 </section>

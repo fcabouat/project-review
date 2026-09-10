@@ -21,7 +21,9 @@
    *    starting; it must not be overwritten either.
    * The snapshot is read whatever the local-save switch says: the switch
    * governs writing, and the one thing that must never happen is writing over
-   * something we could not read.
+   * something we could not read. The switch obeys the same rule on its own
+   * account — turning the save back on re-reads the storage first (see
+   * `persistence-control`), so the invariant holds at boot AND later.
    */
   import { emptyPortfolio } from '@project-review/core/data/empty-portfolio'
   import type { Language } from '@project-review/core/model/theme'
@@ -48,6 +50,7 @@
     probeFont,
     readWoff2File,
   } from '@project-review/infrastructure/fonts'
+  import { applyCustomPalette } from '@project-review/infrastructure/palette'
   import { saveStandalone } from '@project-review/infrastructure/dom-export'
   import { MediaQuery } from 'svelte/reactivity'
   import { createStore } from './bindings/runtime.svelte'
@@ -98,8 +101,6 @@
   /** The storage's verdict, read ONCE — the boot and the write guard below
    * both hang on it. No storage at all is the same case as nothing stored. */
   const snapshot: StoredSnapshot = storage ? readSnapshot(storage) : { state: 'absent' }
-  /** Kept as its own binding so the template can narrow on it. */
-  const unreadable = snapshot.state === 'unreadable' ? snapshot : undefined
 
   function initialState(): { portfolio: Portfolio; log?: History } {
     if (storage && persistEnabled && snapshot.state === 'restored') {
@@ -116,14 +117,16 @@
   const initial = initialState()
   const store = createStore(initial.portfolio, initial.log)
   const router = createRouter()
-  // Built BLOCKED when the stored snapshot could not be read: the wiring
-  // disarms every write until the recovery screen's explicit decision.
+  // The wiring receives the storage's verdict itself: built BLOCKED on an
+  // unreadable snapshot (every write disarmed until the recovery screen's
+  // explicit decision), and it re-reads the storage whenever the switch is
+  // turned back on — the same rule, at the one write path a boot cannot see.
   const persistence = createPersistenceControl(
     store,
     storage,
     persistEnabled,
     timeoutScheduler,
-    unreadable !== undefined,
+    snapshot,
   )
   const appearance = createAppearance(storage)
   const systemDark = new MediaQuery('(prefers-color-scheme: dark)')
@@ -189,9 +192,14 @@
 
   // Live palette: the category colors are CSS custom properties scoped under
   // this root attribute (`palettes.css`) — same reach as the slide style, so
-  // the editor, the slideshow and `?print` re-color together.
+  // the editor, the slideshow and `?print` re-color together. A palette the
+  // PORTFOLIO carries wins over the chosen family, as the twelve properties
+  // set inline on the same root (`applyCustomPalette`); dropping it removes
+  // them and the family applies again.
   $effect(() => {
-    document.documentElement.dataset.palette = store.present.settings.theme.palette
+    const theme = store.present.settings.theme
+    document.documentElement.dataset.palette = theme.palette
+    applyCustomPalette(theme.customPalette, document)
   })
 
   // Live <html lang>: the single artifact speaks both languages, so the
@@ -215,13 +223,13 @@
 
 {#if printMode}
   <PrintView portfolio={store.present} />
-{:else if unreadable && persistence.blocked}
+{:else if persistence.unreadable}
   <!-- Data is stored that the format refuses: the editor stays closed until
        someone decides, so no edit can start a save cycle over it. -->
   <RecoveryScreen
     language={store.present.settings.language}
-    refusal={unreadable.refusal}
-    raw={unreadable.raw}
+    refusal={persistence.unreadable.refusal}
+    raw={persistence.unreadable.raw}
     startEmpty={() => persistence.discard()}
   />
 {:else}

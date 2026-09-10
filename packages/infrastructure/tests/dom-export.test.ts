@@ -202,6 +202,40 @@ describe('theme stamp', () => {
     expect(html).toContain('<html lang="fr" data-slide-style="flat" data-palette="tailwind">')
   })
 
+  /* The portfolio's OWN palette: the live app sets its twelve colours inline
+     on <html>, which no stylesheet collection can see — so the builder emits
+     the rule itself, after the collected styles, and the exported deck keeps
+     the organization's colours whatever family `data-palette` names. */
+  it('re-emits the portfolio palette last, after the collected styles', () => {
+    const html = buildStandaloneHtml({
+      ...parts,
+      palette: 'material',
+      customPalette: {
+        label: 'House',
+        colors: {
+          blue: '#3460d8',
+          indigo: '#7a4ecf',
+          teal: '#017661',
+          cyan: '#016770',
+          green: '#027a1f',
+          olive: '#666f02',
+          amber: '#7e5e01',
+          orange: '#a35301',
+          red: '#c52b30',
+          purple: '#a43cab',
+          brown: '#7d4e2c',
+          taupe: '#6b6456',
+        },
+      },
+    })
+    expect(html).toContain(':root{--cat-blue:#3460d8;')
+    expect(html.indexOf('.reveal{color:red}')).toBeLessThan(html.indexOf('--cat-blue'))
+  })
+
+  it('emits nothing extra for a portfolio carrying no palette of its own', () => {
+    expect(buildStandaloneHtml(parts)).not.toContain('--cat-')
+  })
+
   it('omits both attributes when absent', () => {
     const html = buildStandaloneHtml({
       lang: 'en',

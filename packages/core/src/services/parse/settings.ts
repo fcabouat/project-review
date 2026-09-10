@@ -6,12 +6,14 @@
  * choice, never a fault.
  *
  * The VALUE rules this block enforces (font family, face weight, woff2 data
- * URI, inline logo, recap band) are not written here: they live in `values/`,
+ * URI, inline logo, palette color, recap band) are not written here: they live in `values/`,
  * because the commands the editor emits must obey the very same ones
  * (commands/contract.ts). Read once, judged identically on both sides.
  */
+import type { Color } from '../../model/category'
+import { COLORS } from '../../model/category'
 import type { Settings } from '../../model/portfolio'
-import type { EmbeddedFontFace } from '../../model/theme'
+import type { CustomPalette, EmbeddedFontFace } from '../../model/theme'
 import { FONT_FACE_STYLES, LANGUAGES, PALETTES, THEME_STYLES } from '../../model/theme'
 import {
   FONT_FACE_MAX_CHARS,
@@ -21,6 +23,7 @@ import {
   isWoff2DataUri,
 } from '../../values/font'
 import { LOGO_MAX_CHARS, isImageDataUri } from '../../values/logo'
+import { isHexColor } from '../../values/palette'
 import { isRecapRows } from '../../values/recap-rows'
 import type { Errors } from './json'
 import { at, bool, checkKeys, enumVal, fail, list, optStr, record, str } from './json'
@@ -30,6 +33,11 @@ import { at, bool, checkKeys, enumVal, fail, list, optStr, record, str } from '.
 // no command may produce (docs/overview.md, the memory/file contract).
 export { FONT_FACE_MAX_CHARS, FONT_FACES_TOTAL_MAX_CHARS } from '../../values/font'
 export { LOGO_MAX_CHARS } from '../../values/logo'
+
+/** Stand-in for a palette color the format refused. It never reaches a caller:
+ * the errors it travels with turn the whole read into a refusal — it exists so
+ * the parse can go on and report EVERY faulty color in one pass. */
+const PLACEHOLDER_COLOR = '#000000'
 
 /**
  * The `fontFaces` collection — `undefined` when absent OR EMPTY (absence is
@@ -96,6 +104,40 @@ function parseFontFaces(
   return faces.length === 0 ? undefined : faces
 }
 
+/**
+ * The `customPalette` block — the twelve category colors the PORTFOLIO carries
+ * itself, `undefined` when absent (the meaningful "no palette of its own"
+ * state, so an export without one stays byte-identical).
+ *
+ * The collection is EXHAUSTIVE, and that is the point: `checkKeys` demands the
+ * twelve names of the domain and refuses any thirteenth, so a palette can
+ * never leave one category silently on another family's hue. Each value is
+ * then judged by the one rule (`isHexColor`) the editor's commands are judged
+ * by. A value the format refuses is replaced by a placeholder that no caller
+ * ever sees: a non-empty error list makes the whole read a refusal.
+ */
+function parseCustomPalette(x: unknown, path: string, errors: Errors): CustomPalette | undefined {
+  const block = record(x, path, errors)
+  if (block === undefined) return undefined
+  checkKeys(block, path, ['colors'], ['label'], errors)
+  const label = optStr(block['label'], at(path, 'label'), errors)
+
+  const colorsPath = at(path, 'colors')
+  const table = record(block['colors'], colorsPath, errors)
+  if (table !== undefined) checkKeys(table, colorsPath, COLORS, [], errors)
+
+  const colors = {} as Record<Color, string>
+  for (const name of COLORS) {
+    const valuePath = at(colorsPath, name)
+    const value = str(table?.[name], valuePath, errors)
+    if (value !== undefined && !isHexColor(value)) {
+      fail(errors, valuePath, 'invalidPaletteColor', { value: value.slice(0, 16) })
+    }
+    colors[name] = value !== undefined && isHexColor(value) ? value : PLACEHOLDER_COLOR
+  }
+  return { ...(label === undefined ? {} : { label }), colors }
+}
+
 /** Parses the `settings` block, collecting every violation. */
 export function parseSettings(x: unknown, errors: Errors): Settings {
   const root = record(x, 'settings', errors)
@@ -129,8 +171,15 @@ export function parseSettings(x: unknown, errors: Errors): Settings {
   /* ---- theme (optional, defaulted) ---- */
   const themePath = at('settings', 'theme')
   const themeBlock = record(o['theme'], themePath, errors)
-  if (themeBlock)
-    checkKeys(themeBlock, themePath, [], ['style', 'palette', 'font', 'fontFaces'], errors)
+  if (themeBlock) {
+    checkKeys(
+      themeBlock,
+      themePath,
+      [],
+      ['style', 'palette', 'font', 'fontFaces', 'customPalette'],
+      errors,
+    )
+  }
   const th = themeBlock ?? {}
   const fontPath = at(themePath, 'font')
   let font = optStr(th['font'], fontPath, errors)
@@ -139,6 +188,11 @@ export function parseSettings(x: unknown, errors: Errors): Settings {
     font = undefined
   }
   const fontFaces = parseFontFaces(th['fontFaces'], at(themePath, 'fontFaces'), errors)
+  const customPalette = parseCustomPalette(
+    th['customPalette'],
+    at(themePath, 'customPalette'),
+    errors,
+  )
 
   /* ---- show (required, all four toggles) ---- */
   const showPath = at('settings', 'show')
@@ -179,9 +233,10 @@ export function parseSettings(x: unknown, errors: Errors): Settings {
       style: enumVal(th['style'], THEME_STYLES, at(themePath, 'style'), errors) ?? 'flat',
       palette: enumVal(th['palette'], PALETTES, at(themePath, 'palette'), errors) ?? 'material',
       font: font ?? 'Roboto',
-      // The key is spread in only when faces exist: an export must stay
-      // byte-identical for a portfolio that embeds nothing.
+      // The keys are spread in only when the file carried them: an export
+      // must stay byte-identical for a portfolio that carries nothing.
       ...(fontFaces === undefined ? {} : { fontFaces }),
+      ...(customPalette === undefined ? {} : { customPalette }),
     },
     show: {
       healthDashboard:

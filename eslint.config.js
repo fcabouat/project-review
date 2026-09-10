@@ -59,6 +59,8 @@ export default tseslint.config(
       'docs/api/',
       'node_modules/',
       '_site/',
+      // Local working notes and personal tools; gitignored, never published.
+      'internal/',
     ],
   },
   ...tseslint.configs.recommended,

@@ -22,7 +22,9 @@
  */
 
 import type { Portfolio } from '@project-review/core/model/portfolio'
+import type { CustomPalette } from '@project-review/core/model/theme'
 import { fontStack } from './fonts'
+import { customPaletteCss } from './palette'
 
 /* ------------------------------- pure half ------------------------------ */
 
@@ -34,6 +36,15 @@ export interface StandaloneParts {
   /** `data-palette` on `<html>` — freezes the category colors (`palettes.css`)
    * into the exported file, whatever palette the live app later switches to. */
   readonly palette?: string
+  /**
+   * The palette the portfolio carries itself
+   * (`settings.theme.customPalette`), when it has one. The live app applies
+   * its twelve colors as INLINE custom properties on `<html>`
+   * (`applyCustomPalette`), which no stylesheet collection can see — so the
+   * builder re-emits the rule itself, exactly as it does for the font, and
+   * the exported deck keeps the organization's own colors.
+   */
+  readonly customPalette?: CustomPalette
   /** `<title>` — the review's title. */
   readonly title: string
   /** All CSS, reveal's base sheet first, then the application's sheets. */
@@ -102,6 +113,10 @@ export function exportFileName(reviewDate: string | undefined): string {
  * `.rp-stage` in `slideshow.css` applies identically from `file://`.
  */
 export function buildStandaloneHtml(parts: StandaloneParts): string {
+  // Empty for a portfolio carrying no palette of its own — an export must
+  // stay byte-identical for a portfolio that carries nothing.
+  const palette = customPaletteCss(parts.customPalette)
+  const paletteRule = palette === '' ? '' : `\n${palette}`
   const styleAttr =
     parts.slideStyle === undefined ? '' : ` data-slide-style="${escapeHtml(parts.slideStyle)}"`
   const paletteAttr =
@@ -128,8 +143,9 @@ export function buildStandaloneHtml(parts: StandaloneParts): string {
 <title>${escapeHtml(parts.title)}</title>
 <style>
 ${parts.styles}
-/* Chosen font — emitted LAST so it wins over the collected theme defaults. */
-:root{--font:${escapeHtml(fontStack(parts.fontFamily ?? ''))}}
+/* Runtime root choices, emitted LAST so they win over the collected theme
+   defaults: the chosen font, then the portfolio's own palette if it has one. */
+:root{--font:${escapeHtml(fontStack(parts.fontFamily ?? ''))}}${paletteRule}
 </style>
 </head>
 <body>
@@ -367,6 +383,7 @@ export async function saveStandalone(
     lang: portfolio.settings.language,
     slideStyle: portfolio.settings.theme.style,
     palette: portfolio.settings.theme.palette,
+    customPalette: portfolio.settings.theme.customPalette,
     title: portfolio.review.title,
     styles: `${base.default}\n${styles}`,
     fontFamily: portfolio.settings.theme.font,

@@ -10,10 +10,14 @@
        which a parent's class attribute cannot address;
      - selector-driven state (zebra rows, level tones, `.late`, `.dim`).
 
-   `flat.css` restates both structure and colors under
-   `[data-slide-style='flat']` — as UNLAYERED author CSS it wins over the
-   templates' layered utilities, which is exactly the override the style swap
-   needs.
+   This sheet IS the `institutional` family — the base every other style
+   restyles. `flat.css` restates both structure and colors under
+   `[data-slide-style='flat']`, `modern.css` restates colors and surfaces
+   under `[data-slide-style='modern']` — as UNLAYERED author CSS both win over
+   the templates' layered utilities, which is exactly the override a style
+   swap needs. Anything written here that a style may want to take back must
+   therefore stay reachable: a literal colour left in a rule (the goal
+   paragraph's ink was one) is a value no theme can retune.
    ========================================================================== */
 
 :root {
