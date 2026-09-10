@@ -1,9 +1,10 @@
 /**
- * Pins the font-verdict wiring (`src/bindings/font-status.svelte.ts`): an
- * embedded family answers `embedded` without probing, the probe runs for the
- * ONE locally served family, every switch resets to `unknown`, and a stale
- * answer never overwrites a fresher watch (epoch guard) — the card must tell
- * the truth of the CURRENT family only.
+ * Pins the font-verdict wiring (`src/bindings/font-status.svelte.ts`): every
+ * family gets an answer, because every source is LOCAL and no third party is
+ * ever asked — embedded and bundled are decided outright, and ANY other
+ * family is probed, whatever its name (no family is special here). A stale
+ * answer never overwrites a fresher watch (epoch guard): the card tells the
+ * truth of the CURRENT family only.
  */
 
 import { describe, expect, it } from 'vitest'
@@ -21,20 +22,39 @@ const manualProbe = () => {
 }
 
 describe('createFontStatus', () => {
-  it('starts unknown and stays unknown for families that are not probed', () => {
+  it('answers without probing for the families the build carries', () => {
     const { probe, pending } = manualProbe()
     const wiring = createFontStatus(probe)
     expect(wiring.status).toBe('unknown')
     wiring.watch('Roboto')
-    wiring.watch('IBM Plex Sans')
+    expect(wiring.status).toBe('bundled')
+    wiring.watch('Inter')
+    expect(wiring.status).toBe('bundled')
     expect(pending).toHaveLength(0)
-    expect(wiring.status).toBe('unknown')
   })
 
-  it('probes Marianne and adopts the verdict', async () => {
+  /* No family is special any more: whichever one the portfolio names, the
+     probe is what decides — the deployment either serves it or it does not. */
+  it('probes ANY family the build does not carry, whatever its name', async () => {
     const { probe, pending } = manualProbe()
     const wiring = createFontStatus(probe)
-    wiring.watch('  Marianne  ')
+    wiring.watch('IBM Plex Sans')
+    expect(pending).toHaveLength(1)
+    pending[0]!('missing')
+    await Promise.resolve()
+    expect(wiring.status).toBe('missing')
+
+    wiring.watch('Totally Unknown', ['Some Other Face'])
+    expect(pending).toHaveLength(2)
+    pending[1]!('served')
+    await Promise.resolve()
+    expect(wiring.status).toBe('served')
+  })
+
+  it('probes the named family and adopts the verdict', async () => {
+    const { probe, pending } = manualProbe()
+    const wiring = createFontStatus(probe)
+    wiring.watch('  Atelier  ')
     expect(pending).toHaveLength(1)
     expect(wiring.status).toBe('unknown') // no flash while the browser looks
     pending[0]!('served')
@@ -42,27 +62,27 @@ describe('createFontStatus', () => {
     expect(wiring.status).toBe('served')
   })
 
-  it('answers embedded for a covered family — no probe, even for Marianne', () => {
+  it('answers embedded for a covered family — no probe at all', () => {
     const { probe, pending } = manualProbe()
     const wiring = createFontStatus(probe)
     wiring.watch('Custom Face', ['Custom Face'])
     expect(wiring.status).toBe('embedded')
     // Embedded beats the served probe: the portfolio's own faces win.
-    wiring.watch(' Marianne ', ['Marianne'])
+    wiring.watch(' Atelier ', ['Atelier'])
     expect(wiring.status).toBe('embedded')
     expect(pending).toHaveLength(0)
     // Faces for OTHER families do not cover the current one.
-    wiring.watch('Roboto', ['Marianne'])
-    expect(wiring.status).toBe('unknown')
+    wiring.watch('Roboto', ['Atelier'])
+    expect(wiring.status).toBe('bundled')
   })
 
   it('a stale probe answer never overwrites a fresher embedded verdict', async () => {
     const { probe, pending } = manualProbe()
     const wiring = createFontStatus(probe)
-    wiring.watch('Marianne')
+    wiring.watch('Atelier')
     expect(pending).toHaveLength(1)
     // The user embeds the family while the probe is still out.
-    wiring.watch('Marianne', ['Marianne'])
+    wiring.watch('Atelier', ['Atelier'])
     expect(wiring.status).toBe('embedded')
     pending[0]!('missing')
     await Promise.resolve()
@@ -72,14 +92,14 @@ describe('createFontStatus', () => {
   it('switching families resets to unknown and drops the stale answer', async () => {
     const { probe, pending } = manualProbe()
     const wiring = createFontStatus(probe)
-    wiring.watch('Marianne')
+    wiring.watch('Atelier')
     wiring.watch('Roboto') // user moved on before the probe answered
     pending[0]!('missing')
     await Promise.resolve()
-    expect(wiring.status).toBe('unknown')
+    expect(wiring.status).toBe('bundled')
 
-    // Back to Marianne: only the NEW probe's answer counts.
-    wiring.watch('Marianne')
+    // Back to the probed family: only the NEW probe's answer counts.
+    wiring.watch('Atelier')
     expect(pending).toHaveLength(2)
     pending[1]!('served')
     await Promise.resolve()

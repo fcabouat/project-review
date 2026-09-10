@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "portfolio.schema.json",
   "title": "Portfolio — project review",
-  "description": "Schema of the portfolio file (editor export \"project-review-{reviewDate}.json\", sample sets \"sample-portfolio.{fr,en}.json\"). It states the SAME closed contract the application's strict import enforces (core parse/): required keys, no unknown key, closed enumerations, bounded numbers. Three checks only the parse can express: dates must be CALENDAR-valid (the pattern here just fixes the shape), ids must be unique per collection, and the embedded font faces together must stay under 2 000 000 data-URI characters (~1.5 MB of binary).",
+  "description": "Schema of the portfolio file (editor export \"project-review-{reviewDate}.json\", sample sets \"sample-portfolio.{fr,en}.json\"). It states the SAME closed contract the application's strict import enforces (core parse/): required keys, no unknown key, closed enumerations, bounded numbers. Four checks only the parse can express: dates must be CALENDAR-valid (the pattern here just fixes the shape), ids must be unique per collection, the embedded font faces together must stay under 2 000 000 data-URI characters (~1.5 MB of binary), and categories, projects and free slides TOGETHER must not exceed 2000 entities (the per-array maxItems below states the weaker bound this schema can express).",
   "type": "object",
   "additionalProperties": false,
   "required": ["version", "review", "settings", "categories", "projects", "freeSlides"],
@@ -156,7 +156,7 @@
               "default": "flat"
             },
             "palette": {
-              "enum": ["gov", "tailwind", "material"],
+              "enum": ["tailwind", "material"],
               "default": "material"
             },
             "font": {
@@ -224,6 +224,7 @@
     },
     "categories": {
       "type": "array",
+      "maxItems": 2000,
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -243,6 +244,7 @@
     },
     "projects": {
       "type": "array",
+      "maxItems": 2000,
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -359,6 +361,7 @@
     },
     "freeSlides": {
       "type": "array",
+      "maxItems": 2000,
       "items": {
         "type": "object",
         "additionalProperties": false,

@@ -170,9 +170,10 @@ The merge is a single history entry: **Ctrl+Z** undoes it whole.
 ## Data & privacy
 
 Everything stays in the browser. There is no server and no account; nothing
-leaves the machine. The one optional network call is Google Fonts, and only
-when a font family that is neither bundled nor embedded in the portfolio is
-chosen.
+leaves the machine, and no third party is ever contacted — fonts included. The
+only requests the app can make go to its own deployment, for a font you chose
+to serve from it (see **Font** above); opened from a file, it makes none at
+all.
 
 - **Local save (localStorage)** — on by default. The database and the
   undo/redo history survive a page reload. Turning it off erases the stored
@@ -202,13 +203,16 @@ a desktop simply stays the more comfortable place to edit.
   device, stored outside the portfolio file: the editor chrome flips, the
   slides stay light (they are the artifact). The same three states sit in
   the top bar's scheme menu, next to the language menu.
-- **Palette** — Material (default), Tailwind or Gov.
-- **Font** — Roboto ships inside the app and is the default. A font embedded
-  in the portfolio (see below) always wins. Marianne is used when its font
-  files are deployed next to the app; with «Marianne» in the field, the card
-  lists the expected files and shows a live status — embedded, served, or
-  not found and falling back to the system stack. Any other Google Fonts
-  family name loads from the network when one is available.
+- **Palette** — Material (default) or Tailwind.
+- **Font** — Roboto and Inter ship inside the app; Roboto is the default. No
+  font is ever fetched from a third party, so a family comes from one of three
+  local sources, and the card's live status says which one applies: embedded in
+  the portfolio (see below — it always wins), shipped with the app, or served
+  by the deployment. For that last one, drop the woff2 into a folder named
+  after the family beside the app — `fonts/<family>/<family>-Regular.woff2`,
+  `…-Medium.woff2`, `…-Bold.woff2` — and the card names the exact files it
+  looked for. A family none of the three covers renders on the system stack,
+  and the card says so rather than leaving you to notice.
 - **Language** — French or English; switching redraws the app at runtime. The
   language can also be switched from the top bar's language menu.
 
@@ -218,7 +222,7 @@ a desktop simply stays the more comfortable place to edit.
 
 The **Embedded font** zone of the same card embeds `.woff2` files — picked
 one by one or as a whole folder — INSIDE the portfolio, as data URIs. The
-variant of each file is read from its name (`Marianne-Regular.woff2` → 400,
+variant of each file is read from its name (`Atelier-Regular.woff2` → 400,
 `…-Medium` → 500–600, `…-Bold` → 700–800, `…Italic` → italic), each face is
 listed with its family, weight and size, and can be removed. An embedded
 family needs no deployment and no network: the app, the standalone export
@@ -228,8 +232,9 @@ portfolio». Sizes are capped (~400 KB per face, ~1.5 MB in total) to keep
 the portfolio portable.
 
 Embedding a font in a distributed file is redistribution — check that its
-license allows it (Marianne is reserved for French-State use).
+license allows it. A font you import stays under its own rights: the MIT
+license of this software does not extend to it.
 
-To brand the deck for a French administration, pick the Gov palette and the
-Marianne font here — and embed the Marianne woff2 files if your organization
-may use them, so the deck carries its font everywhere.
+To dress the deck in your organization's typography, set the **Font** field to
+your house family and embed its woff2 files here, so the deck carries its font
+everywhere it travels.

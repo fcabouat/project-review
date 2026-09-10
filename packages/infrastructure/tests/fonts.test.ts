@@ -1,20 +1,22 @@
 /**
- * Pins the font service (`src/fonts.ts`) — safe stack building, the
- * bundled-vs-Google family split, and the idempotent link injection on a fake
- * document.
+ * Pins the font service (`src/fonts.ts`) — safe stack building, the embedded
+ * `@font-face` sheet, and the promise the whole module rests on: applying a
+ * font touches the document and NOTHING else, whatever family is asked for.
  */
 import { describe, expect, it } from 'vitest'
 import type { EmbeddedFontFace } from '@project-review/core/model/theme'
 import {
+  BUNDLED_FAMILIES,
+  DEPLOYED_STYLE_ID,
   EMBEDDED_STYLE_ID,
+  applyDeployedFont,
   applyEmbeddedFonts,
   applyFont,
   asWoff2DataUri,
+  deployedFontFaceCss,
   embeddedFamilies,
   embeddedFontFaceCss,
-  fontLinkId,
   fontStack,
-  googleFontsUrl,
   probeFont,
 } from '../src/fonts'
 
@@ -23,38 +25,47 @@ describe('font service', () => {
     expect(fontStack('Roboto')).toBe("'Roboto', 'Inter', 'Segoe UI', system-ui, sans-serif")
     expect(fontStack('  ')).toBe("'Roboto', 'Inter', 'Segoe UI', system-ui, sans-serif")
     expect(fontStack('Inter')).toBe("'Inter', 'Roboto', 'Segoe UI', system-ui, sans-serif")
-    expect(fontStack('Marianne')).toBe(
-      "'Marianne', 'Roboto', 'Inter', 'Segoe UI', system-ui, sans-serif",
+    expect(fontStack('Atelier')).toBe(
+      "'Atelier', 'Roboto', 'Inter', 'Segoe UI', system-ui, sans-serif",
     )
     expect(fontStack('IBM Plex Sans')).toContain("'IBM Plex Sans', 'Roboto'")
     expect(fontStack('O\'Weird"Name')).toContain("'OWeirdName'") // quotes stripped, never injected
   })
 
-  it('googleFontsUrl: null for bundled families, css2 URL otherwise', () => {
-    expect(googleFontsUrl('Roboto')).toBeNull() // bundled since @fontsource/roboto
-    expect(googleFontsUrl('Inter')).toBeNull()
-    expect(googleFontsUrl('Marianne')).toBeNull()
-    expect(googleFontsUrl('IBM Plex Sans')).toBe(
-      'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700;800&display=swap',
-    )
+  it('BUNDLED_FAMILIES: exactly the woff2 this build carries', () => {
+    // @fontsource/roboto and @fontsource/inter, imported by the app's main.ts.
+    // Atelier is NOT here: it is deployed alongside, not bundled.
+    expect(BUNDLED_FAMILIES).toStrictEqual(['Roboto', 'Inter'])
   })
 
-  it('applyFont: sets the variable, injects the link once, tolerates no document', () => {
-    const links: Array<{ id: string; rel: string; href: string }> = []
+  /**
+   * THE PROMISE: a font never reaches for the network. Whatever family the
+   * portfolio names — bundled, deployed, embedded or entirely unknown —
+   * applying it sets one CSS variable and creates NO element: no `<link>`, no
+   * request, no third party told who is reading. The fake document below
+   * records every element the function would create.
+   */
+  it('applyFont: sets the variable and creates nothing, for any family', () => {
+    const created: string[] = []
+    const appended: unknown[] = []
     const vars = new Map<string, string>()
     const fake = {
       documentElement: { style: { setProperty: (k: string, v: string) => void vars.set(k, v) } },
-      getElementById: (id: string) => links.find((l) => l.id === id) ?? null,
-      createElement: () => ({ id: '', rel: '', href: '' }),
-      head: { appendChild: (l: { id: string; rel: string; href: string }) => void links.push(l) },
+      getElementById: () => null,
+      createElement: (tag: string) => {
+        created.push(tag)
+        return { id: '', rel: '', href: '' }
+      },
+      head: { appendChild: (l: unknown) => void appended.push(l) },
     } as unknown as Document
 
-    applyFont('IBM Plex Sans', fake)
-    applyFont('IBM Plex Sans', fake) // deduplicated
-    applyFont('Marianne', fake) // no fetch
-    expect(vars.get('--font')).toContain("'Marianne'")
-    expect(links).toHaveLength(1)
-    expect(links[0]!.id).toBe(fontLinkId('IBM Plex Sans'))
+    for (const family of ['IBM Plex Sans', 'Atelier', 'Roboto', 'Totally Unknown']) {
+      applyFont(family, fake)
+    }
+
+    expect(vars.get('--font')).toContain("'Totally Unknown'")
+    expect(created).toStrictEqual([])
+    expect(appended).toStrictEqual([])
     expect(() => applyFont('Anything', undefined)).not.toThrow()
   })
 
@@ -66,10 +77,10 @@ describe('font service', () => {
 
   it('probeFont: a face the load resolves is served', async () => {
     const doc = fontsDoc(
-      async () => [{ family: 'Marianne' }],
+      async () => [{ family: 'Atelier' }],
       () => true,
     )
-    await expect(probeFont('Marianne', doc)).resolves.toBe('served')
+    await expect(probeFont('Atelier', doc)).resolves.toBe('served')
   })
 
   it('probeFont: an empty load answered by check() still counts as served', async () => {
@@ -80,7 +91,7 @@ describe('font service', () => {
       async () => [],
       () => true,
     )
-    await expect(probeFont('Marianne', doc)).resolves.toBe('served')
+    await expect(probeFont('Atelier', doc)).resolves.toBe('served')
   })
 
   it('probeFont: nothing loads, check refuses — missing', async () => {
@@ -88,7 +99,7 @@ describe('font service', () => {
       async () => [],
       () => false,
     )
-    await expect(probeFont('Marianne', doc)).resolves.toBe('missing')
+    await expect(probeFont('Atelier', doc)).resolves.toBe('missing')
   })
 
   it('probeFont: a rejecting load degrades to missing, never a throw', async () => {
@@ -96,12 +107,12 @@ describe('font service', () => {
       () => Promise.reject(new Error('network')),
       () => true,
     )
-    await expect(probeFont('Marianne', doc)).resolves.toBe('missing')
+    await expect(probeFont('Atelier', doc)).resolves.toBe('missing')
   })
 
   it('probeFont: no document or no Font Loading API — unknown (no way to ask)', async () => {
-    await expect(probeFont('Marianne', undefined)).resolves.toBe('unknown')
-    await expect(probeFont('Marianne', {} as unknown as Document)).resolves.toBe('unknown')
+    await expect(probeFont('Atelier', undefined)).resolves.toBe('unknown')
+    await expect(probeFont('Atelier', {} as unknown as Document)).resolves.toBe('unknown')
   })
 
   it('probeFont: a blank family is missing by definition; quotes are stripped', async () => {
@@ -114,14 +125,14 @@ describe('font service', () => {
       () => false,
     )
     await expect(probeFont('   ', doc)).resolves.toBe('missing')
-    await probeFont('"Marianne"', doc)
-    expect(probes).toEqual(['16px "Marianne"'])
+    await probeFont('"Atelier"', doc)
+    expect(probes).toEqual(['16px "Atelier"'])
   })
 })
 
 /** One clean embedded face; `over` twists a field. */
 const face = (over: Partial<EmbeddedFontFace> = {}): EmbeddedFontFace => ({
-  family: 'Marianne',
+  family: 'Atelier',
   weight: '400',
   style: 'normal',
   dataUri: 'data:font/woff2;base64,d09GMgABAA==',
@@ -132,7 +143,7 @@ describe('embedded faces — CSS emission and precedence', () => {
   it('embeddedFontFaceCss: one @font-face per face, descriptors verbatim', () => {
     const css = embeddedFontFaceCss([face(), face({ weight: '500 600', style: 'italic' })])
     expect(css.split('\n')).toHaveLength(2)
-    expect(css).toContain("font-family:'Marianne'")
+    expect(css).toContain("font-family:'Atelier'")
     expect(css).toContain('font-weight:500 600')
     expect(css).toContain('font-style:italic')
     expect(css).toContain('font-display:swap')
@@ -151,7 +162,7 @@ describe('embedded faces — CSS emission and precedence', () => {
 
   it('embeddedFamilies: unique families of the emission-valid faces', () => {
     expect(embeddedFamilies([face(), face({ weight: '700' }), face({ family: 'Extra' })])).toEqual([
-      'Marianne',
+      'Atelier',
       'Extra',
     ])
     expect(embeddedFamilies([face({ family: '<bad>' })])).toEqual([])
@@ -194,34 +205,88 @@ describe('embedded faces — CSS emission and precedence', () => {
     expect(() => applyEmbeddedFonts([face()], undefined)).not.toThrow()
   })
 
-  it('applyFont: an embedded family never fetches Google and evicts its stale link', () => {
-    const links: Array<{ id: string; rel: string; href: string; remove: () => void }> = []
+  /**
+   * The deployment convention, and the fact that makes it GENERIC: the rules
+   * are built from the family the portfolio names — no family is written into
+   * the product, and none is privileged.
+   */
+  it('deployedFontFaceCss: three faces, built from whatever family is asked', () => {
+    const css = deployedFontFaceCss('Atelier')
+    expect(css.split('\n')).toHaveLength(3)
+    expect(css).toContain("font-family:'Atelier'")
+    expect(css).toContain('url("fonts/Atelier/Atelier-Regular.woff2")')
+    expect(css).toContain('font-weight:500 600')
+    expect(css).toContain('url("fonts/Atelier/Atelier-Bold.woff2")')
+    // RELATIVE urls: the same build works at a root, under a sub-path, or
+    // from a folder — and never points outside its own deployment.
+    expect(css).not.toContain('url("/')
+    expect(css).not.toContain('//')
+  })
+
+  it('deployedFontFaceCss: a family with spaces is percent-encoded in the path', () => {
+    const css = deployedFontFaceCss('Atelier Sans')
+    expect(css).toContain("font-family:'Atelier Sans'")
+    expect(css).toContain('url("fonts/Atelier%20Sans/Atelier%20Sans-Regular.woff2")')
+  })
+
+  it('deployedFontFaceCss: nothing for a bundled family or a name off the charset', () => {
+    // Bundled faces are already in the build: pointing at a deployment that
+    // has no such folder would only add failed requests.
+    expect(deployedFontFaceCss('Roboto')).toBe('')
+    expect(deployedFontFaceCss('Inter')).toBe('')
+    expect(deployedFontFaceCss('   ')).toBe('')
+    expect(deployedFontFaceCss("X') } body { color: red")).toBe('')
+  })
+
+  it('applyDeployedFont: installs once, replaces on change, removes when there is nothing', () => {
+    const { doc, styles } = styleDoc()
+
+    applyDeployedFont('Atelier', doc)
+    expect(styles).toHaveLength(1)
+    expect(styles[0]!.id).toBe(DEPLOYED_STYLE_ID)
+    expect(styles[0]!.textContent).toContain('fonts/Atelier/')
+
+    applyDeployedFont('Atelier', doc) // idempotent on the same family
+    expect(styles).toHaveLength(1)
+
+    applyDeployedFont('Other', doc) // replaced wholesale
+    expect(styles).toHaveLength(1)
+    expect(styles[0]!.textContent).toContain('fonts/Other/')
+
+    applyDeployedFont('Roboto', doc) // bundled — the sheet leaves
+    expect(styles).toHaveLength(0)
+    applyDeployedFont('Roboto', doc) // idempotent on the empty state
+    expect(styles).toHaveLength(0)
+    expect(() => applyDeployedFont('Atelier', undefined)).not.toThrow()
+  })
+
+  it('applyDeployedFont: a family the PORTFOLIO embeds declares nothing', () => {
+    const { doc, styles } = styleDoc()
+    // The data URIs are already the strongest source; asking the deployment
+    // for files it may not have would only add failed requests.
+    applyDeployedFont('Atelier', doc, ['Atelier'])
+    expect(styles).toHaveLength(0)
+    applyDeployedFont('  "Atelier"  ', doc, ['Atelier'])
+    expect(styles).toHaveLength(0)
+  })
+
+  it('an embedded family is served by its own sheet, and named in the stack', () => {
+    const styles: Array<{ id: string; textContent: string }> = []
     const vars = new Map<string, string>()
-    const fake = {
+    const doc = {
       documentElement: { style: { setProperty: (k: string, v: string) => void vars.set(k, v) } },
-      getElementById: (id: string) => links.find((l) => l.id === id) ?? null,
-      createElement: () => {
-        const el = {
-          id: '',
-          rel: '',
-          href: '',
-          remove: () => void links.splice(links.indexOf(el), 1),
-        }
-        return el
-      },
-      head: { appendChild: (l: (typeof links)[number]) => void links.push(l) },
+      getElementById: (id: string) => styles.find((s) => s.id === id) ?? null,
+      createElement: () => ({ id: '', textContent: '' }),
+      head: { appendChild: (s: (typeof styles)[number]) => void styles.push(s) },
     } as unknown as Document
 
-    // The family was a Google one first: a link exists…
-    applyFont('Custom Face', fake)
-    expect(links).toHaveLength(1)
-    // …then the portfolio embeds it: the link is evicted, none re-injected.
-    applyFont('Custom Face', fake, ['Custom Face'])
-    expect(links).toHaveLength(0)
+    const embedded = [face({ family: 'Custom Face' })]
+    applyEmbeddedFonts(embedded, doc)
+    applyFont('Custom Face', doc)
+
+    expect(embeddedFamilies(embedded)).toStrictEqual(['Custom Face'])
+    expect(styles[0]!.textContent).toContain("font-family:'Custom Face'")
     expect(vars.get('--font')).toContain("'Custom Face'")
-    // Covered from the start: never any link at all.
-    applyFont('Other Face', fake, ['Other Face'])
-    expect(links).toHaveLength(0)
   })
 })
 

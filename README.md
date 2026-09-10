@@ -13,6 +13,16 @@ ever edited by hand.
 
 <img src="docs/images/en-slide.png" width="720" alt="A derived project sheet slide in the flat style">
 
+## Contents
+
+- [Try it](#try-it)
+- [Highlights](#highlights)
+- [Architecture](#architecture)
+- [Quick start (from source)](#quick-start-from-source)
+- [Contributing](#contributing)
+- [Documentation](#documentation)
+- [License](#license)
+
 ## Try it
 
 - **[Live demo](https://fcabouat.github.io/project-review/demo/project-review.html?sample)** —
@@ -30,14 +40,16 @@ ever edited by hand.
 ## Highlights
 
 - **Single file, local-first** — 100 % client-side, runs from `file://`; the
-  data never leaves the browser (localStorage persistence, opt-out).
+  data never leaves the browser (localStorage persistence, opt-out), and no
+  third party is contacted for anything, fonts included.
 - **Event-sourced editing** — every change is an invertible domain event;
   undo/redo across the last 500 actions, with a business-worded history view.
 - **Multi-user without a server** — colleagues edit their own projects in
   their own copy (a partial export opens alone in the app); merging their
   contribution back is one undoable import.
 - **A pure, zero-dependency core** — the domain, its commands and its laws are
-  plain TypeScript with no runtime dependency, tested to 100 % line coverage.
+  plain TypeScript with no runtime dependency, at 100 % line coverage — measured
+  on every CI run, where the threshold fails the build.
 - **Four packages, one-way flow** — boundaries enforced twice: by the
   workspace manifests (a reverse import cannot resolve) and by per-layer
   ESLint restrictions.
@@ -59,7 +71,7 @@ ever edited by hand.
   stay light in both schemes.
 - **Print-perfect A4** — the deck prints one page per slide through the
   browser's dialog; PDF is a print, not an export pipeline.
-- **Visual contract** — 64 Storybook stories covering every slide, widget and
+- **Visual contract** — 68 Storybook stories covering every slide, widget and
   screen, including a fully playable in-memory editor.
 
 ## Architecture
@@ -104,21 +116,23 @@ bun run build    # all deliverables into dist/
 | `dist/index.html` + `assets/` + `fonts/` | Static-hosting build (module scripts, lazy chunks)  |
 | `dist/project-review.html`               | The deliverable: one multilingual single-file build |
 
-| Script              | Does                                               |
-| ------------------- | -------------------------------------------------- |
-| `bun run dev`       | Vite dev server                                    |
-| `bun run test`      | Vitest suite (four projects)                       |
-| `bun run smoke`     | Playwright smoke, `file://` + http (after a build) |
-| `bun run a11y`      | axe-core pass on the built deliverables            |
-| `bun run check`     | svelte-check + tsc, per package                    |
-| `bun run lint`      | ESLint (incl. boundary rules)                      |
-| `bun run format`    | Prettier, write mode                               |
-| `bun run knip`      | Unused files/exports/dependencies                  |
-| `bun run audit`     | Dependency vulnerability audit                     |
-| `bun run docs:api`  | TypeDoc API reference                              |
-| `bun run docs:site` | Assemble the GitHub Pages site                     |
-| `bun run build`     | Static build + single file                         |
-| `bun run storybook` | Component catalog on port 6006                     |
+| Script                  | Does                                               |
+| ----------------------- | -------------------------------------------------- |
+| `bun run dev`           | Vite dev server                                    |
+| `bun run test`          | Vitest suite (four projects)                       |
+| `bun run test:coverage` | Same suite with coverage and its thresholds        |
+| `bun run smoke`         | Playwright smoke, `file://` + http (after a build) |
+| `bun run a11y`          | axe-core pass on the built deliverables            |
+| `bun run check`         | svelte-check + tsc, per package                    |
+| `bun run lint`          | ESLint (incl. boundary rules)                      |
+| `bun run format`        | Prettier, write mode                               |
+| `bun run knip`          | Unused files/exports/dependencies                  |
+| `bun run audit`         | Dependency vulnerability audit                     |
+| `bun run docs:api`      | TypeDoc API reference                              |
+| `bun run docs:notices`  | Regenerate `THIRD-PARTY.md` from the notices table |
+| `bun run docs:site`     | Assemble the GitHub Pages site                     |
+| `bun run build`         | Static build + single file                         |
+| `bun run storybook`     | Component catalog on port 6006                     |
 
 ## Contributing
 
@@ -172,6 +186,8 @@ architecture, the three laws and where the guarantees live — and run
 - [User guide](docs/user-guide.md) · [Guide utilisateur](docs/user-guide.fr.md)
 - [portfolio.schema.json](packages/core/samples/portfolio.schema.json) — the
   published contract of the portfolio file format
+- [THIRD-PARTY.md](THIRD-PARTY.md) — the embedded third-party components and
+  their licenses (generated by `bun run docs:notices`)
 - `bun run docs:api` — `@project-review/core` API reference into `docs/api/`
 - `bun run storybook` — component catalog
 
@@ -179,7 +195,16 @@ architecture, the three laws and where the guarantees live — and run
 
 MIT — see [LICENSE](LICENSE).
 
-The `gov` palette and the institutional theme's look are inspired by the French
-State's design system (DSFR — its illustrative palette), and the Marianne
-font can be deployed alongside the app; this tool is not affiliated with or
-endorsed by the French State.
+The MIT license covers the software and the assets distributed with it. Logos,
+fonts, data and other content imported by users remain subject to their own
+rights and are not licensed under it.
+
+Third-party components embedded in the deliverable are listed with their
+licenses in [THIRD-PARTY.md](THIRD-PARTY.md) — and in the application itself,
+under **About and licenses**, so a file handed on without this repository still
+carries them.
+
+The two colour palettes are derived from the Tailwind CSS and Material Design
+colour systems, credited above with the rest; any font a deployment serves or a
+portfolio embeds is the deployer's own choice and their own licensing
+question.

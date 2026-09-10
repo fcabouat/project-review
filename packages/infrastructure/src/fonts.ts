@@ -1,41 +1,47 @@
 /**
  * Runtime font service. The portfolio carries a font family name
- * (`settings.theme.font`); this module turns it into a CSS stack on `--font`
- * and, for any family that is not bundled, loads it from Google Fonts on
- * demand. TOTAL: never throws, always leaves a valid stack.
+ * (`settings.theme.font`); this module turns it into a CSS stack on `--font`.
+ * TOTAL: never throws, always leaves a valid stack.
  *
- * Family precedence — embedded > bundled > Google:
+ * NO NETWORK, EVER. The product's promise is that nothing leaves the browser,
+ * and a font is not an exception to it: fetching a family from a third party
+ * would announce the reader's IP to that third party on every open — the one
+ * request a local-first tool must not make. So there are exactly three
+ * sources, all local, and a family outside them renders on the system stack:
  * - EMBEDDED faces (`settings.theme.fontFaces`) travel inside the portfolio
  *   as woff2 data URIs; {@link applyEmbeddedFonts} injects their `@font-face`
- *   rules into one owned `<style>`, and {@link applyFont} never emits a
- *   Google `<link>` for a family the portfolio embeds. The injected sheet is
- *   an ordinary document stylesheet, so the standalone export collects the
- *   rules with everything else (its CSP already allows `font-src data:`).
- * - Bundled families — never fetched: Roboto (the default) and Inter ship as
- *   @fontsource woff2, imported by `main.ts`; Marianne's @font-face rules
- *   live in app.css and light up only if the woff2 files are deployed under
- *   /fonts/marianne/ (the State font is not redistributed in this public
- *   repository).
- * - Anything else: one Google Fonts `<link>`, on demand.
+ *   rules into one owned `<style>`. The injected sheet is an ordinary document
+ *   stylesheet, so the standalone export collects the rules with everything
+ *   else (its CSP already allows `font-src data:`);
+ * - BUNDLED families ({@link BUNDLED_FAMILIES}) — Roboto (the default) and
+ *   Inter ship as @fontsource woff2, imported by `main.ts`;
+ * - a DEPLOYED family — ANY family, by convention: drop its woff2 under
+ *   `fonts/<family>/` next to the app and {@link applyDeployedFont} declares
+ *   the faces for it. Same-origin, under the app's own path: a deployment
+ *   serving its own files is not a third party learning who reads what.
+ * Anything else falls back to the stack — visibly: the Settings card says so
+ * ({@link probeFont} and the host's font-status wiring), so the reader is
+ * never left wondering why a family did not apply.
+ *
+ * No family is named in this module. The mechanism is generic on purpose: the
+ * product carries no house font, and whichever one an organization uses is its
+ * own affair — embedded in the portfolio, or deployed beside the app.
  */
 import type { EmbeddedFontFace } from '@project-review/core/model/theme'
 
 /** Both leading families ship in the bundle — Roboto, the default, first. */
 const FALLBACK_STACK = "'Roboto', 'Inter', 'Segoe UI', system-ui, sans-serif"
 
-/** Families that must NEVER produce a Google Fonts request. */
-const BUNDLED_FAMILIES: readonly string[] = ['Roboto', 'Inter', 'Marianne']
-
-/** Weights actually used by the slides and the editor. */
-const WEIGHTS = '400;500;600;700;800'
+/** The families this build actually carries: their woff2 files are inside the
+ * bundle, so they need neither a deployment nor a request. */
+export const BUNDLED_FAMILIES: readonly string[] = ['Roboto', 'Inter']
 
 /**
  * CSS `font-family` value for `--font`. The requested family is quoted first,
- * always backed by the full fallback stack, so a typo or an unloaded Google
- * family silently degrades to Roboto instead of a browser default. Stray
- * quotes in the input are stripped — the portfolio stores a bare name, but a
- * hand-edited JSON may quote it, and doubled quotes would void the whole
- * declaration.
+ * always backed by the full fallback stack, so a family this build does not
+ * carry degrades to Roboto instead of a browser default. Stray quotes in the
+ * input are stripped — the portfolio stores a bare name, but a hand-edited
+ * JSON may quote it, and doubled quotes would void the whole declaration.
  */
 export function fontStack(family: string): string {
   const clean = family.trim().replace(/['"]/g, '')
@@ -45,22 +51,14 @@ export function fontStack(family: string): string {
   return `'${clean}', ${FALLBACK_STACK}`
 }
 
-/** Google Fonts CSS URL — null for the bundled families (see header). */
-export function googleFontsUrl(family: string): string | null {
-  const clean = family.trim().replace(/['"]/g, '')
-  if (clean === '' || BUNDLED_FAMILIES.includes(clean)) return null
-  const encoded = encodeURIComponent(clean).replace(/%20/g, '+')
-  return `https://fonts.googleapis.com/css2?family=${encoded}:wght@${WEIGHTS}&display=swap`
-}
-
 /** Verdict of {@link probeFont}: `unknown` while probing (or when the
  * browser exposes no Font Loading API), then `served` or `missing`. */
 export type FontProbeStatus = 'unknown' | 'served' | 'missing'
 
 /**
- * Live probe of a locally SERVED face — the Settings card asks it about
- * Marianne, the one family whose files are deployed alongside the app rather
- * than bundled or fetched. `document.fonts.check()` alone would lie before
+ * Live probe of a locally SERVED face — the Settings card asks it about the
+ * family the portfolio names, whichever it is, once the deployed faces have
+ * been declared. `document.fonts.check()` alone would lie before
  * any load attempt (an unloaded but declared face reports unavailable, and
  * nothing has reason to load a face nobody displays yet), so the probe first
  * FORCES a targeted load, then asks. TOTAL: any refusal — rejected load,
@@ -85,14 +83,6 @@ export async function probeFont(
   } catch {
     return 'missing'
   }
-}
-
-/** Stable element id so the same family is never loaded twice. */
-export function fontLinkId(family: string): string {
-  return `rp-font-${family
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')}`
 }
 
 /* --------------------------- embedded faces ---------------------------- */
@@ -218,43 +208,94 @@ export function applyEmbeddedFonts(
   doc.head.appendChild(style)
 }
 
+/* -------------------------- deployed family ---------------------------- */
+
+/** The one `<style>` element that owns the DEPLOYED family's rules. */
+export const DEPLOYED_STYLE_ID = 'rp-deployed-font'
+
 /**
- * Applies the portfolio's font to the live document: sets the inline `--font`
- * on `<html>` (which is why the export must re-emit that rule — see
- * `StandaloneParts.fontFamily`), then, for a non-bundled family, injects ONE
- * Google Fonts `<link>` (deduplicated by {@link fontLinkId}, skipped offline).
- * Safe to call on every settings change and outside a browser (`doc`
- * undefined → no-op). The stack lands synchronously; the fetched face only
- * upgrades rendering when it arrives.
- *
- * `embedded` lists the families the portfolio embeds ({@link embeddedFamilies}):
- * a covered family never produces a Google request — embedded wins over the
- * network — and any `<link>` a previous choice injected for it is removed, so
- * the data-URI faces are the only source left.
+ * The deployment convention, and the whole of it: a family is served by
+ * dropping its woff2 into a folder named after it, beside the app —
+ * `fonts/<family>/<family>-Regular.woff2` and its two siblings. The three
+ * variants cover the weights the slides and the editor use, and they are the
+ * SAME mapping the editor's file picker proposes (`font-files.ts`), so a
+ * portfolio embedding those three files behaves exactly like a deployment
+ * serving them.
  */
-export function applyFont(
+export const DEPLOYED_VARIANTS: readonly (readonly [variant: string, weight: string])[] = [
+  ['Regular', '400'],
+  ['Medium', '500 600'],
+  ['Bold', '700 800'],
+]
+
+/**
+ * The `@font-face` rules that let a DEPLOYED family light up, as one CSS
+ * string — pure and TOTAL. Empty for a family this build already carries
+ * (bundled faces need no deployment) or for a name outside the charset.
+ *
+ * The URLs are RELATIVE: the app resolves them against its own document, so
+ * the same build works at a domain root, under a sub-path, or from a folder —
+ * and never points anywhere but at its own deployment.
+ */
+export function deployedFontFaceCss(family: string): string {
+  const clean = family.trim().replace(/['"]/g, '')
+  if (!SAFE_FAMILY.test(clean) || BUNDLED_FAMILIES.includes(clean)) return ''
+  const dir = encodeURIComponent(clean)
+  return DEPLOYED_VARIANTS.map(
+    ([variant, weight]) =>
+      `@font-face{font-family:'${clean}';font-weight:${weight};` +
+      `font-style:normal;font-display:swap;` +
+      `src:url("fonts/${dir}/${dir}-${variant}.woff2") format('woff2')}`,
+  ).join('\n')
+}
+
+/**
+ * Declares the deployed faces of the current family into the live document:
+ * ONE owned `<style>`, replaced wholesale on change, removed when there is
+ * nothing to declare. Safe to call on every settings change and outside a
+ * browser (`doc` undefined → no-op).
+ *
+ * `embedded` lists the families the portfolio carries itself
+ * ({@link embeddedFamilies}): a covered family declares NOTHING here — its
+ * data URIs are already the strongest source, and pointing at a deployment
+ * that may not have the files would only add failed requests.
+ */
+export function applyDeployedFont(
   family: string,
   doc: Document | undefined = typeof document === 'undefined' ? undefined : document,
   embedded: readonly string[] = [],
 ): void {
   if (!doc) return
-  doc.documentElement.style.setProperty('--font', fontStack(family))
-  if (embedded.includes(family.trim().replace(/['"]/g, ''))) {
-    doc.getElementById(fontLinkId(family))?.remove()
+  const clean = family.trim().replace(/['"]/g, '')
+  const css = embedded.includes(clean) ? '' : deployedFontFaceCss(clean)
+  const existing = doc.getElementById(DEPLOYED_STYLE_ID)
+  if (css === '') {
+    existing?.remove()
     return
   }
-  const url = googleFontsUrl(family)
-  if (url === null) return
-  // Offline (or file:// without network): don't even try — the fallback stack
-  // is already in place and an attempted fetch would only litter the console.
-  if (typeof navigator !== 'undefined' && navigator.onLine === false) return
-  const id = fontLinkId(family)
-  if (doc.getElementById(id) !== null) return
-  const link = doc.createElement('link')
-  link.id = id
-  link.rel = 'stylesheet'
-  link.href = url
-  // A family that fails to load must not leave a poisoned dedup entry behind.
-  link.onerror = () => link.remove()
-  doc.head.appendChild(link)
+  if (existing !== null) {
+    if (existing.textContent !== css) existing.textContent = css
+    return
+  }
+  const style = doc.createElement('style')
+  style.id = DEPLOYED_STYLE_ID
+  style.textContent = css
+  doc.head.appendChild(style)
+}
+
+/**
+ * Applies the portfolio's font to the live document: sets the inline `--font`
+ * on `<html>` (which is why the export must re-emit that rule — see
+ * `StandaloneParts.fontFamily`). That is the WHOLE of it — no request, no
+ * injected `<link>`, nothing to wait for: the stack lands synchronously, and a
+ * family neither bundled, embedded nor deployed simply renders on the
+ * fallback. Safe to call on every settings change and outside a browser
+ * (`doc` undefined → no-op).
+ */
+export function applyFont(
+  family: string,
+  doc: Document | undefined = typeof document === 'undefined' ? undefined : document,
+): void {
+  if (!doc) return
+  doc.documentElement.style.setProperty('--font', fontStack(family))
 }

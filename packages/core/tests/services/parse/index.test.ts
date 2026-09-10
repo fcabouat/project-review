@@ -11,6 +11,7 @@ import rawEn from '../../../samples/sample-portfolio.en.json'
 import schema from '../../../samples/portfolio.schema.json'
 import {
   IMPORT_MAX_CHARS,
+  MAX_ENTITIES,
   PARSE_ERROR_CODES,
   parsePortfolio,
   readPortfolioJson,
@@ -298,7 +299,7 @@ describe('refusal — values', () => {
     expect(faults(parsePortfolio(rawPortfolio({ settings: settings('A'.repeat(65)) })))).toEqual([
       'settings.theme.font invalidFont',
     ])
-    // Real-world names pass: spaces, digits, hyphens are the Google Fonts idiom.
+    // Real-world names pass: spaces, digits and hyphens are the web idiom.
     const ok = parsePortfolio(rawPortfolio({ settings: settings('Noto Sans JP') }))
     if (!ok.ok) throw new Error(JSON.stringify(ok.errors))
     expect(ok.portfolio.settings.theme.font).toBe('Noto Sans JP')
@@ -332,13 +333,13 @@ describe('refusal — values', () => {
 
   const themed = (fontFaces: unknown) => ({
     identity: { org: 'a', unit: 'b' },
-    theme: { font: 'Marianne', fontFaces },
+    theme: { font: 'Atelier', fontFaces },
     show: { healthDashboard: true, recap: true, archives: true, decisions: true },
     recapRows: 11,
   })
   /** A clean face — `n` sizes the base64 payload. */
   const face = (over: Record<string, unknown> = {}, n = 8) => ({
-    family: 'Marianne',
+    family: 'Atelier',
     weight: '400',
     style: 'normal',
     dataUri: `data:font/woff2;base64,${'A'.repeat(n)}`,
@@ -350,7 +351,7 @@ describe('refusal — values', () => {
       rawPortfolio({
         settings: themed([
           face(),
-          { family: 'Marianne', dataUri: 'data:font/woff2;base64,d09GMg==' },
+          { family: 'Atelier', dataUri: 'data:font/woff2;base64,d09GMg==' },
           face({ weight: '500 600', style: 'italic' }),
         ]),
       }),
@@ -358,7 +359,7 @@ describe('refusal — values', () => {
     if (!r.ok) throw new Error(JSON.stringify(r.errors))
     expect(r.portfolio.settings.theme.fontFaces).toHaveLength(3)
     expect(r.portfolio.settings.theme.fontFaces![1]).toEqual({
-      family: 'Marianne',
+      family: 'Atelier',
       weight: '400',
       style: 'normal',
       dataUri: 'data:font/woff2;base64,d09GMg==',
@@ -442,7 +443,7 @@ describe('refusal — values', () => {
   })
 
   it('refuses a non-array fontFaces value', () => {
-    expect(faults(parsePortfolio(rawPortfolio({ settings: themed('Marianne.woff2') })))).toEqual([
+    expect(faults(parsePortfolio(rawPortfolio({ settings: themed('Atelier.woff2') })))).toEqual([
       'settings.theme.fontFaces wrongType',
     ])
   })
@@ -487,6 +488,50 @@ describe('refusal — rows and slides', () => {
     expect(readPortfolioJson('{ not json')).toEqual({ ok: false, refusal: 'badJson' })
     const r = readPortfolioJson(JSON.stringify(rawPortfolio()))
     expect(r.ok).toBe(true)
+  })
+
+  /**
+   * The entity ceiling. The byte cap does not bound this: 10 MB of JSON holds
+   * thousands of projects, each of which derives a slide — and the application
+   * measurably stops answering well before the byte cap is reached.
+   */
+  it('refuses more entities than the application can carry, counting the three collections together', () => {
+    const many = (n: number) =>
+      Array.from({ length: n }, (_, i) => rawProject({ id: `P-${i}`, name: `P${i}` }))
+
+    const justUnder = parsePortfolio(rawPortfolio({ projects: many(MAX_ENTITIES - 1) }))
+    expect(justUnder.ok).toBe(true)
+
+    const justOver = parsePortfolio(rawPortfolio({ projects: many(MAX_ENTITIES + 1) }))
+    expect(justOver.ok).toBe(false)
+    if (justOver.ok) throw new Error('expected a refusal')
+    // ONE error, and nothing else: the point of counting first is that the
+    // elements are never walked, so no per-element report can exist.
+    expect(justOver.errors).toEqual([
+      {
+        path: '',
+        code: 'tooManyEntities',
+        params: { max: String(MAX_ENTITIES), count: String(MAX_ENTITIES + 1) },
+      },
+    ])
+  })
+
+  it('the ceiling counts categories and free slides too, not projects alone', () => {
+    const half = Math.floor(MAX_ENTITIES / 2)
+    const categories = Array.from({ length: half }, (_, i) => ({
+      id: `c-${i}`,
+      name: `C${i}`,
+      color: 'blue' as const,
+    }))
+    const slides = Array.from({ length: half + 1 }, (_, i) => ({
+      id: `s-${i}`,
+      title: `S${i}`,
+      anchor: { type: 'closing' as const },
+      blocks: [['line']],
+    }))
+    const r = parsePortfolio(rawPortfolio({ categories, freeSlides: slides, projects: [] }))
+    expect(r.ok).toBe(false)
+    if (!r.ok) expect(r.errors[0]?.code).toBe('tooManyEntities')
   })
 
   it('accepts an empty milestone label and an empty free-slide title — the display owns the dash', () => {

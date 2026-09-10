@@ -1,12 +1,12 @@
 /**
  * File-name → embedded-face mapping for the font picker (Settings ▸
  * Appearance): the variant of a picked .woff2 is read from its NAME — the
- * web's own naming idiom (`Marianne-Bold.woff2`, `Inter_Italic.woff2`), and
- * exactly the files the Marianne deployment hint already names. No byte is
+ * web's own naming idiom (`Atelier-Bold.woff2`, `Inter_Italic.woff2`), and
+ * exactly the files the deployment convention already names. No byte is
  * ever inspected here: the infrastructure's reader validates the payload, this
  * module only proposes `family`, `weight` and `style` for the user's pick.
  *
- * Weight table — deliberately mirroring the served-Marianne mapping the
+ * Weight table — deliberately mirroring the DEPLOYED-family mapping the
  * Settings card documents (Regular → 400, Medium → 500–600, Bold → 700–800):
  * a portfolio that embeds those three files behaves exactly like a deployment
  * that serves them. Variants LIGHTER than 400 map to 400: the slides use

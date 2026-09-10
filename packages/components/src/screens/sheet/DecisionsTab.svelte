@@ -25,13 +25,28 @@
     setDecisions(project.decisions.map((d, i) => (i === index ? { ...d, ...patch } : d)))
   }
 
+  /** Refusal line of the outcome date, per decision index — a date the format
+   * refuses is SAID, not swallowed into a silently unsettled outcome. */
+  let whenErrors = $state<Record<number, string | undefined>>({})
+
   /** `taken` is present or absent — never `{ text: '', when: '' }`:
    * the outcome settles only once BOTH the text and a valid date are there. */
   function patchOutcome(index: number, patch: { text?: string; when?: string }): void {
     const current = project.decisions[index]
     if (!current) return
     const text = patch.text ?? current.taken?.text ?? ''
-    const when = isoDate(patch.when ?? current.taken?.when ?? '')
+    const rawWhen = patch.when ?? current.taken?.when ?? ''
+    const when = isoDate(rawWhen)
+    // A non-empty date the calendar refuses is a mistake to show, not a
+    // reason to quietly unsettle the decision (same wording as the parse).
+    if (rawWhen !== '' && when === undefined) {
+      whenErrors = {
+        ...whenErrors,
+        [index]: te('editor.error.invalidDate', language, { value: rawWhen }),
+      }
+      return
+    }
+    whenErrors = { ...whenErrors, [index]: undefined }
     const taken = text !== '' && when !== undefined ? { text, when } : undefined
     setDecisions(project.decisions.map((d, i) => (i === index ? { ...d, taken } : d)))
   }
@@ -95,6 +110,7 @@
             label={te('editor.sheet.takenWhen', language)}
             value={decision.taken?.when}
             placeholder={te('editor.review.dateHint', language)}
+            error={whenErrors[index]}
             commit={(v) => patchOutcome(index, { when: v ?? '' })}
           />
         </div>

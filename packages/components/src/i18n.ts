@@ -62,6 +62,27 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
   'editor.about.author': { fr: 'François Cabouat', en: 'François Cabouat' },
   'editor.about.mail': { fr: 'francois.cabouat@gmail.com', en: 'francois.cabouat@gmail.com' },
 
+  /* ---- About screen (`#/about`) — the notices travel with the artifact ---- */
+  'editor.nav.about': { fr: 'À propos et licences', en: 'About and licenses' },
+  'editor.about.product': { fr: 'Le logiciel', en: 'The software' },
+  'editor.about.pitch': {
+    fr: `Une application de revue de portefeuille projets en un seul fichier HTML${NBSP}: pas de serveur, pas d'installation, les données ne quittent pas le navigateur.`,
+    en: 'A project-portfolio review application in a single HTML file: no server, no install, the data never leaves the browser.',
+  },
+  'editor.about.license': { fr: 'Licence', en: 'License' },
+  'editor.about.licenseMit': {
+    fr: 'Ce logiciel est distribué sous licence MIT.',
+    en: 'This software is distributed under the MIT license.',
+  },
+  'editor.about.thirdParty': {
+    fr: 'Composants tiers embarqués',
+    en: 'Embedded third-party components',
+  },
+  'editor.about.thirdPartyLead': {
+    fr: `Ce fichier embarque le code et les polices ci-dessous. Chaque licence a été relevée dans le paquet réellement installé${NBSP}; les textes de licence restent en anglais, tels quels.`,
+    en: 'This file embeds the code and typefaces below. Each license was read from the package actually installed; the license texts are kept in English, verbatim.',
+  },
+
   'editor.topbar.undo': { fr: 'Annuler', en: 'Undo' },
   'editor.topbar.redo': { fr: 'Rétablir', en: 'Redo' },
   'editor.topbar.language': { fr: "Langue de l'application", en: 'Application language' },
@@ -152,7 +173,6 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
   'editor.value.fontFaces': { fr: '{n} fonte(s)', en: '{n} face(s)' },
   'editor.value.pct': { fr: `{n}${NBSP}%`, en: `{n}${NBSP}%` },
   'editor.palette.tailwind': { fr: 'Tailwind', en: 'Tailwind' },
-  'editor.palette.gov': { fr: 'Gov', en: 'Gov' },
   'editor.palette.material': { fr: 'Material', en: 'Material' },
   'editor.sheetMode.auto': {
     fr: 'Auto — slide de détail affichée si le projet est prêt, en cours ou en reliquats, ou s’il porte une décision attendue',
@@ -251,32 +271,39 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
   },
   'editor.settings.add': { fr: '+ Ajouter', en: '+ Add' },
   'editor.settings.newCategory': { fr: 'Nouvelle catégorie', en: 'New category' },
+  /* No family is ever fetched, so the hint names the three LOCAL sources and
+     the fallback — the card's live verdict then says which one applies. */
   'editor.settings.fontHint': {
-    fr: `«${NBSP}Marianne${NBSP}» (servie si déployée à côté${NBSP}; jamais téléchargée) ou toute famille Google Fonts — défaut${NBSP}: Roboto.`,
-    en: '"Marianne" (served if deployed alongside; never fetched) or any Google Fonts family — default: Roboto.',
+    fr: `Roboto ou Inter (fournies)${NBSP}; toute autre famille déployée à côté de l'application, ou embarquée ci-dessous. Aucune police n'est téléchargée auprès d'un tiers.`,
+    en: 'Roboto or Inter (shipped); any other family deployed beside the app, or embedded below. No font is ever fetched from a third party.',
   },
-  /* Marianne only: the expected deployment files, then the LIVE verdict of
-     the host's document.fonts probe (screens/contracts, `FontStatus`). */
-  'editor.settings.marianneFiles': {
-    fr: `Fichiers attendus sous fonts/marianne/${NBSP}: Marianne-Regular.woff2 (400), Marianne-Medium.woff2 (500–600), Marianne-Bold.woff2 (700–800).`,
-    en: 'Expected files under fonts/marianne/: Marianne-Regular.woff2 (400), Marianne-Medium.woff2 (500–600), Marianne-Bold.woff2 (700–800).',
+  /* The deployment convention, with the CURRENT family in it — so a «not
+     found» verdict says exactly which files are missing and where. */
+  'editor.settings.deployedFiles': {
+    fr: `Fichiers attendus sous fonts/{family}/${NBSP}: {family}-Regular.woff2 (400), {family}-Medium.woff2 (500–600), {family}-Bold.woff2 (700–800).`,
+    en: 'Expected files under fonts/{family}/: {family}-Regular.woff2 (400), {family}-Medium.woff2 (500–600), {family}-Bold.woff2 (700–800).',
   },
   'editor.settings.fontProbe.unknown': {
     fr: 'Vérification de la police…',
     en: 'Checking the font…',
   },
   'editor.settings.fontProbe.served': {
-    fr: 'Marianne servie par ce déploiement.',
-    en: 'Marianne is served by this deployment.',
+    fr: `«${NBSP}{family}${NBSP}» servie par ce déploiement.`,
+    en: '"{family}" is served by this deployment.',
   },
   'editor.settings.fontProbe.missing': {
-    fr: 'Marianne introuvable — repli sur la pile système.',
-    en: 'Marianne not found — falling back to the system stack.',
+    fr: `«${NBSP}{family}${NBSP}» introuvable ici — repli sur la pile système. Embarquez ses .woff2 ci-dessous pour qu'elle voyage avec le portefeuille.`,
+    en: '"{family}" not found here — falling back to the system stack. Embed its .woff2 below to make it travel with the portfolio.',
   },
   /* Third source of the live verdict: the portfolio itself embeds the faces. */
   'editor.settings.fontProbe.embedded': {
     fr: 'Police embarquée dans le portefeuille.',
     en: 'Font embedded in the portfolio.',
+  },
+  /* Second source: the family ships inside this build (no deployment needed). */
+  'editor.settings.fontProbe.bundled': {
+    fr: `Police fournie avec l'application.`,
+    en: 'Font shipped with the application.',
   },
   /* ---- embedded font faces (Settings ▸ Appearance) ---- */
   'editor.settings.embeddedFonts': { fr: 'Police embarquée', en: 'Embedded font' },
@@ -286,10 +313,12 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
     fr: `Les fichiers .woff2 voyagent dans le .json${NBSP}: la police suit le portefeuille, export autonome compris.`,
     en: 'The .woff2 files travel inside the .json: the font follows the portfolio, standalone export included.',
   },
-  /* License line — one sober sentence: embedding = redistribution. */
+  /* License line — one sober sentence: embedding = redistribution. It says
+     the same thing as the README's IP clause and the About screen: what a
+     person imports stays under its own rights. */
   'editor.settings.embedLicense': {
-    fr: `Embarquer une police dans un fichier diffusé constitue une redistribution — vérifiez que sa licence l'autorise (Marianne${NBSP}: usage réservé à l'État).`,
-    en: 'Embedding a font in a distributed file is redistribution — check that its license allows it (Marianne: French-State use only).',
+    fr: `Embarquer une police dans un fichier diffusé constitue une redistribution — vérifiez que sa licence l'autorise. Une police importée reste soumise à ses droits propres.`,
+    en: 'Embedding a font in a distributed file is redistribution — check that its license allows it. An imported font stays under its own rights.',
   },
   'editor.settings.removeFace': { fr: 'Retirer', en: 'Remove' },
   'editor.settings.removeFaceAria': {
@@ -628,9 +657,48 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
     en: 'embedded fonts: over {max}k characters together',
   },
   'editor.error.emptyBlocks': { fr: 'au moins un bloc attendu', en: 'at least one block expected' },
+  'editor.error.tooManyEntities': {
+    fr: `{count} projets, catégories et slides au total${NBSP}: {max} au maximum (au-delà, l'application ne répond plus).`,
+    en: '{count} projects, categories and slides in total: {max} at most (beyond that the application stops responding).',
+  },
   'editor.io.errorCount': {
     fr: `{n} erreur(s) de contrat${NBSP}:`,
     en: '{n} contract error(s):',
+  },
+
+  /* The review date is the reference of every derivation (law 1): it is the
+     one date the format will not let go missing. */
+  'editor.review.dateRequired': {
+    fr: `La date de revue ne peut pas être vide${NBSP}: AAAA-MM-JJ attendu.`,
+    en: 'The review date cannot be empty: YYYY-MM-DD expected.',
+  },
+
+  /* ---- recovery screen: a stored snapshot the app could not read back ---- */
+  /* Said plainly, and in this order: what happened, that nothing was lost,
+     then the two choices — the destructive one last and never pre-selected. */
+  'editor.recovery.title': {
+    fr: 'Sauvegarde locale illisible',
+    en: 'Local backup unreadable',
+  },
+  'editor.recovery.lead': {
+    fr: `Des données sont enregistrées dans ce navigateur, mais elles ne respectent pas le format du portefeuille${NBSP}: l'application ne sait pas les ouvrir.`,
+    en: 'Data is saved in this browser, but it does not honor the portfolio format: the application cannot open it.',
+  },
+  'editor.recovery.safe': {
+    fr: `Rien n'a été effacé et rien ne sera écrit tant que vous n'aurez pas choisi ({n}${NBSP}Ko conservés).`,
+    en: 'Nothing was erased and nothing will be written until you choose ({n} KB kept).',
+  },
+  'editor.recovery.download': {
+    fr: 'Télécharger la sauvegarde',
+    en: 'Download the backup',
+  },
+  'editor.recovery.startEmpty': {
+    fr: 'Repartir d’un portefeuille vide',
+    en: 'Start from an empty portfolio',
+  },
+  'editor.recovery.startEmptyHint': {
+    fr: 'Repartir à vide efface définitivement cette sauvegarde de ce navigateur — téléchargez-la d’abord si elle compte.',
+    en: 'Starting empty erases this backup from this browser for good — download it first if it matters.',
   },
   'editor.io.cancel': { fr: 'Annuler', en: 'Cancel' },
   /* Confirm button of the destructive-action dialogs (AlertDialog). */

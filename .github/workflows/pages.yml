@@ -1,16 +1,28 @@
 name: Pages
+# Publication follows a GREEN CI on the very same commit — never a push.
+# `workflow_run` fires when the CI workflow finishes on main; the guard below
+# drops the failed runs, and the checkout pins `head_sha` so the site is built
+# from the exact tree CI validated, not from whatever main points at by then.
 on:
-  push: { branches: [main] }
+  workflow_run:
+    workflows: [CI]
+    branches: [main]
+    types: [completed]
   workflow_dispatch:
 permissions: { contents: read, pages: write, id-token: write }
 jobs:
   site:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
       - run: bun run build

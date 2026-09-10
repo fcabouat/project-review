@@ -19,7 +19,7 @@ import {
   debounce,
   loadHistory,
   loadPersistEnabled,
-  loadRaw,
+  readSnapshot,
   save,
   saveHistory,
   savePersistEnabled,
@@ -28,16 +28,19 @@ import {
 import { otherPortfolio, testPortfolio } from '../fixtures/hand-built-portfolios'
 import { createManualScheduler, createMemoryStorage } from '../fixtures/persistence-doubles'
 
-describe('save / loadRaw', () => {
+describe('save / readSnapshot', () => {
   it('makes the round trip without losing anything', () => {
     const storage = createMemoryStorage()
     const p = testPortfolio()
 
     save(storage, p)
 
-    expect(loadRaw(storage)).toStrictEqual(JSON.parse(JSON.stringify(p)))
-    // The fixture holds no non-serializable value: equality is strict.
-    expect(loadRaw(storage)).toStrictEqual(p)
+    const back = readSnapshot(storage)
+    expect(back.state).toBe('restored')
+    // `toEqual`, not `toStrictEqual`: the round trip through the FORMAT
+    // normalises an explicitly-undefined optional into an absent one — the
+    // parse's own rule (absence is the meaningful state). No value is lost.
+    if (back.state === 'restored') expect(back.portfolio).toEqual(p)
   })
 
   it('writes under the agreed key', () => {
@@ -51,25 +54,45 @@ describe('save / loadRaw', () => {
     const storage = createMemoryStorage()
     save(storage, testPortfolio())
     save(storage, otherPortfolio())
-    expect(loadRaw(storage)).toStrictEqual(otherPortfolio())
+    const back = readSnapshot(storage)
+    if (back.state !== 'restored') throw new Error('expected a restored snapshot')
+    expect(back.portfolio).toEqual(otherPortfolio())
     expect(storage.content.size).toBe(1)
   })
 
-  it('returns null when nothing is stored', () => {
-    expect(loadRaw(createMemoryStorage())).toBeNull()
+  it('says `absent` when nothing is stored — and only then', () => {
+    expect(readSnapshot(createMemoryStorage())).toStrictEqual({ state: 'absent' })
   })
 
-  it('returns null on unreadable content rather than throwing', () => {
+  /* The whole point of the three-way verdict: "stored but unreadable" can
+     never be mistaken for "nothing stored", whatever the reason — because the
+     caller that confuses them overwrites the only copy of the data. */
+  it('says `unreadable` on content that is not JSON, and hands the bytes back', () => {
     const storage = createMemoryStorage()
     storage.setItem(STORAGE_KEY, '{ this is not JSON')
-    expect(() => loadRaw(storage)).not.toThrow()
-    expect(loadRaw(storage)).toBeNull()
+    const back = readSnapshot(storage)
+    if (back.state !== 'unreadable') throw new Error('expected an unreadable snapshot')
+    expect(back.raw).toBe('{ this is not JSON')
+    expect(back.refusal).toStrictEqual({ ok: false, refusal: 'badJson' })
   })
 
-  it('validates nothing: the total parse stays with the caller', () => {
+  it('says `unreadable` on JSON the contract refuses, with the full report', () => {
     const storage = createMemoryStorage()
     storage.setItem(STORAGE_KEY, '{"version":1,"nonsense":true}')
-    expect(loadRaw(storage)).toStrictEqual({ version: 1, nonsense: true })
+    const back = readSnapshot(storage)
+    if (back.state !== 'unreadable') throw new Error('expected an unreadable snapshot')
+    expect(back.raw).toBe('{"version":1,"nonsense":true}')
+    if ('refusal' in back.refusal) throw new Error('expected a parse report')
+    expect(back.refusal.errors.length).toBeGreaterThan(0)
+  })
+
+  it('never throws, whatever sits in the storage', () => {
+    const storage = createMemoryStorage()
+    for (const junk of ['', 'null', '[]', '"text"', '0', '{']) {
+      storage.setItem(STORAGE_KEY, junk)
+      expect(() => readSnapshot(storage)).not.toThrow()
+      expect(readSnapshot(storage).state).toBe('unreadable')
+    }
   })
 })
 
@@ -328,7 +351,9 @@ describe('debounced saving (the app wiring in miniature)', () => {
 
     clock.fire()
     expect(storage.writes).toBe(1)
-    expect(loadRaw(storage)).toStrictEqual(otherPortfolio())
+    const back = readSnapshot(storage)
+    if (back.state !== 'restored') throw new Error('expected a restored snapshot')
+    expect(back.portfolio).toEqual(otherPortfolio())
   })
 
   it('rides the shared SAVE_DELAY_MS deadline', () => {

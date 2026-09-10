@@ -24,14 +24,33 @@
 
   let { project, portfolio, language, dispatch, set }: Props = $props()
 
-  /** A date field: the brand constructor decides; invalid text is ignored. */
+  /** Refusal line per date field — a refused date is SAID, not swallowed. */
+  let dateErrors = $state<Partial<Record<'start' | 'targetEnd' | 'actualEnd', string>>>({})
+  /** Index of the milestone row whose date was refused, and its reason. */
+  let milestoneDateError = $state<{ index: number; message: string } | undefined>(undefined)
+
+  /**
+   * A date field: the brand constructor decides, and a refusal is reported
+   * with the parse's own `invalidDate` wording — the format stores calendar
+   * dates only, so committing anything else would write what no reload could
+   * read.
+   */
   function commitDate(field: 'start' | 'targetEnd' | 'actualEnd', v: string | undefined): void {
     if (v === undefined) {
+      dateErrors = { ...dateErrors, [field]: undefined }
       set(field, undefined)
       return
     }
     const when = isoDate(v)
-    if (when !== undefined) set(field, when)
+    if (when === undefined) {
+      dateErrors = {
+        ...dateErrors,
+        [field]: te('editor.error.invalidDate', language, { value: v }),
+      }
+      return
+    }
+    dateErrors = { ...dateErrors, [field]: undefined }
+    set(field, when)
   }
 
   function setMilestones(after: readonly Milestone[]): void {
@@ -64,6 +83,7 @@
       label={t('sheet.start', language)}
       value={project.start}
       placeholder={te('editor.review.dateHint', language)}
+      error={dateErrors.start}
       commit={(v) => commitDate('start', v)}
     />
     <FieldText
@@ -71,6 +91,7 @@
       label={t('sheet.targetEnd', language)}
       value={project.targetEnd}
       placeholder={te('editor.review.dateHint', language)}
+      error={dateErrors.targetEnd}
       commit={(v) => commitDate('targetEnd', v)}
     />
     <FieldText
@@ -78,6 +99,7 @@
       label={t('sheet.actualEnd', language)}
       value={project.actualEnd}
       placeholder={te('editor.review.dateHint', language)}
+      error={dateErrors.actualEnd}
       commit={(v) => commitDate('actualEnd', v)}
     />
   </div>
@@ -110,15 +132,27 @@
               if (next !== entry.milestone.label) patchMilestone(entry.index, { label: next })
             }}
           />
+          <!-- A refused milestone date keeps the typed text and says why,
+               under the row: the format stores calendar dates only, and a
+               silent snap-back reads as the app eating the entry. -->
           <Input
-            class="h-8 text-[13px]"
+            class="h-8 text-[13px] aria-invalid:border-destructive"
             value={entry.milestone.date}
             placeholder={te('editor.review.dateHint', language)}
             aria-label={te('editor.sheet.milestoneDate', language)}
+            aria-invalid={milestoneDateError?.index === entry.index ? 'true' : undefined}
             onblur={(e) => {
-              const next = isoDate(e.currentTarget.value)
-              if (next === undefined) e.currentTarget.value = entry.milestone.date
-              else if (next !== entry.milestone.date) patchMilestone(entry.index, { date: next })
+              const raw = e.currentTarget.value
+              const next = isoDate(raw)
+              if (next === undefined) {
+                milestoneDateError = {
+                  index: entry.index,
+                  message: te('editor.error.invalidDate', language, { value: raw }),
+                }
+                return
+              }
+              milestoneDateError = undefined
+              if (next !== entry.milestone.date) patchMilestone(entry.index, { date: next })
             }}
           />
           <Input
@@ -150,6 +184,11 @@
             >
           </span>
         </div>
+        {#if milestoneDateError?.index === entry.index}
+          <p class="text-destructive px-0.5 pb-[7px] text-[11.5px]" role="alert">
+            {milestoneDateError.message}
+          </p>
+        {/if}
       {:else}
         <p class="text-muted-foreground pt-2 text-[11.5px]">
           {te('editor.sheet.noMilestone', language)}

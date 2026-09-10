@@ -1,7 +1,7 @@
 /**
- * Hash router — the app's five screens as addresses, zero dependency:
+ * Hash router — the app's six screens as addresses, zero dependency:
  * `#/review` (default), `#/projects`, `#/sheet/{id}`, `#/settings`,
- * `#/history`. Hash-based so the deliverable keeps working from `file://`,
+ * `#/history`, `#/about`. Hash-based so the deliverable keeps working from `file://`,
  * with the browser's own back/forward. The slideshow stays an overlay, not a
  * route (it covers the current screen and must come back to it).
  *
@@ -16,6 +16,7 @@ export type Route =
   | { readonly name: 'projects' }
   | { readonly name: 'settings' }
   | { readonly name: 'history' }
+  | { readonly name: 'about' }
   | { readonly name: 'sheet'; readonly id: string }
 
 /**
@@ -28,6 +29,7 @@ export const parseRoute = (hash: string): Route => {
   if (path === '/projects') return { name: 'projects' }
   if (path === '/settings') return { name: 'settings' }
   if (path === '/history') return { name: 'history' }
+  if (path === '/about') return { name: 'about' }
   const sheet = /^\/sheet\/([^/]+)$/.exec(path)
   if (sheet) return { name: 'sheet', id: decodeURIComponent(sheet[1]!) }
   return { name: 'review' }

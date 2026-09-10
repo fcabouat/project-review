@@ -78,12 +78,12 @@ const NEW_SETTINGS = {
   language: 'en',
   style: 'institutional',
   palette: 'material',
-  font: 'Marianne',
+  font: 'Atelier',
   // Appearance of the first embedded face: `before` is undefined on the
   // fixture portfolio, so the inverse exercises the key-erasing path too.
   fontFaces: [
     {
-      family: 'Marianne',
+      family: 'Atelier',
       weight: '400',
       style: 'normal',
       dataUri: 'data:font/woff2;base64,d09GMgABAA==',

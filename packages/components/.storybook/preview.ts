@@ -70,7 +70,6 @@ const preview: Preview = {
         items: [
           { value: 'material', title: 'Material' },
           { value: 'tailwind', title: 'Tailwind' },
-          { value: 'gov', title: 'Gov' },
         ],
         dynamicTitle: true,
       },

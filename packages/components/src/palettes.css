@@ -10,21 +10,6 @@
   --cat-grey: #757575;
 }
 
-[data-palette='gov'] {
-  --cat-blue: #417dc4; /* cumulus */
-  --cat-indigo: #465f9d; /* écume */
-  --cat-teal: #009099; /* archipel */
-  --cat-cyan: #009081; /* menthe */
-  --cat-green: #00a95f; /* émeraude */
-  --cat-olive: #68a532; /* bourgeon */
-  --cat-amber: #c3992a; /* moutarde */
-  --cat-orange: #e4794a; /* terre-battue */
-  --cat-red: #ce614a; /* tuile */
-  --cat-purple: #a558a0; /* glycine */
-  --cat-brown: #c08c65; /* caramel */
-  --cat-taupe: #bd987a; /* opéra */
-}
-
 [data-palette='tailwind'] {
   --cat-blue: #2563eb;
   --cat-indigo: #4f46e5;

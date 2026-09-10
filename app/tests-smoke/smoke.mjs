@@ -15,8 +15,11 @@
  *   `?sample` sessions fetch `dist/sample-portfolio.{fr,en}.json` from next
  *   door, exactly as the landing's « Try it » link does on Pages.
  *
- * Covered, with zero console errors tolerated anywhere (the Marianne face
- * probe never fires here — no session names that family):
+ * Covered, with zero console errors tolerated anywhere (no session names a
+ * family the deployment would have to serve, so no face request fires):
+ *   0. recovery: a stored snapshot the format refuses opens the recovery
+ *      screen instead of the editor, survives boot+reload byte for byte, comes
+ *      back verbatim on download, and is erased only on an explicit choice;
  *   1. file://: empty boot in fr AND en; `?sample` boots EMPTY, silently;
  *   2. http `?sample` boots the 20-project demo set;
  *   3. hash navigation: #/projects → #/sheet/P-01 → back;
@@ -66,6 +69,14 @@ const MIME = {
 function serve(root) {
   const server = createServer(async (request, response) => {
     const path = (request.url ?? '/').split('?')[0]
+    // A blank page on the app's ORIGIN, for seeding localStorage before the
+    // app ever runs: seeding from the app's own page would race its save
+    // debounce, which fires on navigation and would overwrite the seed.
+    if (path === '/__seed.html') {
+      response.writeHead(200, { 'content-type': 'text/html' })
+      response.end('<!doctype html><meta charset="utf-8"><title>seed</title>')
+      return
+    }
     try {
       const body = await readFile(join(root, decodeURIComponent(path)))
       response.writeHead(200, { 'content-type': MIME[extname(path)] ?? 'application/octet-stream' })
@@ -87,17 +98,17 @@ const check = (ok, label) => {
 /**
  * Console/page errors of one page, harvested as they happen.
  *
- * ONE targeted tolerance, documented: the 404 of the OPTIONAL Marianne faces
- * (`/fonts/marianne/*.woff2`, not deployed in this public repository) is
- * INHERENT to fetching an optional face — the standalone export probes those
+ * ONE targeted tolerance, documented: the 404 of a DEPLOYED family's faces
+ * (`fonts/<family>/*.woff2`, which this repository deploys for nobody) is
+ * INHERENT to serving an optional face — the standalone export probes those
  * `@font-face` URLs over http to inline them and DROPS the rule cleanly when
- * they are absent (asserted below: the exported file carries no marianne
- * URL). Everything else still fails the zero-error gate.
+ * they are absent (asserted below: the exported file carries no such URL).
+ * Everything else still fails the zero-error gate.
  */
 const watchErrors = (page, bucket) => {
   page.on('console', (message) => {
     if (message.type() !== 'error') return
-    if (message.location().url.includes('/fonts/marianne/')) return
+    if (/\/fonts\/[^/]+\/[^/]+\.woff2/.test(message.location().url)) return
     bucket.push(message.text())
   })
   page.on('pageerror', (error) => bucket.push(String(error)))
@@ -134,7 +145,8 @@ async function main() {
   })
 
   const server = await serve(ROOT)
-  const HTTP_APP = `http://127.0.0.1:${server.address().port}/dist/project-review.html`
+  const HTTP_ORIGIN = `http://127.0.0.1:${server.address().port}`
+  const HTTP_APP = `${HTTP_ORIGIN}/dist/project-review.html`
 
   // `chromiumSandbox: false`: the script must run identically on a developer
   // machine, in a container and on the CI runner.
@@ -253,8 +265,8 @@ async function main() {
       'export: no `.dark` rule embarked — the reader scheme stays with the editor',
     )
     check(
-      !html.includes('fonts/marianne'),
-      'export: the unreachable optional Marianne faces are dropped whole',
+      !/url\(["']?[^"')]*fonts\/[^"')]+\.woff2/.test(html),
+      'export: the unreachable faces of a deployed family are dropped whole',
     )
 
     // 7. closing the show RESTORES focus to the button that opened it.
@@ -299,8 +311,8 @@ async function main() {
 
     await ep.goto(`${HTTP_APP}?sample#/settings`)
     await settle(ep)
-    // Embed FIRST, then name the family: a covered family never produces a
-    // Google Fonts request (precedence embedded > bundled > Google).
+    // Embed FIRST, then name the family: a covered family declares no
+    // deployed face at all (precedence embedded > bundled > deployed).
     await ep.setInputFiles('input[accept=".woff2,font/woff2"]', FONT_FIXTURE)
     await settle(ep)
     check(
@@ -466,6 +478,74 @@ async function main() {
       `mobile: zero console errors${mobileErrors.length ? ` — ${mobileErrors[0]}` : ''}`,
     )
     await mobile.close()
+
+    /* ---- 10. RECOVERY: a stored snapshot the format refuses is never
+       overwritten. The one scenario where doing nothing is the feature: the
+       editor stays closed, every write path stays disarmed, and the bytes are
+       still there after a reload — until a person decides otherwise. ---- */
+    const CORRUPT = '{"version":3,"review":{"title":"Revue du 3 mars"},"was":"a portfolio"}'
+    const rescue = await browser.newContext({ locale: 'fr-FR' })
+    const rp = await rescue.newPage()
+    const rescueErrors = []
+    watchErrors(rp, rescueErrors)
+
+    // Seed the corrupt snapshot on the app's own origin, from a blank page:
+    // the app itself must never have run before the seed, or its own save
+    // would overwrite it on the way out.
+    await rp.goto(`${HTTP_ORIGIN}/__seed.html`)
+    await rp.evaluate((raw) => localStorage.setItem('project-review/portfolio', raw), CORRUPT)
+    await rp.goto(HTTP_APP)
+    await settle(rp)
+
+    check(
+      await rp.getByRole('heading', { name: 'Sauvegarde locale illisible' }).isVisible(),
+      'recovery: an unreadable snapshot opens the recovery screen, not the editor',
+    )
+    check(
+      (await rp.locator('nav').count()) === 0,
+      'recovery: the editor is not mounted — no edit can start a save cycle',
+    )
+    check(
+      (await rp.getByRole('button', { name: 'Télécharger la sauvegarde' }).isVisible()) &&
+        (await rp.getByRole('button', { name: /Repartir/ }).isVisible()),
+      'recovery: both choices are offered — download the backup, or start empty',
+    )
+
+    // Wait past the debounce, reload, wait again: the bytes must be untouched.
+    await rp.waitForTimeout(1500)
+    await rp.reload()
+    await settle(rp)
+    await rp.waitForTimeout(1500)
+    check(
+      (await rp.evaluate(() => localStorage.getItem('project-review/portfolio'))) === CORRUPT,
+      'recovery: the stored bytes survive the boot, the wait and a reload — byte for byte',
+    )
+
+    // The backup comes back VERBATIM, not reformatted.
+    const [rescueDownload] = await Promise.all([
+      rp.waitForEvent('download'),
+      rp.getByRole('button', { name: 'Télécharger la sauvegarde' }).click(),
+    ])
+    const rescueFile = join(downloads, `rescue-${rescueDownload.suggestedFilename()}`)
+    await rescueDownload.saveAs(rescueFile)
+    check(
+      (await readFile(rescueFile, 'utf8')) === CORRUPT,
+      'recovery: the downloaded backup is the stored bytes, unrepaired',
+    )
+
+    // The explicit decision, and only it, releases the persistence.
+    await rp.getByRole('button', { name: /Repartir/ }).click()
+    await settle(rp)
+    check((await rp.locator('nav').count()) > 0, 'recovery: « start empty » opens the editor')
+    check(
+      (await rp.evaluate(() => localStorage.getItem('project-review/portfolio'))) === null,
+      'recovery: the abandoned snapshot is erased, not overwritten in place',
+    )
+    check(
+      rescueErrors.length === 0,
+      `recovery: zero console errors${rescueErrors.length ? ` — ${rescueErrors[0]}` : ''}`,
+    )
+    await rescue.close()
   } finally {
     await browser.close()
     server.close()

@@ -1,34 +1,34 @@
 /**
  * Pins the file-name → face mapping of the font picker
- * (`src/editor/font-files.ts`): the variant table mirrors the served-Marianne
+ * (`src/editor/font-files.ts`): the variant table mirrors the deployed-family
  * files the Settings card documents, and anything unusable proposes nothing.
  */
 import { describe, expect, it } from 'vitest'
 import { faceFromFileName, faceSizeKb } from '../../src/editor/font-files'
 
 describe('faceFromFileName — the deployment idiom, read from names', () => {
-  it('maps the documented Marianne trio exactly as the served hint states', () => {
-    expect(faceFromFileName('Marianne-Regular.woff2')).toEqual({
-      family: 'Marianne',
+  it('maps the documented deployment trio exactly as the Settings hint states', () => {
+    expect(faceFromFileName('Atelier-Regular.woff2')).toEqual({
+      family: 'Atelier',
       weight: '400',
       style: 'normal',
     })
-    expect(faceFromFileName('Marianne-Medium.woff2')).toEqual({
-      family: 'Marianne',
+    expect(faceFromFileName('Atelier-Medium.woff2')).toEqual({
+      family: 'Atelier',
       weight: '500 600',
       style: 'normal',
     })
-    expect(faceFromFileName('Marianne-Bold.woff2')).toEqual({
-      family: 'Marianne',
+    expect(faceFromFileName('Atelier-Bold.woff2')).toEqual({
+      family: 'Atelier',
       weight: '700 800',
       style: 'normal',
     })
   })
 
   it('reads italics, combined variants, and the longest suffix first', () => {
-    expect(faceFromFileName('Marianne-Italic.woff2')?.style).toBe('italic')
-    expect(faceFromFileName('Marianne-BoldItalic.woff2')).toEqual({
-      family: 'Marianne',
+    expect(faceFromFileName('Atelier-Italic.woff2')?.style).toBe('italic')
+    expect(faceFromFileName('Atelier-BoldItalic.woff2')).toEqual({
+      family: 'Atelier',
       weight: '700 800',
       style: 'italic',
     })
@@ -53,20 +53,20 @@ describe('faceFromFileName — the deployment idiom, read from names', () => {
       weight: '700 800',
       style: 'normal',
     })
-    expect(faceFromFileName('Marianne.woff2')).toEqual({
-      family: 'Marianne',
+    expect(faceFromFileName('Atelier.woff2')).toEqual({
+      family: 'Atelier',
       weight: '400',
       style: 'normal',
     })
   })
 
   it('only reads the base name of a directory pick, case-insensitively', () => {
-    expect(faceFromFileName('fonts/marianne/Marianne-Bold.WOFF2')?.family).toBe('Marianne')
+    expect(faceFromFileName('fonts/atelier/Atelier-Bold.WOFF2')?.family).toBe('Atelier')
   })
 
   it('proposes nothing for non-woff2 names or names with no family left', () => {
-    expect(faceFromFileName('Marianne-Bold.ttf')).toBeUndefined()
-    expect(faceFromFileName('Marianne-Bold.woff')).toBeUndefined()
+    expect(faceFromFileName('Atelier-Bold.ttf')).toBeUndefined()
+    expect(faceFromFileName('Atelier-Bold.woff')).toBeUndefined()
     expect(faceFromFileName('.woff2')).toBeUndefined()
     expect(faceFromFileName('-regular.woff2')).toBeUndefined()
     expect(faceFromFileName('éàç.woff2')).toBeUndefined() // outside the font charset

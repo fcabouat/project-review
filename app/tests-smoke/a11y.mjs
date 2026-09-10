@@ -99,6 +99,7 @@ async function editorPass(browser, base, mode) {
     ['#/sheet/P-01', 'sheet'],
     ['#/settings', 'settings'],
     ['#/history', 'history'],
+    ['#/about', 'about'],
   ]) {
     await page.goto(`${app}${hash}`)
     await page.waitForSelector('.editor')

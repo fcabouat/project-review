@@ -18,6 +18,7 @@ export type Route =
   | { readonly name: 'projects' }
   | { readonly name: 'settings' }
   | { readonly name: 'history' }
+  | { readonly name: 'about' }
   | { readonly name: 'sheet'; readonly id: string }
 
 /** UI contract of the local-save switch, however the host wires it. */
@@ -43,12 +44,17 @@ export interface AppearanceControl {
 }
 
 /**
- * Live verdict on where the theme font comes from. `embedded` — the family is
- * covered by the portfolio's own `fontFaces` — wins outright, no probe
- * needed. The probe verdicts concern the locally served family (today:
- * Marianne, deployed ALONGSIDE the app): probing is a browser affair — the
- * host wires the infrastructure's `document.fonts` probe in and passes the
- * verdict down; `unknown` covers "still probing" and "no way to ask" alike,
- * so the card never flashes a wrong «not found».
+ * Live verdict on where the theme font comes from — and every answer is a
+ * LOCAL one, because the app asks no third party for a font:
+ *  - `embedded` — the portfolio's own `fontFaces` cover the family. The
+ *    strongest answer, and no probe is needed to give it;
+ *  - `bundled` — the family's woff2 ship inside this build;
+ *  - `served` / `missing` — the probe verdicts for a family DEPLOYED beside
+ *    the app (`fonts/<family>/`). Probing is a browser affair: the host wires
+ *    the infrastructure's `document.fonts` probe in and passes the verdict
+ *    down; `missing` means the text renders on the system stack, said out
+ *    loud rather than left to be noticed;
+ *  - `unknown` — still probing, or no way to ask. The card never flashes a
+ *    wrong «not found».
  */
-export type FontStatus = 'unknown' | 'served' | 'missing' | 'embedded'
+export type FontStatus = 'unknown' | 'served' | 'missing' | 'embedded' | 'bundled'

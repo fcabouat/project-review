@@ -50,6 +50,9 @@ export const PARSE_ERROR_CODES = [
   'oversizedFontFaces',
   /** A free slide with zero blocks. */
   'emptyBlocks',
+  /** More entities than the application can carry — `params.max` gives the
+   * bound and `params.count` what was offered. See `MAX_ENTITIES`. */
+  'tooManyEntities',
 ] as const
 
 /** One of the closed {@link PARSE_ERROR_CODES} — also the tail of its catalog key. */

@@ -7,14 +7,22 @@
    * than one component; nothing below imports a store, a router or an
    * adapter.
    *
-   * Startup order: the localStorage snapshot is read RAW and replayed through
-   * the strict parse — a corrupted or outdated snapshot must never keep the
-   * application from starting; anything the parse refuses falls back to an
-   * EMPTY portfolio (identity pre-filled, no content — the sample sets load on
-   * demand from Settings). When local save is on, the undo/redo history is
-   * stored alongside the snapshot and restored with it.
+   * Startup order: the localStorage snapshot is read through the strict parse
+   * (`readSnapshot`), which answers one of three things — and the three are
+   * kept apart on purpose:
+   *  - `absent`: a first run. Empty portfolio (identity pre-filled, no
+   *    content), or the `?sample` set when the URL asks for it;
+   *  - `restored`: the portfolio runs, and with it the undo/redo history
+   *    stored alongside;
+   *  - `unreadable`: data IS there and the format refuses it. The application
+   *    starts on an empty portfolio it NEVER saves — the persistence control
+   *    is built blocked — and shows the recovery screen instead of the editor,
+   *    so a person decides. A corrupted snapshot must not keep the app from
+   *    starting; it must not be overwritten either.
+   * The snapshot is read whatever the local-save switch says: the switch
+   * governs writing, and the one thing that must never happen is writing over
+   * something we could not read.
    */
-  import { parsePortfolio } from '@project-review/core/services/parse'
   import { emptyPortfolio } from '@project-review/core/data/empty-portfolio'
   import type { Language } from '@project-review/core/model/theme'
   import type { Portfolio } from '@project-review/core/model/portfolio'
@@ -23,14 +31,17 @@
   import {
     loadHistory,
     loadPersistEnabled,
-    loadRaw,
+    readSnapshot,
+    type StoredSnapshot,
   } from '@project-review/core/services/persistence'
   import PrintView from '@project-review/components/slideshow/PrintView.svelte'
   import { STANDALONE_REVEAL_OPTIONS } from '@project-review/components/slideshow/reveal-options'
   import Shell from '@project-review/components/screens/Shell.svelte'
+  import RecoveryScreen from '@project-review/components/screens/RecoveryScreen.svelte'
   import { defaultStorage } from '@project-review/infrastructure/local-storage'
   import { timeoutScheduler } from '@project-review/infrastructure/scheduler'
   import {
+    applyDeployedFont,
     applyEmbeddedFonts,
     applyFont,
     embeddedFamilies,
@@ -84,16 +95,16 @@
 
   const persistEnabled = storage ? loadPersistEnabled(storage) : false
 
+  /** The storage's verdict, read ONCE — the boot and the write guard below
+   * both hang on it. No storage at all is the same case as nothing stored. */
+  const snapshot: StoredSnapshot = storage ? readSnapshot(storage) : { state: 'absent' }
+  /** Kept as its own binding so the template can narrow on it. */
+  const unreadable = snapshot.state === 'unreadable' ? snapshot : undefined
+
   function initialState(): { portfolio: Portfolio; log?: History } {
-    if (storage && persistEnabled) {
-      const stored = loadRaw(storage)
-      if (stored !== null) {
-        const replayed = parsePortfolio(stored)
-        // The history refers to THAT present: restored only together with it.
-        if (replayed.ok) {
-          return { portfolio: replayed.portfolio, log: loadHistory(storage) ?? undefined }
-        }
-      }
+    if (storage && persistEnabled && snapshot.state === 'restored') {
+      // The history refers to THAT present: restored only together with it.
+      return { portfolio: snapshot.portfolio, log: loadHistory(storage) ?? undefined }
     }
     // `?sample` — the landing's « Try it » link: a full demo on the first
     // click. `main.ts` already applied the whole policy (URL asks, nothing
@@ -105,7 +116,15 @@
   const initial = initialState()
   const store = createStore(initial.portfolio, initial.log)
   const router = createRouter()
-  const persistence = createPersistenceControl(store, storage, persistEnabled, timeoutScheduler)
+  // Built BLOCKED when the stored snapshot could not be read: the wiring
+  // disarms every write until the recovery screen's explicit decision.
+  const persistence = createPersistenceControl(
+    store,
+    storage,
+    persistEnabled,
+    timeoutScheduler,
+    unreadable !== undefined,
+  )
   const appearance = createAppearance(storage)
   const systemDark = new MediaQuery('(prefers-color-scheme: dark)')
   const fontStatus = createFontStatus((family) => probeFont(family))
@@ -137,15 +156,17 @@
     persistence.scheduleHistory({ past: store.past, future: store.future })
   })
 
-  // Live font: reacts to settings.theme.font AND the embedded faces.
-  // Precedence embedded > bundled > Google (fonts.ts): the embedded rules are
-  // installed first, a covered family never touches the network, and the
-  // Settings card's live status answers `embedded` without probing.
+  // Live font: reacts to settings.theme.font AND the embedded faces. Three
+  // local sources, no third party ever (fonts.ts): the embedded rules go in
+  // first so they outrank everything, the deployed faces are declared for the
+  // named family, the stack is set, and the Settings card is told which source
+  // actually applies.
   $effect(() => {
     const theme = store.present.settings.theme
     const embedded = embeddedFamilies(theme.fontFaces)
     applyEmbeddedFonts(theme.fontFaces)
-    applyFont(theme.font, document, embedded)
+    applyDeployedFont(theme.font, document, embedded)
+    applyFont(theme.font, document)
     fontStatus.watch(theme.font, embedded)
   })
 
@@ -194,6 +215,15 @@
 
 {#if printMode}
   <PrintView portfolio={store.present} />
+{:else if unreadable && persistence.blocked}
+  <!-- Data is stored that the format refuses: the editor stays closed until
+       someone decides, so no edit can start a save cycle over it. -->
+  <RecoveryScreen
+    language={store.present.settings.language}
+    refusal={unreadable.refusal}
+    raw={unreadable.raw}
+    startEmpty={() => persistence.discard()}
+  />
 {:else}
   <Shell
     portfolio={store.present}

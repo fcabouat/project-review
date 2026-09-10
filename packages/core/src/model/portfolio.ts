@@ -45,7 +45,7 @@ export interface Review {
 export interface Settings {
   readonly language: Language
   readonly identity: Identity
-  /** Runtime presentation choices: layout family, color family and font family ("Marianne" bundled, or any Google Fonts name; system fallback stack in every case). `fontFaces` embeds the family's woff2 files as data URIs — absent means "none embedded" (the meaningful default, so an export without them stays byte-identical). */
+  /** Runtime presentation choices: layout family, color family and font family (a family this build carries, one deployed beside the app, or one embedded below; system fallback stack in every case). `fontFaces` embeds the family's woff2 files as data URIs — absent means "none embedded" (the meaningful default, so an export without them stays byte-identical). */
   readonly theme: {
     readonly style: ThemeStyle
     readonly palette: PaletteFamily

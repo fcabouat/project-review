@@ -35,22 +35,31 @@
   const language = $derived(portfolio.settings.language)
 
   /**
-   * A rejected review date leaves the store untouched, so the field's draft
-   * would silently keep the invalid text: bumping this key remounts the field,
-   * snapping the draft back to the stored value (the format hint stays shown).
+   * Refusal line of each date field, per field — a refused date must be SAID,
+   * not swallowed: the entry is not committed (the format only stores calendar
+   * dates), so without a message the text would simply seem to vanish.
    */
-  let dateFieldEpoch = $state(0)
+  let dateErrors = $state<Partial<Record<ReviewField, string>>>({})
 
   /** One text field of the review — `reviewDate` is the only mandatory one (law 1). */
   function change(field: ReviewField, next: string | undefined): void {
     if (field === 'reviewDate' || field === 'previousReviewDate') {
       const when = next === undefined ? undefined : isoDate(next)
       // The review date is the reference of every derivation: it is never
-      // cleared; both date fields refuse anything the brand refuses.
-      if ((next !== undefined && when === undefined) || (field === 'reviewDate' && !when)) {
-        dateFieldEpoch += 1
+      // cleared; both date fields refuse anything the brand refuses — the
+      // same rule, and the same wording, as the strict parse's `invalidDate`.
+      if (next !== undefined && when === undefined) {
+        dateErrors = {
+          ...dateErrors,
+          [field]: te('editor.error.invalidDate', language, { value: next }),
+        }
         return
       }
+      if (field === 'reviewDate' && when === undefined) {
+        dateErrors = { ...dateErrors, [field]: te('editor.review.dateRequired', language) }
+        return
+      }
+      dateErrors = { ...dateErrors, [field]: undefined }
       dispatch({ type: 'ChangeReviewField', field, after: when } as never)
       return
     }
@@ -119,22 +128,24 @@
         commit={(v) => change('subtitle', v)}
         max={60}
       />
-      {#key dateFieldEpoch}
-        <FieldText
-          {language}
-          label={te('editor.field.reviewDate', language)}
-          value={review.reviewDate}
-          commit={(v) => change('reviewDate', v)}
-          hint={te('editor.review.dateHint', language)}
-        />
-        <FieldText
-          {language}
-          label={te('editor.field.previousReviewDate', language)}
-          value={review.previousReviewDate}
-          commit={(v) => change('previousReviewDate', v)}
-          hint={te('editor.review.dateHint', language)}
-        />
-      {/key}
+      <!-- The refused entry STAYS in the field, under its reason: the person
+           sees what was typed and what the format expects, and fixes it. -->
+      <FieldText
+        {language}
+        label={te('editor.field.reviewDate', language)}
+        value={review.reviewDate}
+        commit={(v) => change('reviewDate', v)}
+        hint={te('editor.review.dateHint', language)}
+        error={dateErrors.reviewDate}
+      />
+      <FieldText
+        {language}
+        label={te('editor.field.previousReviewDate', language)}
+        value={review.previousReviewDate}
+        commit={(v) => change('previousReviewDate', v)}
+        hint={te('editor.review.dateHint', language)}
+        error={dateErrors.previousReviewDate}
+      />
     </section>
   </div>
 

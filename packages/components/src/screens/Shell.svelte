@@ -2,7 +2,7 @@
   /**
    * Application shell: dark full-height sidebar, light
    * top bar, and one screen per route — `#/review`, `#/projects`, `#/sheet/{id}`,
-   * `#/settings`, `#/history`.
+   * `#/settings`, `#/history`, `#/about`.
    *
    * Everything shown here is DERIVED from `portfolio` at read time — the deck
    * counter, the tracked/archived counts, the undo badge (law 3: nothing derived
@@ -48,6 +48,7 @@
   import SettingsScreen from './SettingsScreen.svelte'
   import SheetScreen from './SheetScreen.svelte'
   import HistoryScreen from './HistoryScreen.svelte'
+  import AboutScreen from './AboutScreen.svelte'
 
   interface Props {
     readonly portfolio: Portfolio
@@ -289,6 +290,15 @@
       {te('editor.about.author', language)}<br />
       <span>{te('editor.about.mail', language)}</span>
     </div>
+    <!-- The about block was already here: it becomes the door to the full
+         screen, where the third-party notices travel with the artifact. -->
+    <a
+      class="focus-visible:outline-ring mt-1.5 inline-block text-[10.5px] font-semibold text-white/70 underline hover:text-white focus-visible:outline-2"
+      href="#/about"
+      onclick={(e) => follow(e, { name: 'about' })}
+    >
+      {te('editor.nav.about', language)}
+    </a>
   </div>
 {/snippet}
 
@@ -488,6 +498,8 @@
             />
           {:else if route.name === 'history'}
             <HistoryScreen {portfolio} {past} {future} {undo} {redo} />
+          {:else if route.name === 'about'}
+            <AboutScreen {language} />
           {:else if route.name === 'sheet'}
             <SheetScreen {portfolio} {dispatch} projectId={route.id} {navigate} {replaceRoute} />
           {/if}

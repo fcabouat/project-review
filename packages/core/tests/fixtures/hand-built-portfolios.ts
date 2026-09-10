@@ -53,7 +53,7 @@ export const testPortfolio = (): Portfolio => ({
       unitLong: 'Direction des Systèmes d’Information',
       contact: 'dsi@dejavu.example',
     },
-    theme: { style: 'institutional', palette: 'gov', font: 'Inter' },
+    theme: { style: 'institutional', palette: 'tailwind', font: 'Inter' },
     show: { healthDashboard: true, recap: true, archives: true, decisions: true },
     recapRows: 11,
   },

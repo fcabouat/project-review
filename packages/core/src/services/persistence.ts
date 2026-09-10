@@ -8,11 +8,16 @@
  * infrastructure provides both (`local-storage.ts`, `scheduler.ts`); tests
  * plug in-memory fakes into the very same seams.
  *
- * Decoupled from the parse for the SNAPSHOT: we write an already valid
- * `Portfolio` and read back `unknown` — replaying it through the strict parse
- * belongs to application startup. The stored HISTORY is the one exception: a
- * `PortfolioReplaced` embeds whole portfolios, so `loadHistory` replays those
- * through the same parse before any event may reach `apply`/`invert`.
+ * READING IS A VERDICT, NEVER A GUESS. {@link readSnapshot} is the one way in:
+ * it says `absent`, `restored` or `unreadable`, and in the last case it hands
+ * back the STORED BYTES together with the exhaustive report. There is no
+ * outcome that quietly means "start over" — because the caller that cannot
+ * tell "nothing stored" from "stored, unreadable" is one debounce away from
+ * writing an empty document over the only copy of the data.
+ *
+ * The stored HISTORY goes through the same strict parse where it embeds whole
+ * portfolios: a `PortfolioReplaced` installs one verbatim, so `loadHistory`
+ * replays both sides before any event may reach `apply`/`invert`.
  *
  * Every write is TOTAL: a storage that throws (quota, private browsing) makes
  * the write functions return `false`, never propagate — losing a save must not
@@ -22,7 +27,7 @@
 import type { Portfolio } from '../model/portfolio'
 import type { DomainEvent } from '../events'
 import { HISTORY_LIMIT, type History } from '../events/history'
-import { parsePortfolio } from './parse'
+import { parsePortfolio, readPortfolioJson, type ReadOutcome } from './parse'
 
 /* ------------------------------ interfaces ------------------------------ */
 
@@ -93,19 +98,37 @@ export const save = (storage: KeyValueStorage, portfolio: Portfolio): boolean =>
   }
 }
 
+/** Why a stored snapshot was refused: the strict parse's exhaustive error
+ * list, or one of the two pre-parse refusals (`tooLarge`, `badJson`). */
+export type SnapshotRefusal = Extract<ReadOutcome, { ok: false }>
+
 /**
- * Reads the snapshot back without validating anything. `null` = nothing stored,
- * or unreadable JSON (corrupted storage must not prevent the application from
- * starting). The result is meant for the total parse.
+ * What the storage holds, as a VERDICT — the three cases a startup must tell
+ * apart, and the reason this function returns no fourth "just start empty" one:
+ *  - `absent` — nothing stored; a first run, or a cleared one;
+ *  - `restored` — a snapshot that honors the contract, ready to run;
+ *  - `unreadable` — a snapshot IS there and cannot be read: the caller gets
+ *    the stored bytes back (`raw`, offered to the user as-is) and the
+ *    exhaustive `refusal`, and must NOT write anything over it until a person
+ *    has decided (see the app's persistence control).
  */
-export const loadRaw = (storage: KeyValueStorage): unknown => {
+export type StoredSnapshot =
+  | { readonly state: 'absent' }
+  | { readonly state: 'restored'; readonly portfolio: Portfolio }
+  | { readonly state: 'unreadable'; readonly raw: string; readonly refusal: SnapshotRefusal }
+
+/**
+ * Reads the stored snapshot through the very path an imported file takes
+ * (`readPortfolioJson`: size cap, JSON, strict parse) — the snapshot and an
+ * exported .json ARE the same document, so they answer to the same contract.
+ */
+export const readSnapshot = (storage: KeyValueStorage): StoredSnapshot => {
   const raw = storage.getItem(STORAGE_KEY)
-  if (raw === null) return null
-  try {
-    return JSON.parse(raw)
-  } catch {
-    return null
-  }
+  if (raw === null) return { state: 'absent' }
+  const outcome = readPortfolioJson(raw)
+  return outcome.ok
+    ? { state: 'restored', portfolio: outcome.portfolio }
+    : { state: 'unreadable', raw, refusal: outcome }
 }
 
 /**

@@ -2,7 +2,7 @@
  * The save action (`editor.slideshow.save`) — a STANDALONE .html of the
  * slideshow alone: reveal.js inlined, every stylesheet of the running document
  * inlined, the rendered sections copied as-is, the images embedded as data
- * URIs. The file opens from `file://` with ZERO network request — no Google
+ * URIs. The file opens from `file://` with ZERO network request — no third-party
  * Fonts link either: a theme family that is not embedded falls back to the
  * reader's system stack (the live app keeps its own on-demand loading).
  *
@@ -224,7 +224,7 @@ const fetchAsDataUri: UriFetcher = async (url) => {
     // The Fetch API refuses the file: scheme outright AND logs a console
     // error no try/catch can silence. Running from file:// (the deliverable),
     // every asset that is not already a data: URI resolves to file: — e.g.
-    // the optional Marianne faces when the woff2 files are not deployed —
+    // a deployed family's faces when its woff2 files are not there —
     // so answer "unreachable" without asking (same outcome, quiet console).
     if (new URL(url, document.baseURI).protocol === 'file:') return null
     const blob = await (await fetch(url)).blob()
@@ -277,7 +277,7 @@ function lightRuleText(rule: CSSRule): string | null {
  * `slideshow.css`, the theme — EXCEPT the reveal base sheet the host injected
  * (`data-owner="slideshow"`): the caller prepends the same text itself, once.
  * Every `.dark`-scoped rule is stripped on the way ({@link lightRuleText}).
- * Cross-origin sheets (Google Fonts) throw on `cssRules` and are skipped: the
+ * Cross-origin sheets throw on `cssRules` and are skipped: the
  * font comes back through the `<link>` of the pure half.
  *
  * The collected text still points at the origin (`url()` serialises absolute):

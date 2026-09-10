@@ -183,9 +183,10 @@ La fusion est une seule entrée d'historique : **Ctrl+Z** la défait en bloc.
 ## Données & confidentialité
 
 Tout reste dans le navigateur. Pas de serveur, pas de compte ; rien ne quitte
-la machine. Le seul appel réseau possible est Google Fonts, et seulement si
-la police choisie n'est ni fournie avec l'application ni embarquée dans le
-portefeuille.
+la machine, et aucun tiers n'est jamais contacté — polices comprises. Les
+seules requêtes possibles vont au déploiement de l'application lui-même, pour
+une police que vous avez choisi d'y servir (voir **Police** ci-dessus) ;
+ouverte depuis un fichier, l'application n'en fait aucune.
 
 - **Sauvegarde locale (localStorage)** — active par défaut. La base et
   l'historique annuler/rétablir survivent au rechargement de la page. La
@@ -218,14 +219,17 @@ simplement plus confortable pour saisir.
   l'éditeur bascule, les slides restent claires (elles sont l'artefact). Les
   trois mêmes états sont dans le menu de schéma de la barre du haut, à côté
   du menu de langue.
-- **Palette** — Material (défaut), Tailwind ou Gov.
-- **Police** — Roboto est fournie avec l'application et sert de défaut. Une
-  police embarquée dans le portefeuille (voir ci-dessous) gagne toujours.
-  Marianne est utilisée si ses fichiers de police sont déployés à côté de
-  l'application ; avec « Marianne » dans le champ, la carte liste les
-  fichiers attendus et affiche un statut vivant — embarquée, servie, ou
-  introuvable avec repli sur la pile système. Tout autre nom de famille
-  Google Fonts se charge par le réseau quand il y en a un.
+- **Palette** — Material (défaut) ou Tailwind.
+- **Police** — Roboto et Inter sont fournies avec l'application, Roboto sert
+  de défaut. Aucune police n'est téléchargée auprès d'un tiers : une famille
+  vient de l'une des trois sources locales, et le statut vivant de la carte dit
+  laquelle s'applique — embarquée dans le portefeuille (voir ci-dessous, elle
+  gagne toujours), fournie avec l'application, ou servie par le déploiement.
+  Pour cette dernière, déposez les woff2 dans un dossier portant le nom de la
+  famille, à côté de l'application — `fonts/<famille>/<famille>-Regular.woff2`,
+  `…-Medium.woff2`, `…-Bold.woff2` — et la carte nomme les fichiers exacts
+  qu'elle a cherchés. Une famille qu'aucune des trois ne couvre s'affiche sur
+  la pile système, et la carte le dit plutôt que de vous laisser le découvrir.
 - **Langue** — français ou anglais ; le changement redessine l'application à
   chaud. La langue se change aussi par le menu de langue de la barre du
   haut.
@@ -236,7 +240,7 @@ simplement plus confortable pour saisir.
 
 La zone **Police embarquée** de la même carte embarque des fichiers `.woff2`
 — choisis un à un ou par dossier entier — DANS le portefeuille, en data URI.
-La variante de chaque fichier se lit dans son nom (`Marianne-Regular.woff2` →
+La variante de chaque fichier se lit dans son nom (`Atelier-Regular.woff2` →
 400, `…-Medium` → 500–600, `…-Bold` → 700–800, `…Italic` → italique), chaque
 fonte est listée avec sa famille, sa graisse et sa taille, et se retire d'un
 bouton. Une famille embarquée n'exige ni déploiement ni réseau :
@@ -247,9 +251,9 @@ sont plafonnées (~400 Ko par fonte, ~1,5 Mo au total) pour garder le
 portefeuille portable.
 
 Embarquer une police dans un fichier diffusé constitue une redistribution —
-vérifiez que sa licence l'autorise (Marianne : usage réservé à l'État).
+vérifiez que sa licence l'autorise. Une police importée reste soumise à ses
+droits propres : la licence MIT de ce logiciel ne s'y étend pas.
 
-Pour habiller le diaporama aux couleurs d'une administration française :
-palette Gov + police Marianne, ici même — et embarquez les woff2 de Marianne
-si votre organisation peut les utiliser, pour que le diaporama emporte sa
-police partout.
+Pour habiller le diaporama de la typographie de votre organisation : nom de
+votre famille maison dans le champ **Police**, puis embarquez ses woff2 ici,
+pour que le diaporama emporte sa police partout.

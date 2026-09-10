@@ -1,22 +1,29 @@
 /**
  * Wiring of the live font verdict (Settings ▸ Appearance): watches the
- * portfolio's font family and answers with its SOURCE. A family covered by
- * the portfolio's own embedded faces is `embedded` — no probe, the strongest
- * answer. Otherwise, for the ONE locally served family (Marianne), the
- * injected probe runs — the infrastructure's `document.fonts` sounding in
- * production, a controllable fake in tests. Between two answers the status is
- * `unknown`: the card must never flash «not found» while the browser is still
- * looking, and a STALE answer (the user already switched families again) is
- * dropped by the epoch guard rather than overwriting the fresh probe.
+ * portfolio's font family and answers with its SOURCE — and every possible
+ * source is local, because the app fetches no font (infrastructure's
+ * `fonts.ts`). In order of strength:
+ *  - covered by the portfolio's own embedded faces → `embedded`, no probe:
+ *    the faces travel in the file, nothing can be missing;
+ *  - one of the families bundled in this build → `bundled`, no probe either:
+ *    a fact of the build, not of the deployment;
+ *  - ANY other family → the injected probe runs, because only the deployment
+ *    knows whether `fonts/<family>/` actually holds the files: `served` when
+ *    they arrived, `missing` when nothing did and the system stack takes over.
+ *    The infrastructure's `document.fonts` sounding in production, a
+ *    controllable fake in tests.
+ * No family is named here: the probe takes whichever one the portfolio
+ * carries. Between two answers the status is `unknown` — the card must never
+ * flash «not found» while the browser is still looking, and a STALE answer
+ * (the user already switched families again) is dropped by the epoch guard
+ * rather than overwriting the fresh probe.
  */
 
+import { BUNDLED_FAMILIES } from '@project-review/infrastructure/fonts'
 import type { FontStatus } from '@project-review/components/screens/contracts'
 
-/** The one family whose files are deployed alongside the app (fonts.ts). */
-const LOCAL_FAMILY = 'Marianne'
-
 export interface FontStatusWiring {
-  /** Current verdict — `unknown` for every family but the covered ones. */
+  /** Current verdict — `unknown` only while a probe is in flight. */
   readonly status: FontStatus
   /** Feed it from an effect reading `settings.theme.font` AND the embedded
    * families (`embeddedFamilies(settings.theme.fontFaces)`). */
@@ -41,8 +48,11 @@ export const createFontStatus = (
         status = 'embedded'
         return
       }
+      if (BUNDLED_FAMILIES.includes(clean)) {
+        status = 'bundled'
+        return
+      }
       status = 'unknown'
-      if (clean !== LOCAL_FAMILY) return
       void probe(clean).then((verdict) => {
         if (mine === epoch) status = verdict
       })

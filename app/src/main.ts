@@ -1,8 +1,8 @@
 import { mount } from 'svelte'
 
 // Bundled families (see infrastructure's fonts.ts): Roboto — the default —
-// and Inter, self-hosted via @fontsource so neither ever hits Google Fonts —
-// in the app or in its exports. Latin subset only, in the exact weights the
+// and Inter, self-hosted via @fontsource so neither ever reaches for a third
+// party — in the app or in its exports. Latin subset only, in the exact weights the
 // slides and the editor use (400/500/600/700/800 — grep `font-weight` first).
 import '@fontsource/roboto/latin-400.css'
 import '@fontsource/roboto/latin-500.css'

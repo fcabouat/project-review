@@ -16,6 +16,7 @@
     "preview": "bun run --cwd app preview",
     "check": "bun run --cwd packages/core check && bun run --cwd packages/components check && bun run --cwd packages/infrastructure check && bun run --cwd app check",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "smoke": "node app/tests-smoke/smoke.mjs",
     "a11y": "node app/tests-smoke/a11y.mjs",
@@ -29,6 +30,7 @@
     "audit": "bun audit",
     "deps:check": "npm outdated || true",
     "docs:api": "typedoc",
+    "docs:notices": "bun scripts/build-notices.ts",
     "docs:site": "bun scripts/build-site.ts"
   },
   "devDependencies": {

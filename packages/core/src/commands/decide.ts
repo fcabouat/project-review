@@ -6,7 +6,11 @@
  * undo data is true BY CONSTRUCTION — the precondition `apply`/`invert` state
  * and cannot check for themselves.
  *
- * `undefined` means "no event to record", in exactly two situations:
+ * `undefined` means "no event to record", in exactly three situations:
+ *  - OFF CONTRACT — the value carried would produce a portfolio the file
+ *    format cannot read back (contract.ts): the running model is never allowed
+ *    to be more permissive than the serialised one, so what `parsePortfolio`
+ *    refuses at the door, `decide` refuses on the way out. Checked FIRST;
  *  - INAPPLICABLE — the target id resolves to nothing (or, for a renumber,
  *    the requested id is already taken: recording it would break the
  *    uniqueness invariant of `collections.ts`);
@@ -27,6 +31,7 @@ import type { DomainEvent } from '../events/index'
 import type { Command } from './index'
 import { settingValue } from '../events/settings'
 import { completeMerge } from './merge'
+import { honorsContract } from './contract'
 
 /** Index of the first element with this id, or `undefined` — never `-1`. */
 const indexOf = (list: readonly { readonly id: string }[], id: string): number | undefined => {
@@ -36,13 +41,17 @@ const indexOf = (list: readonly { readonly id: string }[], id: string): number |
 
 /**
  * Decides one command against the present portfolio. Total: returns the
- * completed event, or `undefined` when the command is inapplicable or trivial
- * (module header). The three field-indexed constructions assert their result:
+ * completed event, or `undefined` when the command is off contract,
+ * inapplicable or trivial (module header). The three field-indexed constructions assert their result:
  * the field ↔ value-type correlation is guaranteed by the command's own typing
  * but escapes inference over a correlated union — same documented pattern as
  * `invert`'s `swap`.
  */
 export const decide = (p: Portfolio, c: Command): DomainEvent | undefined => {
+  // The contract first: a command carrying a value the file format would
+  // refuse never becomes an event, whatever else is true of it.
+  if (!honorsContract(p, c)) return undefined
+
   switch (c.type) {
     case 'ChangeReviewField': {
       const before = p.review[c.field]

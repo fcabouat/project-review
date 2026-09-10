@@ -6,27 +6,7 @@
    automatic scan root: register the package source tree explicitly. */
 @source '../../packages/components/src';
 
-/* Marianne (the French State font) is NOT redistributed in this public repo:
-   deploy the woff2 files under public/fonts/marianne/ and these faces light
-   up; otherwise the stack silently falls back to Inter. */
-@font-face {
-  font-family: 'Marianne';
-  src: url('/fonts/marianne/Marianne-Regular.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Marianne';
-  src: url('/fonts/marianne/Marianne-Medium.woff2') format('woff2');
-  font-weight: 500 600;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Marianne';
-  src: url('/fonts/marianne/Marianne-Bold.woff2') format('woff2');
-  font-weight: 700 800;
-  font-style: normal;
-  font-display: swap;
-}
+/* No house font is declared here. A family deployed beside the app gets its
+   @font-face rules at runtime, from the name the portfolio carries
+   (infrastructure's `applyDeployedFont`) — the mechanism is generic, so this
+   stylesheet names no family at all. */

@@ -111,7 +111,7 @@ describe('apply — expected effects', () => {
     const q = apply(p, {
       type: 'SettingChanged',
       setting: 'palette',
-      before: 'gov',
+      before: 'tailwind',
       after: 'material',
     })
     expect(q.settings.theme.palette).toBe('material')
@@ -125,7 +125,7 @@ describe('apply — expected effects', () => {
     })
     expect(r.settings.show.archives).toBe(false)
     expect(r.settings.show.recap).toBe(true)
-    expect(r.settings.theme.palette).toBe('gov')
+    expect(r.settings.theme.palette).toBe('tailwind')
   })
 })
 

@@ -4,43 +4,32 @@
  * theme trio is optional with the blank-start defaults (flat / material /
  * Roboto), and `language` defaults to 'fr' — absence of an optional key is a
  * choice, never a fault.
+ *
+ * The VALUE rules this block enforces (font family, face weight, woff2 data
+ * URI, inline logo, recap band) are not written here: they live in `values/`,
+ * because the commands the editor emits must obey the very same ones
+ * (commands/contract.ts). Read once, judged identically on both sides.
  */
 import type { Settings } from '../../model/portfolio'
 import type { EmbeddedFontFace } from '../../model/theme'
 import { FONT_FACE_STYLES, LANGUAGES, PALETTES, THEME_STYLES } from '../../model/theme'
+import {
+  FONT_FACE_MAX_CHARS,
+  FONT_FACES_TOTAL_MAX_CHARS,
+  isFontFamily,
+  isFontWeight,
+  isWoff2DataUri,
+} from '../../values/font'
+import { LOGO_MAX_CHARS, isImageDataUri } from '../../values/logo'
+import { isRecapRows } from '../../values/recap-rows'
 import type { Errors } from './json'
 import { at, bool, checkKeys, enumVal, fail, list, optStr, record, str } from './json'
 
-/** Inline-logo guard (~300 KB of binary once base64-encoded): keeps the JSON portable. */
-export const LOGO_MAX_CHARS = 400_000
-
-/** Per-face guard on the `dataUri` LENGTH (~400 KB of binary once base64-encoded) —
- * the cap is measured on the string, never by decoding bytes (core stays
- * binary-free). One woff2 text face fits comfortably; a whole TTF does not. */
-export const FONT_FACE_MAX_CHARS = 550_000
-
-/** Guard on ALL embedded faces together (~1.5 MB of binary): a family in four
- * weights stays portable; the portfolio must remain a data file, not an archive. */
-export const FONT_FACES_TOTAL_MAX_CHARS = 2_000_000
-
-/**
- * Exact shape of an embedded face's `dataUri`: the woff2 MIME, then clean
- * base64 (charset + `=` padding only). A SECURITY line like {@link FONT_NAME}:
- * the string is re-emitted verbatim inside `@font-face` CSS (live document and
- * standalone export), so nothing beyond the base64 alphabet may enter.
- */
-const FONT_FACE_DATA_URI = /^data:font\/woff2;base64,[A-Za-z0-9+/]+={0,2}$/
-
-/** `weight` descriptor: one integer 400–800, or an ascending "min max" pair. */
-const FONT_WEIGHT_SHAPE = /^(\d{3})(?: (\d{3}))?$/
-
-const isValidWeight = (weight: string): boolean => {
-  const m = FONT_WEIGHT_SHAPE.exec(weight)
-  if (m === null) return false
-  const min = Number(m[1])
-  const max = m[2] === undefined ? min : Number(m[2])
-  return min >= 400 && max <= 800 && min <= max
-}
+// The rules themselves live in values/ — one statement, read here at the door
+// and in `commands/contract.ts` when the editor emits: what the parse refuses,
+// no command may produce (docs/overview.md, the memory/file contract).
+export { FONT_FACE_MAX_CHARS, FONT_FACES_TOTAL_MAX_CHARS } from '../../values/font'
+export { LOGO_MAX_CHARS } from '../../values/logo'
 
 /**
  * The `fontFaces` collection — `undefined` when absent OR EMPTY (absence is
@@ -65,14 +54,14 @@ function parseFontFaces(
 
     const familyPath = at(itemPath, 'family')
     let family = str(o['family'], familyPath, errors)
-    if (family !== undefined && !FONT_NAME.test(family)) {
+    if (family !== undefined && !isFontFamily(family)) {
       fail(errors, familyPath, 'invalidFont', { value: family.slice(0, 64) })
       family = undefined
     }
 
     const weightPath = at(itemPath, 'weight')
     let weight = str(o['weight'], weightPath, errors)
-    if (weight !== undefined && !isValidWeight(weight)) {
+    if (weight !== undefined && !isFontWeight(weight)) {
       fail(errors, weightPath, 'invalidFontWeight', { value: weight.slice(0, 16) })
       weight = undefined
     }
@@ -81,7 +70,7 @@ function parseFontFaces(
 
     const uriPath = at(itemPath, 'dataUri')
     let dataUri = str(o['dataUri'], uriPath, errors)
-    if (dataUri !== undefined && !FONT_FACE_DATA_URI.test(dataUri)) {
+    if (dataUri !== undefined && !isWoff2DataUri(dataUri)) {
       fail(errors, uriPath, 'invalidFontFace')
       dataUri = undefined
     } else if (dataUri !== undefined && dataUri.length > FONT_FACE_MAX_CHARS) {
@@ -107,14 +96,6 @@ function parseFontFaces(
   return faces.length === 0 ? undefined : faces
 }
 
-/**
- * Font families are letters, digits, spaces, `_` and `-` (64 chars max) — the
- * charset Google Fonts names actually use. The bound is a SECURITY line, not
- * taste: the name is re-emitted inside the exported deck's `<style>` (raw-text
- * context), so `<`, `>`, quotes and the like are refused at the door.
- */
-export const FONT_NAME = /^[A-Za-z0-9 _-]{1,64}$/
-
 /** Parses the `settings` block, collecting every violation. */
 export function parseSettings(x: unknown, errors: Errors): Settings {
   const root = record(x, 'settings', errors)
@@ -137,7 +118,7 @@ export function parseSettings(x: unknown, errors: Errors): Settings {
   const rawIdentity = identityBlock ?? {}
   const logoPath = at(identityPath, 'logo')
   let logo = optStr(rawIdentity['logo'], logoPath, errors)
-  if (logo !== undefined && !/^data:image\//.test(logo)) {
+  if (logo !== undefined && !isImageDataUri(logo)) {
     fail(errors, logoPath, 'invalidLogo')
     logo = undefined
   } else if (logo !== undefined && logo.length > LOGO_MAX_CHARS) {
@@ -153,7 +134,7 @@ export function parseSettings(x: unknown, errors: Errors): Settings {
   const th = themeBlock ?? {}
   const fontPath = at(themePath, 'font')
   let font = optStr(th['font'], fontPath, errors)
-  if (font !== undefined && !FONT_NAME.test(font)) {
+  if (font !== undefined && !isFontFamily(font)) {
     fail(errors, fontPath, 'invalidFont', { value: font.slice(0, 64) })
     font = undefined
   }
@@ -173,11 +154,11 @@ export function parseSettings(x: unknown, errors: Errors): Settings {
   }
   const show = showBlock ?? {}
 
-  /* ---- recapRows (required, integer 6–16) ---- */
+  /* ---- recapRows (required, integer in the printable band) ---- */
   const rawRows = o['recapRows']
   let recapRows = 11
   if (rawRows !== undefined) {
-    if (typeof rawRows === 'number' && Number.isInteger(rawRows) && rawRows >= 6 && rawRows <= 16) {
+    if (typeof rawRows === 'number' && isRecapRows(rawRows)) {
       recapRows = rawRows
     } else {
       fail(errors, at('settings', 'recapRows'), 'invalidRecapRows', { value: String(rawRows) })

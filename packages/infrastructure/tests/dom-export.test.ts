@@ -63,7 +63,7 @@ describe('buildStandaloneHtml', () => {
 
   it('emits no stylesheet link and names no font host — the file fetches nothing', () => {
     // A non-embedded family falls back to the reader's system stack: the
-    // exported file must not carry a Google Fonts link, nor allow the hosts
+    // exported file must not carry a font link to a third party, nor allow
     // in its CSP.
     expect(html).not.toContain('<link rel="stylesheet"')
     expect(html).not.toContain('fonts.googleapis.com')
@@ -85,7 +85,7 @@ describe('buildStandaloneHtml', () => {
 describe('buildStandaloneHtml — security', () => {
   const html = buildStandaloneHtml(parts)
 
-  it('carries the nonce CSP <meta>: nothing loads but the file itself and Google Fonts', () => {
+  it('carries the nonce CSP <meta>: nothing loads but the file itself', () => {
     expect(html).toContain(
       `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; ` +
         `script-src 'nonce-${NONCE}'; ` +
@@ -189,7 +189,7 @@ describe('theme stamp', () => {
     const html = buildStandaloneHtml({
       lang: 'fr',
       slideStyle: 'flat',
-      palette: 'gov',
+      palette: 'tailwind',
       title: 'T',
       styles: '',
       slidesHtml: '<section></section>',
@@ -199,7 +199,7 @@ describe('theme stamp', () => {
     })
     // The frozen palette keeps the exported deck's category colors whatever
     // the live app later switches to (palettes.css scopes on this attribute).
-    expect(html).toContain('<html lang="fr" data-slide-style="flat" data-palette="gov">')
+    expect(html).toContain('<html lang="fr" data-slide-style="flat" data-palette="tailwind">')
   })
 
   it('omits both attributes when absent', () => {

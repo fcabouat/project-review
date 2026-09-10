@@ -10,6 +10,13 @@
    *
    * An empty string commits as `undefined`: the model has no "empty text", it
    * has an absent field (see `withField` in the store).
+   *
+   * REFUSED INPUT IS SAID, NOT SWALLOWED. Some fields carry a rule the file
+   * format enforces (a font charset, a calendar date): when the caller refuses
+   * a value it passes `error`, and the field shows it under the input, marks
+   * the input `aria-invalid` and KEEPS the typed text — so the person sees
+   * what was refused and why, instead of watching their entry disappear or,
+   * worse, be stored in a form the next reload cannot read.
    */
   import { untrack } from 'svelte'
   import { te } from '../i18n'
@@ -23,6 +30,9 @@
     readonly commit: (next: string | undefined) => void
     readonly language: Language
     readonly hint?: string
+    /** Set by the caller when it REFUSED the last commit: the rule, in the
+     * reader's language. Shown under the field; the typed text stays. */
+    readonly error?: string
     /** Character budget of the content model — a counter, never a block. */
     readonly max?: number
     /** Line budget (`risks`, narrative lists) — counted instead of characters. */
@@ -40,6 +50,7 @@
     commit,
     language,
     hint,
+    error,
     max,
     maxLines,
     rows,
@@ -89,19 +100,24 @@
       {placeholder}
       {readonly}
       aria-label={ariaLabel ?? label}
+      aria-invalid={error ? 'true' : undefined}
       bind:value={draft}
       {onblur}
     ></Textarea>
   {:else}
     <Input
-      class="read-only:text-(--txt2) read-only:bg-[#fafafa] dark:read-only:bg-white/5"
+      class="read-only:text-(--txt2) read-only:bg-[#fafafa] aria-invalid:border-destructive dark:read-only:bg-white/5"
       type="text"
       {placeholder}
       {readonly}
       aria-label={ariaLabel ?? label}
+      aria-invalid={error ? 'true' : undefined}
       bind:value={draft}
       {onblur}
     />
+  {/if}
+  {#if error}
+    <span class="text-destructive mt-[5px] text-[11.5px]" role="alert">{error}</span>
   {/if}
   {#if hint || max !== undefined || maxLines !== undefined}
     <span class="mt-[5px] flex items-baseline justify-between gap-3.5">

@@ -6,6 +6,16 @@
  * adapters in production, in-memory doubles in tests. Extracted from
  * `App.svelte` so the shell only mounts views; the `$effect`s that feed
  * `schedule*` stay in the component that owns the store.
+ *
+ * THE INVARIANT THIS MODULE OWNS — the persistence NEVER writes over data it
+ * failed to read back. Built with `unreadableSnapshot`, the wiring starts
+ * BLOCKED: every write path (the two debounced saves, the pagehide flush, the
+ * switch itself) is disarmed, and only an explicit human decision —
+ * {@link PersistenceWiring.discard} — lifts it. It lives here, in the control,
+ * rather than in a branch of the mounting component, because a branch protects
+ * one call site while the invariant must hold for every one of them: the cause
+ * of an unreadable snapshot (a value the format refuses, a truncating quota, a
+ * hand-edited store, a format that moves on) is irrelevant to the rule.
  */
 
 import type { Portfolio } from '@project-review/core/model/portfolio'
@@ -32,6 +42,16 @@ export interface PersistenceWiring {
   readonly scheduleHistory: (history: History) => void
   /** 'pagehide' hook: fires anything still pending, now. */
   readonly flush: () => void
+  /** `true` while a stored snapshot the app could not read is still there and
+   * no one has decided its fate: not one byte is written in this state. */
+  readonly blocked: boolean
+  /**
+   * The one way out of `blocked`, and it is a PERSON's decision: abandon the
+   * unreadable snapshot (erased, history included — it described a document
+   * that was never loaded) and let the saves resume. Called by the recovery
+   * screen's « start empty », never automatically.
+   */
+  readonly discard: () => void
 }
 
 /**
@@ -44,8 +64,12 @@ export const createPersistenceControl = (
   storage: KeyValueStorage | null,
   initiallyEnabled: boolean,
   schedule: Scheduler,
+  /** `true` when `readSnapshot` came back `unreadable`: the wiring starts
+   * blocked and stays that way until {@link PersistenceWiring.discard}. */
+  unreadableSnapshot = false,
 ): PersistenceWiring => {
   let enabled = $state(initiallyEnabled)
+  let blocked = $state(unreadableSnapshot)
   let saveError = $state<string | null>(null)
 
   /** Funnel of every write outcome: last failure wins, next success clears it. */
@@ -53,12 +77,13 @@ export const createPersistenceControl = (
     saveError = ok ? null : 'localStorage'
   }
 
-  // Both saves re-check `enabled` AT FIRE TIME: a debounce armed just before
-  // toggle(false) must never resurrect what clearStored() erased.
+  // Both saves re-check `enabled` AND `blocked` AT FIRE TIME: a debounce armed
+  // just before toggle(false) must never resurrect what clearStored() erased,
+  // and one armed before the verdict must never land on an unread snapshot.
   const snapshotSave = storage
     ? debounce(
         (p: Portfolio) => {
-          if (enabled) report(saveNow(storage, p))
+          if (enabled && !blocked) report(saveNow(storage, p))
         },
         SAVE_DELAY_MS,
         schedule,
@@ -67,7 +92,7 @@ export const createPersistenceControl = (
   const historySave = storage
     ? debounce(
         (h: History) => {
-          if (enabled) report(saveHistory(storage, h))
+          if (enabled && !blocked) report(saveHistory(storage, h))
         },
         SAVE_DELAY_MS,
         schedule,
@@ -82,6 +107,10 @@ export const createPersistenceControl = (
       return saveError
     },
     toggle(next: boolean) {
+      // Blocked: neither branch may run — `true` would write over the
+      // unreadable snapshot, `false` would erase it. Both are the recovery
+      // screen's decision to take, not a switch's.
+      if (blocked) return
       enabled = next
       if (!storage) return
       savePersistEnabled(storage, next)
@@ -103,16 +132,28 @@ export const createPersistenceControl = (
   return {
     control,
     scheduleSnapshot: (portfolio) => {
-      if (enabled) snapshotSave?.run(portfolio)
+      if (enabled && !blocked) snapshotSave?.run(portfolio)
     },
     scheduleHistory: (history) => {
-      if (enabled) historySave?.run(history)
+      if (enabled && !blocked) historySave?.run(history)
     },
     // A save still pending when the page goes away would be lost: 'pagehide'
     // is the last reliable signal (close, reload and bfcache entry alike).
+    // Blocked, there is nothing to lose and everything to protect.
     flush: () => {
+      if (blocked) return
       snapshotSave?.flush()
       historySave?.flush()
+    },
+    get blocked() {
+      return blocked
+    },
+    discard: () => {
+      if (!blocked) return
+      // Erase FIRST, unblock second: the next reload must find nothing rather
+      // than the blob the user just abandoned.
+      if (storage) clearStored(storage)
+      blocked = false
     },
   }
 }

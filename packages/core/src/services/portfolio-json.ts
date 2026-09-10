@@ -19,6 +19,14 @@ import type { Portfolio } from '../model/portfolio'
 export const portfolioFileName = (reviewDate: string, partial = false): string =>
   `project-review-${reviewDate}${partial ? '-partial' : ''}.json`
 
+/**
+ * Name under which the recovery screen hands back a snapshot the strict parse
+ * refused. No review date: reading the file is exactly what failed, so there
+ * is no date to trust — and the name says what the bytes are, an unreadable
+ * snapshot, rather than promising a portfolio.
+ */
+export const UNREADABLE_SNAPSHOT_FILE_NAME = 'project-review-unreadable-snapshot.json'
+
 /** The exported payload: the bare portfolio, indented for hand editing. */
 export const serializePortfolio = (portfolio: Portfolio): string =>
   JSON.stringify(portfolio, null, 2)

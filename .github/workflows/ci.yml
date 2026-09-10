@@ -14,7 +14,11 @@ jobs:
       - run: bun run lint
       - run: bun run format:check
       - run: bun run check
-      - run: bun run test
+      # Coverage, not just the suite: the thresholds in vitest.config.ts (lines
+      # at 100 % on every package) only apply when coverage is MEASURED — run
+      # without it they gate nothing, and the README's claim would rest on a
+      # local habit rather than on CI.
+      - run: bun run test:coverage
       - run: bun run build
       # The full ceremony — browser install + file:// smoke + axe pass on the
       # freshly built deliverables — runs on milestone branches only; pull
