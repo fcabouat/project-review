@@ -3,7 +3,7 @@
 **A complete project-portfolio review app in a single HTML file — no server,
 no install, works from `file://`.**
 
-[![CI](https://github.com/REPLACE_ME/project-review/actions/workflows/ci.yml/badge.svg)](https://github.com/REPLACE_ME/project-review/actions/workflows/ci.yml)
+[![CI](https://github.com/fcabouat/project-review/actions/workflows/ci.yml/badge.svg)](https://github.com/fcabouat/project-review/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 A portfolio — projects, categories, decisions, milestones — is entered once in
@@ -15,16 +15,16 @@ ever edited by hand.
 
 ## Try it
 
-- **[Live demo](https://REPLACE_ME.github.io/project-review/demo/project-review.html?sample)** —
+- **[Live demo](https://fcabouat.github.io/project-review/demo/project-review.html?sample)** —
   opens on a 20-project sample; switch French/English from the top bar.
-- **[Download `project-review.html`](https://REPLACE_ME.github.io/project-review/demo/project-review.html)** —
+- **[Download `project-review.html`](https://fcabouat.github.io/project-review/demo/project-review.html)** —
   download → double-click → it works. One file, ~1.7 MB, everything inlined;
   it runs offline, from a USB stick, or as an email attachment. The app
   itself carries no content: two sample portfolios sit next to it
-  ([English](https://REPLACE_ME.github.io/project-review/demo/sample-portfolio.en.json),
-  [French](https://REPLACE_ME.github.io/project-review/demo/sample-portfolio.fr.json)) —
+  ([English](https://fcabouat.github.io/project-review/demo/sample-portfolio.en.json),
+  [French](https://fcabouat.github.io/project-review/demo/sample-portfolio.fr.json)) —
   import one like any portfolio file.
-- **[Project site](https://REPLACE_ME.github.io/project-review/)** — demo,
+- **[Project site](https://fcabouat.github.io/project-review/)** — demo,
   docs, component catalog and API reference in one place.
 
 ## Highlights

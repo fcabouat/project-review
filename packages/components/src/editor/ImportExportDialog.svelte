@@ -55,21 +55,26 @@
 
   const language = $derived(portfolio.settings.language)
 
+  // `data-active:` is the primitive's own state hook: the pill background it
+  // paints there outgrows this bar, so it is answered in the same dialect.
   const triggerClass =
     'text-muted-foreground data-[state=active]:text-primary data-[state=active]:border-primary ' +
     'h-auto flex-none grow-0 rounded-none border-x-0 border-t-0 border-b-2 border-transparent ' +
-    'bg-transparent px-0.5 py-3.5 text-[13.5px] font-bold shadow-none data-[state=active]:shadow-none'
+    'bg-transparent data-active:bg-transparent px-0.5 py-3.5 text-[13.5px] font-bold ' +
+    'shadow-none data-[state=active]:shadow-none'
 </script>
 
 <Dialog.Root open onOpenChange={(o) => o || close()}>
   <Dialog.Content
-    class="top-11 w-[640px] max-w-[calc(100%-32px)] translate-y-0 gap-0 p-0 sm:max-w-[640px]"
+    class="top-11 w-[640px] max-w-[calc(100%-32px)] translate-y-0 gap-0 p-0 sm:max-w-[640px]
+      [&_[data-slot=dialog-close]]:top-2"
     closeLabel={te('editor.io.close', language)}
   >
     <Dialog.Title class="sr-only">{te('editor.io.title', language)}</Dialog.Title>
     <Tabs.Root value={active} onValueChange={(v) => (active = v as 'export' | 'import')}>
       <Tabs.List
-        class="border-border h-auto w-full justify-start gap-[26px] rounded-none border-b bg-transparent p-0 px-5"
+        class="border-border group-data-horizontal/tabs:h-auto w-full justify-start gap-[26px]
+          rounded-none border-b bg-transparent p-0 px-5"
       >
         <Tabs.Trigger value="export" class={triggerClass}
           >{te('editor.io.export', language)}</Tabs.Trigger
