@@ -293,7 +293,9 @@
   color: rgba(255, 255, 255, 0.65);
 }
 .title-contact {
-  color: rgba(255, 255, 255, 0.5);
+  /* 0.66, not the historic 0.5: the composited ink sat at 4.07:1 on the
+     accent field — under the 4.5:1 text threshold (v0.5 AA ink pass). */
+  color: rgba(255, 255, 255, 0.66);
 }
 .kpi {
   border-top: 1px solid rgba(255, 255, 255, 0.28);

@@ -16,10 +16,21 @@ import '@fontsource/inter/latin-700.css'
 import '@fontsource/inter/latin-800.css'
 
 import './app.css'
+import { STORAGE_KEY } from '@project-review/core/services/persistence'
+import { defaultStorage } from '@project-review/infrastructure/local-storage'
 import App from './App.svelte'
+import { detectLanguage, fetchSample, shouldBootSample } from './sample-boot'
+
+// `?sample` — resolved BEFORE the app mounts (top-level await): the sample
+// set is fetched from next door over http, silently skipped from file://,
+// and an existing base always wins (policy in `sample-boot.ts`).
+const sampleBoot = shouldBootSample(location.search, defaultStorage()?.getItem(STORAGE_KEY) ?? null)
+  ? await fetchSample(detectLanguage(navigator.language))
+  : undefined
 
 const app = mount(App, {
   target: document.getElementById('app')!,
+  props: { sampleBoot },
 })
 
 export default app

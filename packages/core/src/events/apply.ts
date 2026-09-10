@@ -18,6 +18,10 @@ const applySetting = (s: Settings, e: SettingChanged): Settings => {
       return { ...s, theme: { ...s.theme, palette: e.after } }
     case 'font':
       return { ...s, theme: { ...s.theme, font: e.after } }
+    case 'fontFaces':
+      // `withField`: an `undefined` after ERASES the key, so undoing the very
+      // first embed restores a theme with no `fontFaces` key at all.
+      return { ...s, theme: withField(s.theme, 'fontFaces', e.after) }
     case 'recapRows':
       return { ...s, recapRows: e.after }
     case 'healthDashboard':

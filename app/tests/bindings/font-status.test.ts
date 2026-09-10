@@ -1,8 +1,9 @@
 /**
- * Pins the font-verdict wiring (`src/bindings/font-status.svelte.ts`): the
- * probe runs for the ONE locally served family, every switch resets to
- * `unknown`, and a stale answer never overwrites a fresher watch (epoch
- * guard) — the card must tell the truth of the CURRENT family only.
+ * Pins the font-verdict wiring (`src/bindings/font-status.svelte.ts`): an
+ * embedded family answers `embedded` without probing, the probe runs for the
+ * ONE locally served family, every switch resets to `unknown`, and a stale
+ * answer never overwrites a fresher watch (epoch guard) — the card must tell
+ * the truth of the CURRENT family only.
  */
 
 import { describe, expect, it } from 'vitest'
@@ -39,6 +40,33 @@ describe('createFontStatus', () => {
     pending[0]!('served')
     await Promise.resolve()
     expect(wiring.status).toBe('served')
+  })
+
+  it('answers embedded for a covered family — no probe, even for Marianne', () => {
+    const { probe, pending } = manualProbe()
+    const wiring = createFontStatus(probe)
+    wiring.watch('Custom Face', ['Custom Face'])
+    expect(wiring.status).toBe('embedded')
+    // Embedded beats the served probe: the portfolio's own faces win.
+    wiring.watch(' Marianne ', ['Marianne'])
+    expect(wiring.status).toBe('embedded')
+    expect(pending).toHaveLength(0)
+    // Faces for OTHER families do not cover the current one.
+    wiring.watch('Roboto', ['Marianne'])
+    expect(wiring.status).toBe('unknown')
+  })
+
+  it('a stale probe answer never overwrites a fresher embedded verdict', async () => {
+    const { probe, pending } = manualProbe()
+    const wiring = createFontStatus(probe)
+    wiring.watch('Marianne')
+    expect(pending).toHaveLength(1)
+    // The user embeds the family while the probe is still out.
+    wiring.watch('Marianne', ['Marianne'])
+    expect(wiring.status).toBe('embedded')
+    pending[0]!('missing')
+    await Promise.resolve()
+    expect(wiring.status).toBe('embedded')
   })
 
   it('switching families resets to unknown and drops the stale answer', async () => {

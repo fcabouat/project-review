@@ -29,6 +29,8 @@ export type SettingValues = Settings['show'] & {
   readonly style: Settings['theme']['style']
   readonly palette: Settings['theme']['palette']
   readonly font: Settings['theme']['font']
+  /** `undefined` = none embedded — writing it back ERASES the key (apply). */
+  readonly fontFaces: Settings['theme']['fontFaces']
   readonly recapRows: Settings['recapRows']
 }
 
@@ -42,6 +44,7 @@ export const SETTING_KEYS = [
   'style',
   'palette',
   'font',
+  'fontFaces',
   'healthDashboard',
   'recap',
   'archives',
@@ -59,6 +62,7 @@ export const settingValue = <K extends SettingKey>(s: Settings, key: K): Setting
     style: s.theme.style,
     palette: s.theme.palette,
     font: s.theme.font,
+    fontFaces: s.theme.fontFaces,
     ...s.show,
     recapRows: s.recapRows,
   }

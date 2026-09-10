@@ -21,7 +21,6 @@
   import type { History } from '@project-review/core/events/history'
   import { isoDate, type IsoDate } from '@project-review/core/values/date'
   import {
-    STORAGE_KEY,
     loadHistory,
     loadPersistEnabled,
     loadRaw,
@@ -31,7 +30,13 @@
   import Shell from '@project-review/components/screens/Shell.svelte'
   import { defaultStorage } from '@project-review/infrastructure/local-storage'
   import { timeoutScheduler } from '@project-review/infrastructure/scheduler'
-  import { applyFont, probeFont } from '@project-review/infrastructure/fonts'
+  import {
+    applyEmbeddedFonts,
+    applyFont,
+    embeddedFamilies,
+    probeFont,
+    readWoff2File,
+  } from '@project-review/infrastructure/fonts'
   import { saveStandalone } from '@project-review/infrastructure/dom-export'
   import { MediaQuery } from 'svelte/reactivity'
   import { createStore } from './bindings/runtime.svelte'
@@ -39,7 +44,15 @@
   import { createPersistenceControl } from './bindings/persistence-control.svelte'
   import { createAppearance } from './bindings/appearance.svelte'
   import { createFontStatus } from './bindings/font-status.svelte'
-  import { bundledSample, shouldBootSample } from './sample-boot'
+  import { detectLanguage } from './sample-boot'
+
+  interface Props {
+    /** The `?sample` set `main.ts` resolved BEFORE mounting (sample-boot.ts):
+     * already through the strict parse, `undefined` in every other case. */
+    readonly sampleBoot?: Portfolio
+  }
+
+  let { sampleBoot }: Props = $props()
 
   const storage = defaultStorage()
 
@@ -50,8 +63,7 @@
    * the portfolio), and `<html lang>` follows the setting reactively below.
    */
   function initialLanguage(): Language {
-    const candidate = typeof navigator !== 'undefined' ? navigator.language : ''
-    return candidate.toLowerCase().startsWith('fr') ? 'fr' : 'en'
+    return detectLanguage(typeof navigator !== 'undefined' ? navigator.language : '')
   }
 
   /** Local date (not UTC): the pre-filled review date is what the user sees on the wall. */
@@ -84,13 +96,9 @@
       }
     }
     // `?sample` — the landing's « Try it » link: a full demo on the first
-    // click, in the detected language. Only when NOTHING is stored: an
-    // existing base is never overwritten (policy in `sample-boot.ts`).
-    const search = typeof location !== 'undefined' ? location.search : ''
-    if (shouldBootSample(search, storage?.getItem(STORAGE_KEY) ?? null)) {
-      const sample = bundledSample(initialLanguage())
-      if (sample) return { portfolio: sample }
-    }
+    // click. `main.ts` already applied the whole policy (URL asks, nothing
+    // stored, neighbour file fetched and strictly parsed) before mounting.
+    if (sampleBoot) return { portfolio: sampleBoot }
     return { portfolio: emptyPortfolio(initialLanguage(), today()) }
   }
 
@@ -129,11 +137,16 @@
     persistence.scheduleHistory({ past: store.past, future: store.future })
   })
 
-  // Live font: reacts to settings.theme.font — Google Fonts on demand — and
-  // re-probes the locally served family for the Settings card's live status.
+  // Live font: reacts to settings.theme.font AND the embedded faces.
+  // Precedence embedded > bundled > Google (fonts.ts): the embedded rules are
+  // installed first, a covered family never touches the network, and the
+  // Settings card's live status answers `embedded` without probing.
   $effect(() => {
-    applyFont(store.present.settings.theme.font)
-    fontStatus.watch(store.present.settings.theme.font)
+    const theme = store.present.settings.theme
+    const embedded = embeddedFamilies(theme.fontFaces)
+    applyEmbeddedFonts(theme.fontFaces)
+    applyFont(theme.font, document, embedded)
+    fontStatus.watch(theme.font, embedded)
   })
 
   // Reader scheme → the `dark` class on <html> (tokens.css flips the editor
@@ -197,6 +210,7 @@
     persistence={persistence.control}
     {appearance}
     fontStatus={fontStatus.status}
+    readFontFile={readWoff2File}
     {exportStandalone}
   />
 {/if}

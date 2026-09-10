@@ -43,10 +43,12 @@ export interface AppearanceControl {
 }
 
 /**
- * Live verdict on the locally served font (today: Marianne, the one family
- * deployed ALONGSIDE the app). Probing is a browser affair — the host wires
- * the infrastructure's `document.fonts` probe in and passes the verdict down;
- * `unknown` covers "still probing" and "no way to ask" alike, so the card
- * never flashes a wrong «not found».
+ * Live verdict on where the theme font comes from. `embedded` — the family is
+ * covered by the portfolio's own `fontFaces` — wins outright, no probe
+ * needed. The probe verdicts concern the locally served family (today:
+ * Marianne, deployed ALONGSIDE the app): probing is a browser affair — the
+ * host wires the infrastructure's `document.fonts` probe in and passes the
+ * verdict down; `unknown` covers "still probing" and "no way to ask" alike,
+ * so the card never flashes a wrong «not found».
  */
-export type FontStatus = 'unknown' | 'served' | 'missing'
+export type FontStatus = 'unknown' | 'served' | 'missing' | 'embedded'

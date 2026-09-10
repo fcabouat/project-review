@@ -76,9 +76,19 @@ const NEW_VALUES = {
 
 const NEW_SETTINGS = {
   language: 'en',
-  style: 'classic',
+  style: 'institutional',
   palette: 'material',
   font: 'Marianne',
+  // Appearance of the first embedded face: `before` is undefined on the
+  // fixture portfolio, so the inverse exercises the key-erasing path too.
+  fontFaces: [
+    {
+      family: 'Marianne',
+      weight: '400',
+      style: 'normal',
+      dataUri: 'data:font/woff2;base64,d09GMgABAA==',
+    },
+  ],
   healthDashboard: false,
   recap: false,
   archives: false,

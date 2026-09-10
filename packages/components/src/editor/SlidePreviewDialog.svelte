@@ -76,6 +76,7 @@
 <Dialog.Root open onOpenChange={(o) => o || close()}>
   <Dialog.Content
     class="top-11 w-[860px] max-w-[calc(100%-32px)] translate-y-0 gap-0 overflow-hidden rounded-lg p-0 sm:max-w-[860px]"
+    closeLabel={te('editor.io.close', language)}
   >
     <div class="border-border flex items-center gap-3 border-b py-3 pr-14 pl-[18px]">
       <Dialog.Title class="text-sm font-bold"

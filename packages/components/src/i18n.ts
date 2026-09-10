@@ -65,6 +65,10 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
   'editor.topbar.undo': { fr: 'Annuler', en: 'Undo' },
   'editor.topbar.redo': { fr: 'Rétablir', en: 'Redo' },
   'editor.topbar.language': { fr: "Langue de l'application", en: 'Application language' },
+  /* Menu items of the language dropdown — NATIVE names, invariant on purpose:
+     a language list reads best in its own tongue. */
+  'editor.language.fr': { fr: 'Français', en: 'Français' },
+  'editor.language.en': { fr: 'English', en: 'English' },
   'editor.topbar.slideshow': {
     fr: `Générer le diaporama${NBSP}▸`,
     en: `Generate the slideshow${NBSP}▸`,
@@ -130,6 +134,9 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
   'editor.setting.language': { fr: 'Langue', en: 'Language' },
   'editor.setting.palette': { fr: 'Palette', en: 'Palette' },
   'editor.setting.font': { fr: 'Police', en: 'Font' },
+  /* History wording of the `fontFaces` setting (the value side is
+     `editor.value.fontFaces`). */
+  'editor.setting.fontFaces': { fr: 'Police embarquée', en: 'Embedded font' },
   'editor.setting.healthDashboard': { fr: 'Dashboard santé', en: 'Health dashboard' },
   'editor.setting.recap': { fr: 'Récapitulatif', en: 'Recap' },
   'editor.setting.archives': { fr: 'Archives', en: 'Archives' },
@@ -141,9 +148,11 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
   'editor.value.no': { fr: 'non', en: 'no' },
   'editor.value.empty': { fr: '(vide)', en: '(empty)' },
   'editor.value.image': { fr: 'image', en: 'image' },
+  // Data URIs would flood the history: faces are counted, never spelled out.
+  'editor.value.fontFaces': { fr: '{n} fonte(s)', en: '{n} face(s)' },
   'editor.value.pct': { fr: `{n}${NBSP}%`, en: `{n}${NBSP}%` },
   'editor.palette.tailwind': { fr: 'Tailwind', en: 'Tailwind' },
-  'editor.palette.dsfr': { fr: 'DSFR', en: 'DSFR' },
+  'editor.palette.gov': { fr: 'Gov', en: 'Gov' },
   'editor.palette.material': { fr: 'Material', en: 'Material' },
   'editor.sheetMode.auto': {
     fr: 'Auto — slide de détail affichée si le projet est prêt, en cours ou en reliquats, ou s’il porte une décision attendue',
@@ -264,9 +273,50 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
     fr: 'Marianne introuvable — repli sur la pile système.',
     en: 'Marianne not found — falling back to the system stack.',
   },
+  /* Third source of the live verdict: the portfolio itself embeds the faces. */
+  'editor.settings.fontProbe.embedded': {
+    fr: 'Police embarquée dans le portefeuille.',
+    en: 'Font embedded in the portfolio.',
+  },
+  /* ---- embedded font faces (Settings ▸ Appearance) ---- */
+  'editor.settings.embeddedFonts': { fr: 'Police embarquée', en: 'Embedded font' },
+  'editor.settings.embedFiles': { fr: 'Embarquer des .woff2…', en: 'Embed .woff2 files…' },
+  'editor.settings.embedFolder': { fr: 'Embarquer un dossier…', en: 'Embed a folder…' },
+  'editor.settings.embedHint': {
+    fr: `Les fichiers .woff2 voyagent dans le .json${NBSP}: la police suit le portefeuille, export autonome compris.`,
+    en: 'The .woff2 files travel inside the .json: the font follows the portfolio, standalone export included.',
+  },
+  /* License line — one sober sentence: embedding = redistribution. */
+  'editor.settings.embedLicense': {
+    fr: `Embarquer une police dans un fichier diffusé constitue une redistribution — vérifiez que sa licence l'autorise (Marianne${NBSP}: usage réservé à l'État).`,
+    en: 'Embedding a font in a distributed file is redistribution — check that its license allows it (Marianne: French-State use only).',
+  },
+  'editor.settings.removeFace': { fr: 'Retirer', en: 'Remove' },
+  'editor.settings.removeFaceAria': {
+    fr: 'Retirer la fonte {family} {weight}',
+    en: 'Remove the {family} {weight} face',
+  },
+  'editor.settings.faceItalic': { fr: 'italique', en: 'italic' },
+  'editor.settings.faceSize': { fr: `~{n}${NBSP}Ko`, en: '~{n} KB' },
+  'editor.settings.fontFaceTooBig': {
+    fr: `«${NBSP}{name}${NBSP}» trop lourd pour être embarqué ({max}${NBSP}Ko max par fichier).`,
+    en: '"{name}" too large to embed ({max} KB max per file).',
+  },
+  'editor.settings.fontsTotalTooBig': {
+    fr: `Ensemble trop lourd${NBSP}: {max}${NBSP}Ko max de polices embarquées au total.`,
+    en: 'Too large together: {max} KB max of embedded fonts in total.',
+  },
+  'editor.settings.fontFaceUnreadable': {
+    fr: `«${NBSP}{name}${NBSP}» illisible, ou pas un fichier woff2.`,
+    en: '"{name}" unreadable, or not a woff2 file.',
+  },
+  'editor.settings.noWoff2': {
+    fr: 'Aucun fichier .woff2 dans la sélection.',
+    en: 'No .woff2 file in the selection.',
+  },
   'editor.setting.style': { fr: 'Thème', en: 'Theme' },
   'editor.style.flat': { fr: 'Flat', en: 'Flat' },
-  'editor.style.classic': { fr: 'Classique', en: 'Classic' },
+  'editor.style.institutional': { fr: 'Institutionnel', en: 'Institutional' },
   /* Reader scheme (Settings ▸ Appearance) — an app-side preference, never a
      domain event: see `AppearanceControl` (screens/contracts). */
   'editor.setting.scheme': { fr: `Thème de l'interface`, en: 'Interface theme' },
@@ -301,10 +351,12 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
     fr: `Désactiver la sauvegarde locale efface les données enregistrées dans ce navigateur (la base ouverte reste intacte). Continuer${NBSP}?`,
     en: 'Turning local save off erases the data stored in this browser (the open database stays intact). Continue?',
   },
-  'editor.data.examples': { fr: `Charger les données d'exemple`, en: 'Load the sample data' },
-  'editor.data.examplesConfirm': {
-    fr: `Remplacer la base actuelle par le jeu d'exemple Déjà Vu Ltd.${NBSP}? (annulable)`,
-    en: 'Replace the current database with the Déjà Vu Ltd. sample set? (undoable)',
+  /* Owner-validated guidance line: the sample sets live NEXT TO the app and
+     on the project site, and come in through the ordinary import — the
+     deliverable itself carries no content. */
+  'editor.data.samplesHint': {
+    fr: `Des portefeuilles d'exemple accompagnent l'app et le site du projet${NBSP}; importez-les comme n'importe quel fichier.`,
+    en: 'Sample portfolios come with the app and the project site; import them like any file.',
   },
   'editor.data.purge': { fr: 'Purger la base', en: 'Purge the database' },
   'editor.data.purgeConfirm': {
@@ -559,6 +611,22 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
     fr: 'plus de {max}\u202Fk caractères',
     en: 'over {max}k characters',
   },
+  'editor.error.invalidFontFace': {
+    fr: 'data URI de police attendue (data:font/woff2;base64,…)',
+    en: 'font data URI expected (data:font/woff2;base64,…)',
+  },
+  'editor.error.invalidFontWeight': {
+    fr: `graisse «${NBSP}{value}${NBSP}» refusée (entier 400–800, ou plage «${NBSP}min max${NBSP}»)`,
+    en: 'weight "{value}" refused (integer 400–800, or a "min max" range)',
+  },
+  'editor.error.oversizedFontFace': {
+    fr: 'plus de {max} k caractères',
+    en: 'over {max}k characters',
+  },
+  'editor.error.oversizedFontFaces': {
+    fr: `polices embarquées${NBSP}: plus de {max} k caractères en tout`,
+    en: 'embedded fonts: over {max}k characters together',
+  },
   'editor.error.emptyBlocks': { fr: 'au moins un bloc attendu', en: 'at least one block expected' },
   'editor.io.errorCount': {
     fr: `{n} erreur(s) de contrat${NBSP}:`,
@@ -567,10 +635,10 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
   'editor.io.cancel': { fr: 'Annuler', en: 'Cancel' },
   /* Confirm button of the destructive-action dialogs (AlertDialog). */
   'editor.confirm': { fr: 'Confirmer', en: 'Confirm' },
-  /* Dialog-foot pointer to the data administration (samples, purge). */
+  /* Dialog-foot pointer to the data administration (purge, reset). */
   'editor.io.dataPointer': {
-    fr: `Les données d'exemple et la purge se trouvent dans Paramètres → Données`,
-    en: 'Sample data and the purge live in Settings → Data',
+    fr: `La purge et la réinitialisation se trouvent dans Paramètres → Données`,
+    en: 'The purge and the reset live in Settings → Data',
   },
   'editor.io.keepSettings': {
     fr: `Conserver mes réglages et mon identité (thème, logo, langue, affichage)`,

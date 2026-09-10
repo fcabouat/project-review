@@ -1,41 +1,82 @@
 /**
- * file:// smoke test of the BUILT single-file deliverable — plain node +
- * Playwright, deliberately outside vitest: what boots here is the exact file
- * a user double-clicks, engine, router and export included. This run is what
- * the `v8 ignore` justifications of the DOM halves (hash-router, dom-export,
- * route binding) point at.
+ * Smoke test of the BUILT single-file deliverable — plain node + Playwright,
+ * deliberately outside vitest: what boots here is the exact file a user
+ * double-clicks, engine, router and export included. This run is what the
+ * `v8 ignore` justifications of the DOM halves (hash-router, dom-export,
+ * fonts' FileReader, route binding) point at.
  *
  * PRECONDITION: `bun run build` first — the script drives dist/ as built
  * (`bun run smoke` from the root; CI runs it right after the build step).
  *
- * Covered, with zero console errors tolerated anywhere:
- *   1. empty boot in fr AND en (browser locale decides the first language);
- *   2. `?sample` boots the 20-project demo set;
+ * Two transports, mirroring real life:
+ * - file:// — the double-clicked deliverable: empty boots in fr AND en, and
+ *   `?sample` degrading to a SILENT empty boot (no http neighbour to fetch);
+ * - http — a static server over the repo root (the deployment story): the
+ *   `?sample` sessions fetch `dist/sample-portfolio.{fr,en}.json` from next
+ *   door, exactly as the landing's « Try it » link does on Pages.
+ *
+ * Covered, with zero console errors tolerated anywhere (the Marianne face
+ * probe never fires here — no session names that family):
+ *   1. file://: empty boot in fr AND en; `?sample` boots EMPTY, silently;
+ *   2. http `?sample` boots the 20-project demo set;
  *   3. hash navigation: #/projects → #/sheet/P-01 → back;
- *   4. the FR | EN top-bar switch relabels the shell and <html lang>; its
- *      scheme-toggle twin stamps (and removes) the `dark` class on <html>;
+ *   4. the top-bar language MENU relabels the shell and <html lang>; the
+ *      scheme MENU stamps (and removes) the `dark` class on <html>;
  *   5. « Générer le diaporama » boots reveal with the 34 derived slides;
  *   6. « Enregistrer » downloads the standalone deck; the saved file carries
- *      the CSP <meta>, embarks NO `.dark` rule (the editor's reader scheme
- *      must not travel), and re-opens from file:// without a single console
- *      error, reveal booted;
- *   7. the 390×844 touch pass: boot, nav drawer, a sheet opened from the
- *      table, the slideshow scaled to fit with its exit bar pinned (no hover
- *      on touch), the standalone export — and never a horizontal body scroll.
+ *      the CSP <meta>, embarks NO `.dark` rule, and re-opens from file://
+ *      without a single console error, reveal booted;
+ *   7. closing the slideshow RESTORES focus to the generate button;
+ *   8. the embed scenario: a fabricated .woff2 fixture picked through the
+ *      Settings card → live «embedded» status → standalone export carries the
+ *      data-URI face and SERVES it from file:// → `?print` renders its 34
+ *      pages with the embedded face loaded;
+ *   9. the 390×844 touch pass: boot, nav drawer, a sheet opened from the
+ *      table, the slideshow scaled to fit with its exit bar pinned, the
+ *      standalone export — and never a horizontal body scroll.
  */
 
 import { access, mkdtemp, readFile, rm } from 'node:fs/promises'
+import { createServer } from 'node:http'
 import { tmpdir } from 'node:os'
-import { join, resolve } from 'node:path'
+import { extname, join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import process from 'node:process'
 import { chromium } from 'playwright'
 
-const DIST = resolve(import.meta.dirname, '../../dist/project-review.html')
-const APP_URL = pathToFileURL(DIST).href
+const ROOT = resolve(import.meta.dirname, '../..')
+const DIST = join(ROOT, 'dist/project-review.html')
+const FILE_APP = pathToFileURL(DIST).href
+const FONT_FIXTURE = resolve(import.meta.dirname, 'fixtures/TestFace-Regular.woff2')
 /** The sample data set (fr and en alike) holds 20 projects, deriving 34 slides. */
 const SAMPLE_PROJECTS = 20
 const SAMPLE_SLIDES = 34
+
+const MIME = {
+  '.html': 'text/html',
+  '.js': 'text/javascript',
+  '.css': 'text/css',
+  '.svg': 'image/svg+xml',
+  '.woff2': 'font/woff2',
+  '.png': 'image/png',
+  '.json': 'application/json',
+}
+
+/** Static file server over the repo root — same pattern as a11y.mjs. */
+function serve(root) {
+  const server = createServer(async (request, response) => {
+    const path = (request.url ?? '/').split('?')[0]
+    try {
+      const body = await readFile(join(root, decodeURIComponent(path)))
+      response.writeHead(200, { 'content-type': MIME[extname(path)] ?? 'application/octet-stream' })
+      response.end(body)
+    } catch {
+      response.writeHead(404)
+      response.end()
+    }
+  })
+  return new Promise((ready) => server.listen(0, '127.0.0.1', () => ready(server)))
+}
 
 let failures = 0
 const check = (ok, label) => {
@@ -43,10 +84,21 @@ const check = (ok, label) => {
   if (!ok) failures += 1
 }
 
-/** Console/page errors of one page, harvested as they happen. */
+/**
+ * Console/page errors of one page, harvested as they happen.
+ *
+ * ONE targeted tolerance, documented: the 404 of the OPTIONAL Marianne faces
+ * (`/fonts/marianne/*.woff2`, not deployed in this public repository) is
+ * INHERENT to fetching an optional face — the standalone export probes those
+ * `@font-face` URLs over http to inline them and DROPS the rule cleanly when
+ * they are absent (asserted below: the exported file carries no marianne
+ * URL). Everything else still fails the zero-error gate.
+ */
 const watchErrors = (page, bucket) => {
   page.on('console', (message) => {
-    if (message.type() === 'error') bucket.push(message.text())
+    if (message.type() !== 'error') return
+    if (message.location().url.includes('/fonts/marianne/')) return
+    bucket.push(message.text())
   })
   page.on('pageerror', (error) => bucket.push(String(error)))
 }
@@ -58,7 +110,7 @@ async function emptyBoot(browser, locale, lang, projectsLabel) {
   const page = await context.newPage()
   const errors = []
   watchErrors(page, errors)
-  await page.goto(APP_URL)
+  await page.goto(FILE_APP)
   await settle(page)
   check(
     (await page.getAttribute('html', 'lang')) === lang,
@@ -81,35 +133,54 @@ async function main() {
     process.exit(1)
   })
 
+  const server = await serve(ROOT)
+  const HTTP_APP = `http://127.0.0.1:${server.address().port}/dist/project-review.html`
+
   // `chromiumSandbox: false`: the script must run identically on a developer
   // machine, in a container and on the CI runner.
   const browser = await chromium.launch({ chromiumSandbox: false })
   const downloads = await mkdtemp(join(tmpdir(), 'project-review-smoke-'))
 
   try {
-    /* ---- 1. empty boot, both languages (locale drives the first language) */
+    /* ---- 1. file://: empty boots, and ?sample degrading silently ---- */
     await emptyBoot(browser, 'fr-FR', 'fr', 'Projets')
     await emptyBoot(browser, 'en-US', 'en', 'Projects')
 
-    /* ---- 2-6. the full French session on the sample set ---- */
+    const fileContext = await browser.newContext({ locale: 'fr-FR' })
+    const filePage = await fileContext.newPage()
+    const fileErrors = []
+    watchErrors(filePage, fileErrors)
+    await filePage.goto(`${FILE_APP}?sample#/projects`)
+    await settle(filePage)
+    check(
+      await filePage.getByText('Aucun projet — commencez par en ajouter un.').isVisible(),
+      'file:// ?sample: no neighbour to fetch — boots EMPTY',
+    )
+    check(
+      fileErrors.length === 0,
+      `file:// ?sample: zero console errors${fileErrors.length ? ` — ${fileErrors[0]}` : ''}`,
+    )
+    await fileContext.close()
+
+    /* ---- 2-7. the full French session on the http-served sample ---- */
     const context = await browser.newContext({ locale: 'fr-FR' })
     const page = await context.newPage()
     const errors = []
     watchErrors(page, errors)
 
-    await page.goto(`${APP_URL}?sample`)
+    await page.goto(`${HTTP_APP}?sample`)
     await settle(page)
 
     // 2. sample boot: 20 projects on the Projects screen.
-    await page.goto(`${APP_URL}?sample#/projects`)
+    await page.goto(`${HTTP_APP}?sample#/projects`)
     await settle(page)
     check(
       await page.getByText(`${SAMPLE_PROJECTS} projets`).first().isVisible(),
-      `?sample: the Projects screen counts ${SAMPLE_PROJECTS} projects`,
+      `http ?sample: the Projects screen counts ${SAMPLE_PROJECTS} projects`,
     )
 
     // 3. hash navigation: the sheet of P-01, then back.
-    await page.goto(`${APP_URL}?sample#/sheet/P-01`)
+    await page.goto(`${HTTP_APP}?sample#/sheet/P-01`)
     await settle(page)
     check(
       await page.getByRole('button', { name: '‹ Portefeuille' }).isVisible(),
@@ -123,32 +194,35 @@ async function main() {
     await settle(page)
     check(page.url().endsWith('#/projects'), 'navigation: back returns to #/projects')
 
-    // 4. FR | EN switch: same command as Settings, whole shell relabels.
-    await page.getByRole('button', { name: 'EN', exact: true }).click()
+    // 4. language MENU: same command as Settings, whole shell relabels.
+    await page.getByRole('button', { name: /Langue de l'application/ }).click()
+    await page.getByRole('menuitem', { name: 'English' }).click()
     await settle(page)
-    check((await page.getAttribute('html', 'lang')) === 'en', 'FR|EN switch: <html lang="en">')
+    check((await page.getAttribute('html', 'lang')) === 'en', 'language menu: <html lang="en">')
     check(
       await page.getByRole('link', { name: 'Projects' }).isVisible(),
-      'FR|EN switch: nav relabels to "Projects"',
+      'language menu: nav relabels to "Projects"',
     )
-    await page.getByRole('button', { name: 'FR', exact: true }).click()
+    await page.getByRole('button', { name: /Application language/ }).click()
+    await page.getByRole('menuitem', { name: 'Français' }).click()
     await settle(page)
 
-    // 4b. the top-bar scheme toggle (FR|EN's twin, same store as Settings):
-    // Sombre stamps the `dark` class, Système removes it (headless prefers
-    // light) — the editor flips, the slides stay pinned light.
-    const schemeGroup = page.getByRole('group', { name: /Thème de l/ })
-    await schemeGroup.getByRole('button', { name: 'Sombre' }).click()
+    // 4b. the top-bar scheme MENU (the language menu's twin, same store as
+    // Settings): Sombre stamps the `dark` class, Système removes it (headless
+    // prefers light) — the editor flips, the slides stay pinned light.
+    await page.getByRole('button', { name: /Thème de l'interface/ }).click()
+    await page.getByRole('menuitem', { name: 'Sombre' }).click()
     await settle(page)
     check(
       await page.evaluate(() => document.documentElement.classList.contains('dark')),
-      'scheme toggle: Sombre stamps the dark class on <html>',
+      'scheme menu: Sombre stamps the dark class on <html>',
     )
-    await schemeGroup.getByRole('button', { name: 'Système' }).click()
+    await page.getByRole('button', { name: /Thème de l'interface/ }).click()
+    await page.getByRole('menuitem', { name: 'Système' }).click()
     await settle(page)
     check(
       await page.evaluate(() => !document.documentElement.classList.contains('dark')),
-      'scheme toggle: back to Système removes it',
+      'scheme menu: back to Système removes it',
     )
 
     // 5. the slideshow: reveal boots on the 34 derived sections.
@@ -178,6 +252,21 @@ async function main() {
       !/\.dark\b/.test(html),
       'export: no `.dark` rule embarked — the reader scheme stays with the editor',
     )
+    check(
+      !html.includes('fonts/marianne'),
+      'export: the unreachable optional Marianne faces are dropped whole',
+    )
+
+    // 7. closing the show RESTORES focus to the button that opened it.
+    await page.mouse.move(640, 4)
+    await page.getByRole('button', { name: '✕ Fermer' }).click()
+    await settle(page)
+    check(
+      await page.evaluate(() =>
+        (document.activeElement?.textContent ?? '').includes('Générer le diaporama'),
+      ),
+      'close: focus returns to « Générer le diaporama »',
+    )
 
     check(
       errors.length === 0,
@@ -202,7 +291,94 @@ async function main() {
     )
     await standaloneContext.close()
 
-    /* ---- 7. the mobile pass: 390×844, touch, French sample ---- */
+    /* ---- 8. the embed scenario: fixture woff2 → export → file:// → print ---- */
+    const embedContext = await browser.newContext({ locale: 'fr-FR' })
+    const ep = await embedContext.newPage()
+    const embedErrors = []
+    watchErrors(ep, embedErrors)
+
+    await ep.goto(`${HTTP_APP}?sample#/settings`)
+    await settle(ep)
+    // Embed FIRST, then name the family: a covered family never produces a
+    // Google Fonts request (precedence embedded > bundled > Google).
+    await ep.setInputFiles('input[accept=".woff2,font/woff2"]', FONT_FIXTURE)
+    await settle(ep)
+    check(
+      await ep.getByText('TestFace').first().isVisible(),
+      'embed: the picked face is listed (family read from the file name)',
+    )
+    const fontField = ep.getByRole('textbox', { name: 'Police' })
+    await fontField.fill('TestFace')
+    await fontField.press('Tab')
+    await settle(ep)
+    check(
+      await ep.getByText('Police embarquée dans le portefeuille.').isVisible(),
+      'embed: the live status answers «embedded» — no probe, no network',
+    )
+
+    // The export carries the face as a data URI and SERVES it from file://.
+    await ep.getByRole('button', { name: /Générer le diaporama/ }).click()
+    await ep.waitForSelector('.reveal.ready', { timeout: 20_000 })
+    await ep.mouse.move(640, 4)
+    const [embedDownload] = await Promise.all([
+      ep.waitForEvent('download'),
+      ep.getByRole('button', { name: 'Enregistrer' }).click(),
+    ])
+    const embedExport = join(downloads, `embed-${embedDownload.suggestedFilename()}`)
+    await embedDownload.saveAs(embedExport)
+    const embedHtml = await readFile(embedExport, 'utf8')
+    check(
+      embedHtml.includes('data:font/woff2;base64,d09GMg') &&
+        /font-family:\s*['"]?TestFace/.test(embedHtml) &&
+        embedHtml.includes('font-src data:'),
+      'embed export: the @font-face data URI is emitted under the font-src data: CSP',
+    )
+    await ep.mouse.move(640, 4)
+    await ep.getByRole('button', { name: '✕ Fermer' }).click()
+    await settle(ep)
+
+    const embedStandalone = await browser.newContext()
+    const esPage = await embedStandalone.newPage()
+    const esErrors = []
+    watchErrors(esPage, esErrors)
+    await esPage.goto(pathToFileURL(embedExport).href)
+    await esPage.waitForSelector('.reveal.ready', { timeout: 20_000 })
+    check(
+      await esPage.evaluate(async () => {
+        const faces = await document.fonts.load('16px TestFace')
+        return faces.length > 0 && document.fonts.check('16px TestFace')
+      }),
+      'embed export: TestFace is SERVED from file:// (document.fonts.check)',
+    )
+    check(
+      esErrors.length === 0,
+      `embed export: file:// run, zero console errors${esErrors.length ? ` — ${esErrors[0]}` : ''}`,
+    )
+    await embedStandalone.close()
+
+    // ?print in the SAME context: local save persisted the embedded face —
+    // the flat 34-page render uses it (Chrome print embeds loaded glyphs).
+    await ep.goto(`${HTTP_APP}?print`)
+    await ep.waitForSelector('.rp-print-root .slide', { timeout: 20_000 })
+    const printPages = await ep.locator('.rp-print-root .slide').count()
+    check(
+      printPages === SAMPLE_SLIDES,
+      `embed ?print: ${SAMPLE_SLIDES} A4 pages laid out (got ${printPages})`,
+    )
+    check(
+      await ep.evaluate(async () => {
+        const faces = await document.fonts.load('16px TestFace')
+        return faces.length > 0 && document.fonts.check('16px TestFace')
+      }),
+      'embed ?print: the embedded face is loaded for the print render',
+    )
+    check(
+      embedErrors.length === 0,
+      `embed session: zero console errors${embedErrors.length ? ` — ${embedErrors[0]}` : ''}`,
+    )
+    await embedContext.close()
+
+    /* ---- 9. the mobile pass: 390×844, touch, French sample over http ---- */
     const mobile = await browser.newContext({
       locale: 'fr-FR',
       viewport: { width: 390, height: 844 },
@@ -218,7 +394,7 @@ async function main() {
         `mobile: no horizontal body scroll on ${label}`,
       )
 
-    await mp.goto(`${APP_URL}?sample`)
+    await mp.goto(`${HTTP_APP}?sample`)
     await settle(mp)
     check(
       await mp.getByRole('button', { name: 'Ouvrir la navigation' }).isVisible(),
@@ -292,6 +468,7 @@ async function main() {
     await mobile.close()
   } finally {
     await browser.close()
+    server.close()
     await rm(downloads, { recursive: true, force: true })
   }
 

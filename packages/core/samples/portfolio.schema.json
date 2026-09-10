@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "portfolio.schema.json",
   "title": "Portfolio — project review",
-  "description": "Schema of the portfolio file (editor export \"project-review-{reviewDate}.json\", bundled sample sets \"sample-portfolio.{fr,en}.json\"). It states the SAME closed contract the application's strict import enforces (core parse/): required keys, no unknown key, closed enumerations, bounded numbers. Two checks only the parse can express: dates must be CALENDAR-valid (the pattern here just fixes the shape) and ids must be unique per collection.",
+  "description": "Schema of the portfolio file (editor export \"project-review-{reviewDate}.json\", sample sets \"sample-portfolio.{fr,en}.json\"). It states the SAME closed contract the application's strict import enforces (core parse/): required keys, no unknown key, closed enumerations, bounded numbers. Three checks only the parse can express: dates must be CALENDAR-valid (the pattern here just fixes the shape), ids must be unique per collection, and the embedded font faces together must stay under 2 000 000 data-URI characters (~1.5 MB of binary).",
   "type": "object",
   "additionalProperties": false,
   "required": ["version", "review", "settings", "categories", "projects", "freeSlides"],
@@ -152,17 +152,47 @@
           "additionalProperties": false,
           "properties": {
             "style": {
-              "enum": ["flat", "classic"],
+              "enum": ["flat", "institutional"],
               "default": "flat"
             },
             "palette": {
-              "enum": ["dsfr", "tailwind", "material"],
+              "enum": ["gov", "tailwind", "material"],
               "default": "material"
             },
             "font": {
               "type": "string",
               "pattern": "^[A-Za-z0-9 _-]{1,64}$",
               "default": "Roboto"
+            },
+            "fontFaces": {
+              "type": "array",
+              "description": "Font faces embedded in the portfolio as woff2 data URIs — the theme font travels inside the file. All faces together must stay under 2 000 000 data-URI characters (~1.5 MB of binary); only the parse counts that total.",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["family", "dataUri"],
+                "properties": {
+                  "family": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9 _-]{1,64}$"
+                  },
+                  "weight": {
+                    "type": "string",
+                    "pattern": "^\\d{3}( \\d{3})?$",
+                    "default": "400",
+                    "description": "One integer in 400–800, or an ascending \"min max\" pair"
+                  },
+                  "style": {
+                    "enum": ["normal", "italic"],
+                    "default": "normal"
+                  },
+                  "dataUri": {
+                    "type": "string",
+                    "pattern": "^data:font\\/woff2;base64,[A-Za-z0-9+/]+={0,2}$",
+                    "maxLength": 550000
+                  }
+                }
+              }
             }
           }
         },

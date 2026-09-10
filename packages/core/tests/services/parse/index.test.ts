@@ -327,6 +327,125 @@ describe('refusal — values', () => {
       ),
     ).toEqual(['settings.identity.logo oversizedLogo'])
   })
+
+  /* ---- embedded font faces (settings.theme.fontFaces) ---- */
+
+  const themed = (fontFaces: unknown) => ({
+    identity: { org: 'a', unit: 'b' },
+    theme: { font: 'Marianne', fontFaces },
+    show: { healthDashboard: true, recap: true, archives: true, decisions: true },
+    recapRows: 11,
+  })
+  /** A clean face — `n` sizes the base64 payload. */
+  const face = (over: Record<string, unknown> = {}, n = 8) => ({
+    family: 'Marianne',
+    weight: '400',
+    style: 'normal',
+    dataUri: `data:font/woff2;base64,${'A'.repeat(n)}`,
+    ...over,
+  })
+
+  it('accepts embedded faces, defaulting weight to 400 and style to normal', () => {
+    const r = parsePortfolio(
+      rawPortfolio({
+        settings: themed([
+          face(),
+          { family: 'Marianne', dataUri: 'data:font/woff2;base64,d09GMg==' },
+          face({ weight: '500 600', style: 'italic' }),
+        ]),
+      }),
+    )
+    if (!r.ok) throw new Error(JSON.stringify(r.errors))
+    expect(r.portfolio.settings.theme.fontFaces).toHaveLength(3)
+    expect(r.portfolio.settings.theme.fontFaces![1]).toEqual({
+      family: 'Marianne',
+      weight: '400',
+      style: 'normal',
+      dataUri: 'data:font/woff2;base64,d09GMg==',
+    })
+    expect(r.portfolio.settings.theme.fontFaces![2]!.weight).toBe('500 600')
+    expect(r.portfolio.settings.theme.fontFaces![2]!.style).toBe('italic')
+  })
+
+  it('normalises an empty fontFaces array to key absence — [] means "none embedded"', () => {
+    const r = parsePortfolio(rawPortfolio({ settings: themed([]) }))
+    if (!r.ok) throw new Error(JSON.stringify(r.errors))
+    expect('fontFaces' in r.portfolio.settings.theme).toBe(false)
+  })
+
+  it('refuses a dataUri outside the exact woff2 base64 shape — it lands in @font-face CSS', () => {
+    const bad = [
+      'data:font/ttf;base64,AAAA', // wrong MIME
+      'data:font/woff2;base64,', // empty payload
+      'data:font/woff2;base64,AA"A', // charset break — a CSS url() escape
+      'data:font/woff2,rawtext', // not base64-flagged
+      'https://example.com/f.woff2', // not a data URI at all
+    ]
+    for (const dataUri of bad) {
+      const r = parsePortfolio(rawPortfolio({ settings: themed([face({ dataUri })]) }))
+      expect(faults(r)).toEqual(['settings.theme.fontFaces[0].dataUri invalidFontFace'])
+    }
+  })
+
+  it('refuses a face family outside the font charset and a malformed weight', () => {
+    expect(
+      faults(parsePortfolio(rawPortfolio({ settings: themed([face({ family: 'X</style>' })]) }))),
+    ).toEqual(['settings.theme.fontFaces[0].family invalidFont'])
+    for (const weight of ['300', '900', 'bold', '700 500', '400-700', '4000']) {
+      const r = parsePortfolio(rawPortfolio({ settings: themed([face({ weight })]) }))
+      expect(faults(r)).toEqual(['settings.theme.fontFaces[0].weight invalidFontWeight'])
+    }
+    expect(
+      faults(parsePortfolio(rawPortfolio({ settings: themed([face({ style: 'oblique' })]) }))),
+    ).toEqual(['settings.theme.fontFaces[0].style invalidEnum'])
+  })
+
+  it('collects every fault of every face — the report is exhaustive', () => {
+    const r = parsePortfolio(
+      rawPortfolio({
+        settings: themed([
+          { family: '', weight: '9', style: 'wide', dataUri: 'nope', extra: true },
+          face(),
+        ]),
+      }),
+    )
+    expect(faults(r)).toEqual([
+      'settings.theme.fontFaces[0].extra unknownKey',
+      'settings.theme.fontFaces[0].family invalidFont',
+      'settings.theme.fontFaces[0].weight invalidFontWeight',
+      'settings.theme.fontFaces[0].style invalidEnum',
+      'settings.theme.fontFaces[0].dataUri invalidFontFace',
+    ])
+  })
+
+  it('caps one face at 550k data-URI characters (~400 KB of binary)', () => {
+    // 23 prefix chars + payload: one over the cap trips, at the cap passes.
+    const r = parsePortfolio(rawPortfolio({ settings: themed([face({}, 550_001 - 23)]) }))
+    expect(faults(r)).toEqual(['settings.theme.fontFaces[0].dataUri oversizedFontFace'])
+    if (!r.ok) expect(r.errors[0]!.params).toEqual({ max: '550' })
+    const ok = parsePortfolio(rawPortfolio({ settings: themed([face({}, 550_000 - 23)]) }))
+    expect(ok.ok).toBe(true)
+  })
+
+  it('caps all faces together at 2M data-URI characters (~1.5 MB of binary)', () => {
+    // Four faces of 550 000 chars each: every one under its own cap, the
+    // sum (2 200 000) over the collection's.
+    const four = [
+      face({}, 550_000 - 23),
+      face({}, 550_000 - 23),
+      face({}, 550_000 - 23),
+      face({}, 550_000 - 23),
+    ]
+    const r = parsePortfolio(rawPortfolio({ settings: themed(four) }))
+    expect(faults(r)).toEqual(['settings.theme.fontFaces oversizedFontFaces'])
+    if (!r.ok) expect(r.errors[0]!.params).toEqual({ max: '2000' })
+  })
+
+  it('refuses a non-array fontFaces value', () => {
+    expect(faults(parsePortfolio(rawPortfolio({ settings: themed('Marianne.woff2') })))).toEqual([
+      'settings.theme.fontFaces wrongType',
+    ])
+  })
 })
 
 describe('refusal — rows and slides', () => {

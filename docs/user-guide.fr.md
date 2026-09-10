@@ -20,7 +20,7 @@ Deux façons de lancer l'application :
   affichée.
 
 La langue d'affichage est détectée au premier lancement et se change à tout
-moment par le commutateur FR | EN de la barre du haut (ou dans les
+moment par le menu de langue de la barre du haut (ou dans les
 [Paramètres](#apparence)).
 
 ## Premier portefeuille
@@ -29,11 +29,13 @@ L'application démarre vide : aucun projet, et une identité vierge — au
 premier lancement, renseignez votre organisation (nom, service, contact,
 logo) dans **Paramètres**. La date de revue est celle du jour.
 
-Pour voir un exemple complet, ouvrez **Paramètres**, descendez jusqu'à la
-carte **Données** et cliquez **Charger les données d'exemple**. Après
-confirmation, la base courante est remplacée par le jeu Déjà Vu Ltd. :
-20 projets dans 8 catégories. Le chargement est une seule entrée d'historique
-— Ctrl+Z l'annule.
+Pour voir un exemple complet, importez le jeu Déjà Vu Ltd. : 20 projets
+dans 8 catégories. L'application elle-même ne transporte aucun contenu — des
+portefeuilles d'exemple accompagnent l'app (`sample-portfolio.fr.json` à côté
+du fichier téléchargé) et le site du projet ; importez-en un par
+**Importer…**, comme n'importe quel portefeuille. L'import est une seule
+entrée d'historique — Ctrl+Z l'annule. La démo en ligne prend le raccourci :
+son adresse `?sample` démarre directement sur le même jeu.
 
 <img src="images/fr-review.png" width="720" alt="Vue Revue : titre, sous-titre, dates et slides libres">
 
@@ -69,8 +71,8 @@ fiche a cinq onglets : **Cadre & état**, **Récit**, **Décisions**,
   focus.
 - Annuler/rétablir garde les 500 dernières actions : **Ctrl+Z** / **Ctrl+Y**,
   ou les flèches de la barre du haut. Toute action s'annule — saisies,
-  imports, chargement de l'exemple, purges ; au-delà de 500 entrées, les plus
-  anciennes sont abandonnées en silence.
+  imports, purges ; au-delà de 500 entrées, les plus anciennes sont
+  abandonnées en silence.
 - La vue **Historique** liste les actions enregistrées en termes métier et
   montre la position courante ; on y remonte ou redescend le fil des
   changements.
@@ -113,9 +115,10 @@ l'éditeur**, **Vue d'ensemble**, **Plein écran**, **Enregistrer**,
 
 **Enregistrer** télécharge `slideshow-{date}.html` : une copie autonome du
 diaporama, en lecture seule. Elle s'ouvre en `file://` sans réseau et s'envoie
-comme un seul fichier. La police du thème doit exister chez le lecteur ; sinon
-le diaporama retombe sur la pile système — l'impression PDF, elle, embarque
-les glyphes.
+comme un seul fichier. Une police embarquée dans le portefeuille voyage dans
+l'export ; sinon la police du thème doit exister chez le lecteur, faute de
+quoi le diaporama retombe sur la pile système — l'impression PDF, elle,
+embarque toujours les glyphes.
 
 ## Imprimer
 
@@ -181,7 +184,8 @@ La fusion est une seule entrée d'historique : **Ctrl+Z** la défait en bloc.
 
 Tout reste dans le navigateur. Pas de serveur, pas de compte ; rien ne quitte
 la machine. Le seul appel réseau possible est Google Fonts, et seulement si
-une police non embarquée est choisie.
+la police choisie n'est ni fournie avec l'application ni embarquée dans le
+portefeuille.
 
 - **Sauvegarde locale (localStorage)** — active par défaut. La base et
   l'historique annuler/rétablir survivent au rechargement de la page. La
@@ -204,26 +208,48 @@ simplement plus confortable pour saisir.
 
 ## Apparence
 
-<img src="images/fr-settings.png" width="720" alt="Vue Paramètres : identité, apparence avec le sélecteur de thème d’interface, catégories, slides libres, slides d’agrégat et données">
+<img src="images/fr-settings.png" width="720" alt="Vue Paramètres : identité, langue et palette, catégories et slides libres — les interrupteurs de slides d’agrégat et la carte Données suivent plus bas">
 
 **Paramètres > Langue & palette** :
 
-- **Thème** — Flat (défaut) ou Classique. Il habille les slides.
+- **Thème** — Flat (défaut) ou Institutionnel. Il habille les slides.
 - **Thème de l'interface** — Système (défaut), Clair ou Sombre. Une
   préférence de l'appareil, rangée hors du fichier de portefeuille :
   l'éditeur bascule, les slides restent claires (elles sont l'artefact). Les
-  trois mêmes états sont à côté du commutateur FR | EN de la barre du haut.
-- **Palette** — Material (défaut), Tailwind ou DSFR.
-- **Police** — Roboto est embarquée dans l'application et sert de défaut.
+  trois mêmes états sont dans le menu de schéma de la barre du haut, à côté
+  du menu de langue.
+- **Palette** — Material (défaut), Tailwind ou Gov.
+- **Police** — Roboto est fournie avec l'application et sert de défaut. Une
+  police embarquée dans le portefeuille (voir ci-dessous) gagne toujours.
   Marianne est utilisée si ses fichiers de police sont déployés à côté de
   l'application ; avec « Marianne » dans le champ, la carte liste les
-  fichiers attendus et affiche un statut vivant — servie, ou introuvable avec
-  repli sur la pile système. Tout autre nom de famille Google Fonts se charge
-  par le réseau quand il y en a un.
+  fichiers attendus et affiche un statut vivant — embarquée, servie, ou
+  introuvable avec repli sur la pile système. Tout autre nom de famille
+  Google Fonts se charge par le réseau quand il y en a un.
 - **Langue** — français ou anglais ; le changement redessine l'application à
-  chaud. La langue se change aussi par le commutateur FR | EN de la barre du
+  chaud. La langue se change aussi par le menu de langue de la barre du
   haut.
 
-Pour habiller le diaporama aux couleurs d'une administration française en
-deux clics : palette DSFR + police Marianne, ici même (voir la capture
-Paramètres ci-dessus).
+### Police embarquée
+
+<img src="images/fr-embedded-font.png" width="720" alt="La carte Langue & palette : thème, thème d’interface, palette, police, le statut vivant « Police embarquée dans le portefeuille », et la zone Police embarquée listant deux fontes avec leur graisse et leur taille, les deux sélecteurs, et l’avertissement de licence">
+
+La zone **Police embarquée** de la même carte embarque des fichiers `.woff2`
+— choisis un à un ou par dossier entier — DANS le portefeuille, en data URI.
+La variante de chaque fichier se lit dans son nom (`Marianne-Regular.woff2` →
+400, `…-Medium` → 500–600, `…-Bold` → 700–800, `…Italic` → italique), chaque
+fonte est listée avec sa famille, sa graisse et sa taille, et se retire d'un
+bouton. Une famille embarquée n'exige ni déploiement ni réseau :
+l'application, l'export autonome et l'impression utilisent les fontes portées
+par le fichier — mettez le nom de famille dans le champ **Police** et la
+ligne de statut répond « Police embarquée dans le portefeuille ». Les tailles
+sont plafonnées (~400 Ko par fonte, ~1,5 Mo au total) pour garder le
+portefeuille portable.
+
+Embarquer une police dans un fichier diffusé constitue une redistribution —
+vérifiez que sa licence l'autorise (Marianne : usage réservé à l'État).
+
+Pour habiller le diaporama aux couleurs d'une administration française :
+palette Gov + police Marianne, ici même — et embarquez les woff2 de Marianne
+si votre organisation peut les utiliser, pour que le diaporama emporte sa
+police partout.

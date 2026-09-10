@@ -1,10 +1,11 @@
 <script lang="ts">
-  /** Data-administration card: local-save switch, sample loading, settings reset and content purge — every destructive move confirmed in the vendored AlertDialog. */
+  /** Data-administration card: local-save switch, settings reset and content
+   * purge — every destructive move confirmed in the vendored AlertDialog.
+   * The deliverable carries no content: the sample sets live NEXT TO the app
+   * and on the project site, and come in through the ordinary import (the
+   * guidance line below says so — no fetch, no load button). */
   import type { Portfolio } from '@project-review/core/model/portfolio'
-  import { parsePortfolio } from '@project-review/core/services/parse'
   import { emptyPortfolio } from '@project-review/core/data/empty-portfolio'
-  import sampleFr from '@project-review/core/samples/sample-portfolio.fr.json'
-  import sampleEn from '@project-review/core/samples/sample-portfolio.en.json'
   import { te } from '../../i18n'
   import FieldSwitch from '../../editor/FieldSwitch.svelte'
   import * as AlertDialog from '../../commons/ui/alert-dialog'
@@ -31,13 +32,12 @@
   /* ---- data administration — all UNDOABLE replacements, one pending
      confirmation at a time (the AlertDialog below carries the wording) ---- */
 
-  type PendingAction = 'purge' | 'examples' | 'resetSettings' | 'persistOff'
+  type PendingAction = 'purge' | 'resetSettings' | 'persistOff'
   let pending = $state<PendingAction | undefined>(undefined)
 
   /** Title (the action's own label) and body (the historic confirm wording). */
   const WORDING: Record<PendingAction, { readonly title: string; readonly body: string }> = {
     purge: { title: 'editor.data.purge', body: 'editor.data.purgeConfirm' },
-    examples: { title: 'editor.data.examples', body: 'editor.data.examplesConfirm' },
     resetSettings: { title: 'editor.data.resetSettings', body: 'editor.data.resetSettingsConfirm' },
     persistOff: { title: 'editor.data.persist', body: 'editor.data.persistOffConfirm' },
   }
@@ -45,13 +45,6 @@
   /** Content emptied, review and settings kept: the "organization kit" state. */
   function purge(): void {
     replace({ ...portfolio, categories: [], projects: [], freeSlides: [] })
-  }
-
-  /** The bundled sample set of the current language, as a full replacement. */
-  function loadExamples(): void {
-    const parsed = parsePortfolio(language === 'en' ? sampleEn : sampleFr)
-    if (!parsed.ok) return
-    replace(parsed.portfolio)
   }
 
   /** Theme and display back to the defaults; language and identity are kept. */
@@ -67,7 +60,6 @@
     const action = pending
     pending = undefined
     if (action === 'purge') purge()
-    else if (action === 'examples') loadExamples()
     else if (action === 'resetSettings') resetSettings()
     else if (action === 'persistOff') persistence?.toggle(false)
   }
@@ -96,9 +88,6 @@
     <p class="text-muted-foreground text-[11.5px]">{te('editor.data.persistHint', language)}</p>
   {/if}
   <div class="mt-2.5 flex flex-wrap gap-2">
-    <Button variant="outline" size="sm" onclick={() => (pending = 'examples')}>
-      {te('editor.data.examples', language)}
-    </Button>
     <Button variant="outline" size="sm" onclick={() => (pending = 'resetSettings')}>
       {te('editor.data.resetSettings', language)}
     </Button>
@@ -107,6 +96,11 @@
     </Button>
   </div>
   <p class="text-muted-foreground mt-2.5 text-[11.5px]">{te('editor.data.undoHint', language)}</p>
+  <!-- Owner-validated wording: samples accompany the app and the project
+       site, and come in through the ordinary import — no load button here. -->
+  <p class="text-muted-foreground mt-1 text-[11.5px]">
+    {te('editor.data.samplesHint', language)}
+  </p>
 </section>
 
 <!-- One dialog for the four confirmations: the pending action names its own

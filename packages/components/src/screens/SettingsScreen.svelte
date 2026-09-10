@@ -30,17 +30,19 @@
     readonly persistence?: PersistenceControl
     /** Reader scheme picker; absent → the row is not shown. */
     readonly appearance?: AppearanceControl
-    /** Live verdict on the locally served font (Appearance card). */
+    /** Live verdict on the theme font (Appearance card). */
     readonly fontStatus?: FontStatus
+    /** Host-injected file reader of the embed zone (Appearance card). */
+    readonly readFontFile?: (file: File) => Promise<string | null>
   }
 
-  let { portfolio, dispatch, persistence, appearance, fontStatus }: Props = $props()
+  let { portfolio, dispatch, persistence, appearance, fontStatus, readFontFile }: Props = $props()
 </script>
 
 <div class="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
   <div class="flex min-w-0 flex-col gap-4">
     <IdentityCard {portfolio} {dispatch} />
-    <AppearanceCard {portfolio} {dispatch} {appearance} {fontStatus} />
+    <AppearanceCard {portfolio} {dispatch} {appearance} {fontStatus} {readFontFile} />
     <AggregateSlidesCard {portfolio} {dispatch} />
     <DataCard {portfolio} {dispatch} {persistence} />
   </div>

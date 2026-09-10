@@ -12,7 +12,7 @@ import type { IsoDate } from '../values/date'
 import type { Category } from './category'
 import type { FreeSlide } from './free-slide'
 import type { Project } from './project'
-import type { Language, PaletteFamily, ThemeStyle } from './theme'
+import type { EmbeddedFontFace, Language, PaletteFamily, ThemeStyle } from './theme'
 
 /**
  * Who publishes the review — the organization block. Lives on the SETTINGS side
@@ -45,11 +45,12 @@ export interface Review {
 export interface Settings {
   readonly language: Language
   readonly identity: Identity
-  /** Runtime presentation choices: layout family, color family and font family ("Marianne" bundled, or any Google Fonts name; system fallback stack in every case). */
+  /** Runtime presentation choices: layout family, color family and font family ("Marianne" bundled, or any Google Fonts name; system fallback stack in every case). `fontFaces` embeds the family's woff2 files as data URIs — absent means "none embedded" (the meaningful default, so an export without them stays byte-identical). */
   readonly theme: {
     readonly style: ThemeStyle
     readonly palette: PaletteFamily
     readonly font: string
+    readonly fontFaces?: readonly EmbeddedFontFace[]
   }
   /** Aggregate slides toggles — a `false` removes the slide from the deck, the
    * underlying data stays. `decisions` also gates the previous-decisions

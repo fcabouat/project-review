@@ -17,6 +17,7 @@
     class: className,
     side = 'right',
     showCloseButton = true,
+    closeLabel = 'Close',
     portalProps,
     children,
     ...restProps
@@ -24,6 +25,9 @@
     portalProps?: WithoutChildrenOrChild<ComponentProps<typeof SheetPortal>>
     side?: Side
     showCloseButton?: boolean
+    /** sr-only wording of the × — mounts pass `te('editor.io.close', language)`
+     * so assistive tech hears the editor's language, not a baked literal. */
+    closeLabel?: string
     children: Snippet
   } = $props()
 </script>
@@ -46,7 +50,7 @@
         {#snippet child({ props })}
           <Button variant="ghost" class="absolute top-4 right-4" size="icon-sm" {...props}>
             <Icon name="close-line" size="16px" />
-            <span class="sr-only">Close</span>
+            <span class="sr-only">{closeLabel}</span>
           </Button>
         {/snippet}
       </SheetPrimitive.Close>

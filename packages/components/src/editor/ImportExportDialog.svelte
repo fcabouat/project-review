@@ -64,6 +64,7 @@
 <Dialog.Root open onOpenChange={(o) => o || close()}>
   <Dialog.Content
     class="top-11 w-[640px] max-w-[calc(100%-32px)] translate-y-0 gap-0 p-0 sm:max-w-[640px]"
+    closeLabel={te('editor.io.close', language)}
   >
     <Dialog.Title class="sr-only">{te('editor.io.title', language)}</Dialog.Title>
     <Tabs.Root value={active} onValueChange={(v) => (active = v as 'export' | 'import')}>

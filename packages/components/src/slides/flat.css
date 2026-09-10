@@ -7,11 +7,11 @@
    Every rule sits under `:root[data-slide-style='flat']` — the attribute is
    set at runtime by App.svelte from `settings.theme.style`, so switching the
    setting re-themes the live DOM (editor preview, slideshow, ?print) without
-   a reload. With the attribute at 'classic' (or absent), this sheet is
-   inert and the classic theme of `theme.css` renders untouched.
+   a reload. With the attribute at 'institutional' (or absent), this sheet is
+   inert and the institutional theme of `theme.css` renders untouched.
 
    Title, divider and the two sheet compositions are transposed 1:1 from the
-   classic theme; the remaining templates (dashboards, recap, decisions,
+   institutional theme; the remaining templates (dashboards, recap, decisions,
    archives, previous record, free slide) extrapolate the same grammar:
    solid accent table headers, no zebra, square wire chips, solid stat tiles.
    ========================================================================== */
@@ -31,10 +31,12 @@
     --accent-975: #e8eaf6;
     --accent-925: #c5cae9;
 
-    /* ink & rules (blue-grey Material) */
+    /* ink & rules (blue-grey Material; --muted is Blue Grey 600 since the
+       v0.5 AA ink pass — the historic 400 (#78909c) sat at 3.07:1 on
+       --bg-alt, far under the 4.5:1 text threshold) */
     --txt: #212121;
     --txt2: #455a64;
-    --muted: #78909c;
+    --muted: #546e7a;
     --border: #cfd8dc;
     --border2: #cfd8dc;
     --bg: #ffffff;
@@ -245,7 +247,9 @@
   }
   .slide .tone--alert {
     --ground: var(--warn);
-    --ink: #fff;
+    /* Dark ink on the solid orange — the amber gesture of this style (see
+       --vig-txt): white sits at 3.08:1 on --warn, under the text threshold. */
+    --ink: #212121;
   }
   .slide .tone--critical {
     --ground: var(--err);
@@ -299,15 +303,17 @@
     border-radius: 0;
     background: var(--err);
   }
+  /* Callout inks on the solid --err field: full white for the label, a near-
+     white for the dim — the historic 0.85/0.75 alphas sat under 4.5:1. */
   .slide .callout .label {
-    color: rgba(255, 255, 255, 0.85);
+    color: #fff;
   }
   .slide .callout p,
   .slide .callout p b {
     color: #fff;
   }
   .slide .callout p .dim {
-    color: rgba(255, 255, 255, 0.75);
+    color: rgba(255, 255, 255, 0.92);
   }
 
   /* the pending table keeps its thick level marker — a flat gesture already */
@@ -451,7 +457,7 @@
     min-width: 44px;
     flex: none;
   }
-  /* 6 projects and beyond: same rows, two columns (transposed from the classic
+  /* 6 projects and beyond: same rows, two columns (transposed from the institutional
      divider rule) */
   .flat-divider-list--compact {
     display: grid;
@@ -670,19 +676,24 @@
   .slide .row-c .risks--neutral {
     background: var(--bg-alt);
   }
+  /* Risk-band inks on the solid level fields: full white on green/red (the
+     0.85 alpha sat under 4.5:1), and DARK ink on the orange alert field —
+     the amber gesture of this style (white reaches only 3.08:1 on --warn). */
   .slide .row-c .risks--onTrack .label,
-  .slide .row-c .risks--alert .label,
   .slide .row-c .risks--critical .label {
-    color: rgba(255, 255, 255, 0.85);
+    color: #fff;
+  }
+  .slide .row-c .risks--alert .label {
+    color: #212121;
   }
   .slide .row-c .risks--watch .label {
     color: rgba(33, 33, 33, 0.75);
   }
   .slide .row-c .risks--onTrack p,
-  .slide .row-c .risks--alert p,
   .slide .row-c .risks--critical p {
     color: #fff;
   }
+  .slide .row-c .risks--alert p,
   .slide .row-c .risks--watch p {
     color: var(--txt);
   }

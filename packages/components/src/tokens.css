@@ -47,9 +47,9 @@
   --accent-contrast: #ffffff;
   --txt: #111827;
   --txt2: #374151;
-  /* AA-checked on BOTH editor grounds: 4.79:1 on --bg-alt, 5.27:1 on --bg
-     (the historic #6b7280 sat at 4.39:1 on --bg-alt — under AA; the slides
-     keep #6b7280 through the .slide pin below). */
+  /* AA-checked on BOTH grounds: 4.79:1 on --bg-alt, 5.27:1 on --bg (the
+     historic #6b7280 sat at 4.39:1 on --bg-alt — under AA; since the v0.5
+     ink pass the slides share this value through the .slide pin below). */
   --muted: #616d7c;
   --border: #d1d5db;
   --border2: #e5e7eb;
@@ -62,7 +62,7 @@
   /* health scale — every txt/bg pair holds AA on its own ground.
      --err doubles as the editor's destructive ink: 5.45:1 on the destructive
      button tint, 5.91:1 on --err-bg (the historic #dc2626 sat at 4.1–4.4:1;
-     slides keep it through the pin below). */
+     since the v0.5 ink pass the slides share this value through the pin). */
   --ok: #15803d;
   --ok-bg: #dcfce7;
   --vig-txt: #92400e;
@@ -73,7 +73,8 @@
   --err: #b91c1c;
   --err-bg: #fef2f2;
   /* 4.65:1 on --ne-bg (the not-assessed chip is text on that ground; the
-     historic #6b7280 sat at 3.83:1 — slides keep it through the pin). */
+     historic #6b7280 sat at 3.83:1 — since the v0.5 ink pass the slides
+     share this value through the pin). */
   --ne: #5c6774;
   --ne-bg: #e5e7eb;
   /* the two plain-grey chips (to-scope, closed) — themable, unlike the
@@ -156,21 +157,22 @@
 }
 
 /* Slides are an ARTIFACT: light in both schemes, and byte-stable against any
-   future editor-side token tuning. The pin restates the slides' historic
-   values on the slide root (it wins over `.dark` and over :root by proximity
-   — custom properties resolve on the closest ancestor), so a slide previewed
-   inside the dark editor, the slideshow and `?print` all keep the exact
-   rendering the 136-frame iso-visual protocol certifies. Two deliberate
-   divergences from the editor tokens above: --muted and --err keep the
-   historic slide inks (#6b7280, #dc2626) — the editor darkened its own copies
-   for WCAG AA on its denser grounds. */
+   future editor-side token tuning. The pin restates the slides' values on the
+   slide root (it wins over `.dark` and over :root by proximity — custom
+   properties resolve on the closest ancestor), so a slide previewed inside
+   the dark editor, the slideshow and `?print` all render identically. Since
+   the v0.5 AA ink pass, --muted, --err and --ne carry the SAME values as the
+   editor tokens above (the historic slide inks #6b7280/#dc2626 sat under the
+   4.5:1 text threshold on the tinted slide grounds); the pin still restates
+   them so the artifact stays immune to `.dark` and to any future editor-side
+   tuning. */
 .slide {
   color-scheme: light;
   --accent: #312e81;
   --accent-contrast: #ffffff;
   --txt: #111827;
   --txt2: #374151;
-  --muted: #6b7280;
+  --muted: #616d7c;
   --border: #d1d5db;
   --border2: #e5e7eb;
   --bg: #ffffff;
@@ -185,9 +187,9 @@
   --vig-bg: #fffbeb;
   --warn: #c2410c;
   --warn-bg: #fff7ed;
-  --err: #dc2626;
+  --err: #b91c1c;
   --err-bg: #fef2f2;
-  --ne: #6b7280;
+  --ne: #5c6774;
   --ne-bg: #e5e7eb;
   --chip-plain-bg: #eeeeee;
   --chip-plain-txt: #666666;

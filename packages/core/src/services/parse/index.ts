@@ -25,7 +25,7 @@ import { parseFreeSlides } from './free-slides'
 
 export { PARSE_ERROR_CODES } from './errors'
 export type { ParseError, ParseErrorCode } from './errors'
-export { LOGO_MAX_CHARS } from './settings'
+export { FONT_FACE_MAX_CHARS, FONT_FACES_TOTAL_MAX_CHARS, LOGO_MAX_CHARS } from './settings'
 
 /**
  * Ceiling of an imported payload, in characters: ~10 MB. Orders of magnitude

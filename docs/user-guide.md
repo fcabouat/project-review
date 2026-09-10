@@ -17,7 +17,7 @@ Two ways to run the app:
 - **From source.** `bun install`, then `bun run dev` and open the printed URL.
 
 The display language is auto-detected on first launch and can be switched at
-any time from the FR | EN switch in the top bar (or in
+any time from the language menu in the top bar (or in
 [Settings](#appearance)).
 
 ## First portfolio
@@ -26,10 +26,12 @@ The app starts empty: no project, and a blank identity — on first launch,
 enter your organisation (name, department, contact, logo) in **Settings**.
 The review date is set to today.
 
-To see a full example, open **Settings**, scroll to the **Data** card and click
-**Load the sample data**. After confirmation, the current database is replaced
-by the Déjà Vu Ltd. sample set: 20 projects in 8 categories. The load is a
-single history entry — Ctrl+Z undoes it.
+To see a full example, import the Déjà Vu Ltd. sample set: 20 projects in
+8 categories. The app itself carries no content — sample portfolios come with
+the app (`sample-portfolio.en.json` next to the downloaded file) and with the
+project site; import one through **Import…** like any portfolio file. The
+import is a single history entry — Ctrl+Z undoes it. The online demo takes
+the shortcut: its `?sample` address boots straight into the same set.
 
 <img src="images/en-review.png" width="720" alt="Review view: title, subtitle, dates and free slides">
 
@@ -62,8 +64,8 @@ has five tabs: **Frame & status**, **Narrative**, **Decisions**,
   **Move down** and **Delete** (with a confirmation).
 - One field is one history entry, recorded when the field loses focus.
 - Undo/redo keeps the last 500 actions: **Ctrl+Z** / **Ctrl+Y**, or the arrows
-  in the top bar. Every action undoes — field edits, imports, sample loads,
-  purges; past 500 entries, the oldest are dropped silently.
+  in the top bar. Every action undoes — field edits, imports, purges; past
+  500 entries, the oldest are dropped silently.
 - The **History** view lists the recorded actions in business terms and shows
   the current position; clicking through it replays or unwinds the changes.
 - The **Preview the slide** button (eye) renders the slide a project or a free
@@ -103,9 +105,10 @@ Moving the mouse to the top edge shows a bar: **Back to the editor**,
 
 **Save** downloads `slideshow-{date}.html`: a standalone, read-only copy of
 the slideshow. It opens from `file://` with no network and can be sent as a
-single file. The theme font must exist on the reader's machine; otherwise the
-deck falls back to the system stack — PDF printing, by contrast, embeds the
-glyphs.
+single file. A font embedded in the portfolio travels inside the export;
+otherwise the theme font must exist on the reader's machine, or the deck
+falls back to the system stack — PDF printing, by contrast, always embeds
+the glyphs.
 
 ## Printing
 
@@ -168,7 +171,8 @@ The merge is a single history entry: **Ctrl+Z** undoes it whole.
 
 Everything stays in the browser. There is no server and no account; nothing
 leaves the machine. The one optional network call is Google Fonts, and only
-when a non-bundled font family is chosen.
+when a font family that is neither bundled nor embedded in the portfolio is
+chosen.
 
 - **Local save (localStorage)** — on by default. The database and the
   undo/redo history survive a page reload. Turning it off erases the stored
@@ -189,23 +193,43 @@ a desktop simply stays the more comfortable place to edit.
 
 ## Appearance
 
-<img src="images/en-settings.png" width="720" alt="Settings view: identity, appearance with the interface-theme picker, categories, free slides, aggregate slides and data">
+<img src="images/en-settings.png" width="720" alt="Settings view: identity, language and palette, categories and free slides — the aggregate-slide switches and the data card follow below">
 
 **Settings > Language & palette**:
 
-- **Theme** — Flat (default) or Classic. This styles the slides.
+- **Theme** — Flat (default) or Institutional. This styles the slides.
 - **Interface theme** — System (default), Light or Dark. A preference of the
   device, stored outside the portfolio file: the editor chrome flips, the
-  slides stay light (they are the artifact). The same three states sit next
-  to the FR | EN switch in the top bar.
-- **Palette** — Material (default), Tailwind or DSFR.
-- **Font** — Roboto ships inside the app and is the default. Marianne is used
-  when its font files are deployed next to the app; with «Marianne» in the
-  field, the card lists the expected files and shows a live status — served,
-  or not found and falling back to the system stack. Any other Google Fonts
+  slides stay light (they are the artifact). The same three states sit in
+  the top bar's scheme menu, next to the language menu.
+- **Palette** — Material (default), Tailwind or Gov.
+- **Font** — Roboto ships inside the app and is the default. A font embedded
+  in the portfolio (see below) always wins. Marianne is used when its font
+  files are deployed next to the app; with «Marianne» in the field, the card
+  lists the expected files and shows a live status — embedded, served, or
+  not found and falling back to the system stack. Any other Google Fonts
   family name loads from the network when one is available.
 - **Language** — French or English; switching redraws the app at runtime. The
-  language can also be switched from the FR | EN switch in the top bar.
+  language can also be switched from the top bar's language menu.
 
-To brand the deck for a French administration in two clicks, pick the DSFR
-palette and the Marianne font here (see the Settings capture above).
+### Embedded font
+
+<img src="images/en-embedded-font.png" width="720" alt="The Language & palette card: theme, interface theme, palette, font, the live «Font embedded in the portfolio» status, and the Embedded font zone listing two faces with their weight and size, the two pickers, and the license warning">
+
+The **Embedded font** zone of the same card embeds `.woff2` files — picked
+one by one or as a whole folder — INSIDE the portfolio, as data URIs. The
+variant of each file is read from its name (`Marianne-Regular.woff2` → 400,
+`…-Medium` → 500–600, `…-Bold` → 700–800, `…Italic` → italic), each face is
+listed with its family, weight and size, and can be removed. An embedded
+family needs no deployment and no network: the app, the standalone export
+and the print all use the faces carried by the file — set the **Font** field
+to the family name and the status line answers «Font embedded in the
+portfolio». Sizes are capped (~400 KB per face, ~1.5 MB in total) to keep
+the portfolio portable.
+
+Embedding a font in a distributed file is redistribution — check that its
+license allows it (Marianne is reserved for French-State use).
+
+To brand the deck for a French administration, pick the Gov palette and the
+Marianne font here — and embed the Marianne woff2 files if your organization
+may use them, so the deck carries its font everywhere.

@@ -18,8 +18,12 @@ ever edited by hand.
 - **[Live demo](https://REPLACE_ME.github.io/project-review/demo/project-review.html?sample)** —
   opens on a 20-project sample; switch French/English from the top bar.
 - **[Download `project-review.html`](https://REPLACE_ME.github.io/project-review/demo/project-review.html)** —
-  download → double-click → it works. One file, ~1.3 MB, everything inlined;
-  it runs offline, from a USB stick, or as an email attachment.
+  download → double-click → it works. One file, ~1.7 MB, everything inlined;
+  it runs offline, from a USB stick, or as an email attachment. The app
+  itself carries no content: two sample portfolios sit next to it
+  ([English](https://REPLACE_ME.github.io/project-review/demo/sample-portfolio.en.json),
+  [French](https://REPLACE_ME.github.io/project-review/demo/sample-portfolio.fr.json)) —
+  import one like any portfolio file.
 - **[Project site](https://REPLACE_ME.github.io/project-review/)** — demo,
   docs, component catalog and API reference in one place.
 
@@ -45,14 +49,17 @@ ever edited by hand.
   scales to the screen with a touch-visible exit bar.
 - **Accessibility as a target** — WCAG 2.1 AA aimed for and checked by an
   axe-core pass (zero serious/critical across every screen, both schemes) and
-  a scripted keyboard walk; motion honours `prefers-reduced-motion`. No
-  formal RGAA audit.
+  a scripted keyboard walk; motion honours `prefers-reduced-motion`. The
+  editor holds AA text contrast, and the slides' semantic inks (labels,
+  health and risk scales, both themes) were measured and brought to AA text
+  contrast; the category-tinted accents (id chips, divider text) remain
+  below 4.5:1 by design. No formal RGAA audit.
 - **Light and dark editor** — System/Light/Dark reader preference, stored on
   the device, never in the portfolio file; the slides are the artifact and
   stay light in both schemes.
 - **Print-perfect A4** — the deck prints one page per slide through the
   browser's dialog; PDF is a print, not an export pipeline.
-- **Visual contract** — 63 Storybook stories covering every slide, widget and
+- **Visual contract** — 64 Storybook stories covering every slide, widget and
   screen, including a fully playable in-memory editor.
 
 ## Architecture
@@ -97,21 +104,21 @@ bun run build    # all deliverables into dist/
 | `dist/index.html` + `assets/` + `fonts/` | Static-hosting build (module scripts, lazy chunks)  |
 | `dist/project-review.html`               | The deliverable: one multilingual single-file build |
 
-| Script              | Does                                       |
-| ------------------- | ------------------------------------------ |
-| `bun run dev`       | Vite dev server                            |
-| `bun run test`      | Vitest suite (four projects)               |
-| `bun run smoke`     | Playwright `file://` smoke (after a build) |
-| `bun run a11y`      | axe-core pass on the built deliverables    |
-| `bun run check`     | svelte-check + tsc, per package            |
-| `bun run lint`      | ESLint (incl. boundary rules)              |
-| `bun run format`    | Prettier, write mode                       |
-| `bun run knip`      | Unused files/exports/dependencies          |
-| `bun run audit`     | Dependency vulnerability audit             |
-| `bun run docs:api`  | TypeDoc API reference                      |
-| `bun run docs:site` | Assemble the GitHub Pages site             |
-| `bun run build`     | Static build + single file                 |
-| `bun run storybook` | Component catalog on port 6006             |
+| Script              | Does                                               |
+| ------------------- | -------------------------------------------------- |
+| `bun run dev`       | Vite dev server                                    |
+| `bun run test`      | Vitest suite (four projects)                       |
+| `bun run smoke`     | Playwright smoke, `file://` + http (after a build) |
+| `bun run a11y`      | axe-core pass on the built deliverables            |
+| `bun run check`     | svelte-check + tsc, per package                    |
+| `bun run lint`      | ESLint (incl. boundary rules)                      |
+| `bun run format`    | Prettier, write mode                               |
+| `bun run knip`      | Unused files/exports/dependencies                  |
+| `bun run audit`     | Dependency vulnerability audit                     |
+| `bun run docs:api`  | TypeDoc API reference                              |
+| `bun run docs:site` | Assemble the GitHub Pages site                     |
+| `bun run build`     | Static build + single file                         |
+| `bun run storybook` | Component catalog on port 6006                     |
 
 ## Contributing
 
@@ -139,6 +146,21 @@ format; a display language is data:
    `PALETTES`.
 3. `packages/components/src/i18n.ts` — one `editor.palette.<name>` label.
 
+**Add a slide theme (~1–2 hours).** A theme RESTYLES the slides — colors,
+borders, shadows, typography accents — and never changes their structure:
+the layout belongs to the templates' utility classes, which stay untouched.
+The pattern is proven by `flat`:
+
+1. `packages/components/src/slides/flat.css` — copy it to `<name>.css` and
+   restyle under `[data-slide-style='<name>']`. The swap works because these
+   theme rules are UNLAYERED and therefore outrank the templates' layered
+   Tailwind utilities — keep every rule scoped under the attribute.
+2. Follow `flat`'s print pattern for the `print:` context, so the A4 pages
+   restyle with the screen.
+3. `packages/core/src/model/theme.ts` — extend the `ThemeStyle` union and
+   `THEME_STYLES`.
+4. `packages/components/src/i18n.ts` — one `editor.style.<name>` label.
+
 Before opening a PR, read [docs/overview.md](docs/overview.md) — the
 architecture, the three laws and where the guarantees live — and run
 `bun run test && bun run check && bun run lint`.
@@ -156,3 +178,8 @@ architecture, the three laws and where the guarantees live — and run
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+The `gov` palette and the institutional theme's look are inspired by the French
+State's design system (DSFR — its illustrative palette), and the Marianne
+font can be deployed alongside the app; this tool is not affiliated with or
+endorsed by the French State.

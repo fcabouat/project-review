@@ -20,17 +20,17 @@
    * markup in both homes, one snippet — the drawer only widens the touch rows.
    */
   import '../editor/editor.css'
+  import { tick } from 'svelte'
   import type { Portfolio } from '@project-review/core/model/portfolio'
   import type { DomainEvent } from '@project-review/core/events'
   import { deck, isArchived, isTracked } from '@project-review/core/projections'
   import { LANGUAGES } from '@project-review/core/model/theme'
-  import { formatShortDate } from '@project-review/core/services/i18n'
   import { te } from '../i18n'
   import { identityLine } from '../commons/identity-line'
   import Icon from '../commons/Icon.svelte'
   import { Badge } from '../commons/ui/badge'
   import { Button } from '../commons/ui/button'
-  import { Input } from '../commons/ui/input'
+  import * as DropdownMenu from '../commons/ui/dropdown-menu'
   import { Separator } from '../commons/ui/separator'
   import * as Sheet from '../commons/ui/sheet'
   import ImportExportDialog from '../editor/ImportExportDialog.svelte'
@@ -72,8 +72,10 @@
     readonly persistence?: PersistenceControl
     /** Reader scheme picker (Settings ▸ Appearance); absent → row not shown. */
     readonly appearance?: AppearanceControl
-    /** Live verdict on the locally served font (Settings ▸ Appearance). */
+    /** Live verdict on the theme font (Settings ▸ Appearance). */
     readonly fontStatus?: FontStatus
+    /** Host-injected reader of picked font files (Settings ▸ Appearance). */
+    readonly readFontFile?: (file: File) => Promise<string | null>
     /**
      * « Enregistrer » — the standalone .html. Injected by the app
      * (infrastructure's dom-export, reveal options bound); layering forbids
@@ -97,6 +99,7 @@
     persistence,
     appearance,
     fontStatus,
+    readFontFile,
     exportStandalone,
   }: Props = $props()
 
@@ -164,8 +167,8 @@
     else undo()
   }
 
-  /** The top-bar scheme toggle, FR|EN's twin: always-visible icon segmented
-   * (an opaque cycling button would hide two of the three states). */
+  /** The top-bar scheme menu, the language menu's twin: three choices with a
+   * check mark on the current one — the trigger shows the EFFECTIVE state. */
   const SCHEME_OPTIONS: readonly {
     value: ColorScheme
     icon: 'contrast-line' | 'sun-line' | 'moon-line'
@@ -174,6 +177,26 @@
     { value: 'light', icon: 'sun-line' },
     { value: 'dark', icon: 'moon-line' },
   ]
+
+  /** Shared look of the two compact top-bar menu triggers. */
+  const menuTrigger =
+    'border-input text-(--txt2) bg-background hover:bg-accent hover:text-accent-foreground ' +
+    'focus-visible:outline-ring inline-flex cursor-pointer items-center gap-1 rounded-md border ' +
+    'px-[9px] py-[7px] text-xs font-bold whitespace-nowrap focus-visible:-outline-offset-2 ' +
+    'focus-visible:outline-2 max-lg:min-h-11 max-lg:px-3'
+
+  /**
+   * « Générer le diaporama » — bound so closing the slideshow can RESTORE the
+   * focus to the button that opened it (the overlay unmounts, and without
+   * this the keyboard lands back on `<body>`). `tick()` first: the editor is
+   * `inert` until the overlay is actually gone.
+   */
+  let generateButton = $state<HTMLElement | null>(null)
+
+  function closeSlideshow(): void {
+    slideshowAt = undefined
+    void tick().then(() => generateButton?.focus())
+  }
 
   /** One anchor/button shape for both nav homes; `tall` is the drawer's
    * touch-target variant (≥ 44 px rows), the desktop rail keeps its 36 px. */
@@ -296,7 +319,7 @@
              everything readable sits in one, so a screen reader's landmark
              rotor covers the whole shell. -->
         <header
-          class="border-border bg-background flex h-[60px] flex-none items-center justify-between gap-5 border-b px-[22px] max-lg:h-auto max-lg:min-h-[60px] max-lg:flex-wrap max-lg:gap-x-3 max-lg:gap-y-1.5 max-lg:px-3 max-lg:py-2"
+          class="border-border bg-background flex h-[60px] flex-none items-center justify-between gap-5 border-b px-[22px] max-lg:h-auto max-lg:min-h-[60px] max-lg:flex-wrap max-lg:justify-end max-lg:gap-x-2.5 max-lg:gap-y-1.5 max-lg:px-3 max-lg:py-2"
         >
           <Button
             variant="ghost"
@@ -322,69 +345,84 @@
           <Button
             variant="ghost"
             size="icon-sm"
-            class="text-muted-foreground min-h-11 min-w-11 lg:hidden"
+            class="text-muted-foreground min-h-11 min-w-11 max-lg:mr-auto lg:hidden"
             aria-label={te('editor.nav.open', language)}
             onclick={() => (drawerOpen = true)}
           >
             <Icon name="menu-line" size="18px" />
           </Button>
 
-          <div
-            class="flex items-center gap-2.5 max-lg:flex-wrap max-lg:justify-end max-lg:gap-y-1.5"
-          >
-            <label class="flex items-center gap-2">
-              <span class="text-muted-foreground text-xs font-semibold whitespace-nowrap"
-                >{te('editor.field.reviewDate', language)}</span
+          <!-- `max-lg:contents` dissolves the group into the header's own
+               wrap below lg: items fold ONE BY ONE (the CTA alone moves to
+               row two), never the whole group as a block — one row as long
+               as the width allows, two at most, never three. -->
+          <div class="flex items-center gap-2.5 max-lg:contents">
+            <!-- Language menu: the same `ChangeSetting` command as Settings ▸
+                 Language — undoable, and every label of the shell re-derives
+                 from `portfolio.settings.language` on the spot. A compact
+                 trigger (current code + chevron) so the bar stays ONE row as
+                 long as the width allows; the review date lives with the rest
+                 of the review data, on the Review screen. -->
+            <DropdownMenu.Root>
+              <DropdownMenu.Trigger
+                class={menuTrigger}
+                aria-label="{te('editor.topbar.language', language)} : {language.toUpperCase()}"
               >
-              <Input
-                class="read-only:text-(--txt2) w-[118px] text-center read-only:bg-[#fafafa] dark:read-only:bg-white/5"
-                value={formatShortDate(portfolio.review.reviewDate)}
-                readonly
-              />
-            </label>
-            <Separator orientation="vertical" class="h-[22px] min-h-0 self-center max-lg:hidden" />
-            <!-- Native language switch: the same `ChangeSetting` command as
-                 Settings ▸ Language — undoable, and every label of the shell
-                 re-derives from `portfolio.settings.language` on the spot. -->
-            <div
-              class="border-input bg-background inline-flex overflow-hidden rounded-md border"
-              role="group"
-              aria-label={te('editor.topbar.language', language)}
-            >
-              {#each LANGUAGES as candidate (candidate)}
-                <button
-                  type="button"
-                  class="border-input text-(--txt2) aria-pressed:bg-accent aria-pressed:text-accent-foreground focus-visible:outline-ring bg-background cursor-pointer border-r px-[11px] py-[7px] text-xs whitespace-nowrap last:border-r-0 focus-visible:-outline-offset-2 focus-visible:outline-2 aria-pressed:font-bold max-lg:min-h-11 max-lg:px-3.5"
-                  aria-pressed={language === candidate}
-                  onclick={() =>
-                    dispatch({ type: 'ChangeSetting', setting: 'language', after: candidate })}
-                >
-                  {candidate.toUpperCase()}
-                </button>
-              {/each}
-            </div>
-            {#if appearance}
-              <!-- Scheme toggle, FR|EN's visual twin: language and scheme are
-                   the two READER preferences, grouped here. Same store as
-                   Settings ▸ Appearance — two views, one `AppearanceControl`. -->
-              <div
-                class="border-input bg-background inline-flex overflow-hidden rounded-md border"
-                role="group"
-                aria-label={te('editor.setting.scheme', language)}
-              >
-                {#each SCHEME_OPTIONS as option (option.value)}
-                  <button
-                    type="button"
-                    class="border-input text-(--txt2) aria-pressed:bg-accent aria-pressed:text-accent-foreground focus-visible:outline-ring bg-background cursor-pointer border-r px-[9px] py-[7px] text-xs last:border-r-0 focus-visible:-outline-offset-2 focus-visible:outline-2 max-lg:min-h-11 max-lg:px-3"
-                    aria-pressed={appearance.scheme === option.value}
-                    aria-label={te(`editor.scheme.${option.value}`, language)}
-                    title={te(`editor.scheme.${option.value}`, language)}
-                    onclick={() => appearance?.setScheme(option.value)}
+                {language.toUpperCase()}
+                <Icon name="arrow-down-s-line" size="14px" />
+              </DropdownMenu.Trigger>
+              <DropdownMenu.Content align="end" class="min-w-36">
+                {#each LANGUAGES as candidate (candidate)}
+                  <DropdownMenu.Item
+                    class="cursor-pointer"
+                    onclick={() =>
+                      dispatch({ type: 'ChangeSetting', setting: 'language', after: candidate })}
                   >
-                    <Icon name={option.icon} size="15px" />
-                  </button>
+                    <span class={language === candidate ? '' : 'invisible'} aria-hidden="true">
+                      <Icon name="check-line" size="14px" />
+                    </span>
+                    {te(`editor.language.${candidate}`, language)}
+                  </DropdownMenu.Item>
                 {/each}
-              </div>
+              </DropdownMenu.Content>
+            </DropdownMenu.Root>
+            {#if appearance}
+              <!-- Scheme menu, the language menu's twin: language and scheme
+                   are the two READER preferences, grouped here. Same store as
+                   Settings ▸ Appearance — two views, one `AppearanceControl`.
+                   The trigger shows the EFFECTIVE state, not the choice: sun
+                   and moon swap on the live `dark` class, so `system` shows
+                   whatever the OS resolved to — no JS asks the OS anything. -->
+              <DropdownMenu.Root>
+                <DropdownMenu.Trigger
+                  class={menuTrigger}
+                  aria-label="{te('editor.setting.scheme', language)} : {te(
+                    `editor.scheme.${appearance.scheme}`,
+                    language,
+                  )}"
+                >
+                  <span class="dark:hidden"><Icon name="sun-line" size="15px" /></span>
+                  <span class="hidden dark:inline-flex"><Icon name="moon-line" size="15px" /></span>
+                  <Icon name="arrow-down-s-line" size="14px" />
+                </DropdownMenu.Trigger>
+                <DropdownMenu.Content align="end" class="min-w-36">
+                  {#each SCHEME_OPTIONS as option (option.value)}
+                    <DropdownMenu.Item
+                      class="cursor-pointer"
+                      onclick={() => appearance?.setScheme(option.value)}
+                    >
+                      <span
+                        class={appearance.scheme === option.value ? '' : 'invisible'}
+                        aria-hidden="true"
+                      >
+                        <Icon name="check-line" size="14px" />
+                      </span>
+                      <Icon name={option.icon} size="15px" />
+                      {te(`editor.scheme.${option.value}`, language)}
+                    </DropdownMenu.Item>
+                  {/each}
+                </DropdownMenu.Content>
+              </DropdownMenu.Root>
             {/if}
             <Separator orientation="vertical" class="h-[22px] min-h-0 self-center max-lg:hidden" />
             <!-- One wrap unit: when the narrow top bar folds, undo and redo
@@ -423,6 +461,7 @@
             <!-- Mounts the slideshow ON CLICK, never before: reveal.js is not part
                  of the editor's bundle and is fetched here. -->
             <Button
+              bind:ref={generateButton}
               class="max-lg:min-h-11"
               title={te('editor.topbar.openSlideshow', language)}
               onclick={() => (slideshowAt = 0)}
@@ -439,7 +478,14 @@
           {:else if route.name === 'projects'}
             <ProjectsScreen {portfolio} {dispatch} open={(id) => navigate({ name: 'sheet', id })} />
           {:else if route.name === 'settings'}
-            <SettingsScreen {portfolio} {dispatch} {persistence} {appearance} {fontStatus} />
+            <SettingsScreen
+              {portfolio}
+              {dispatch}
+              {persistence}
+              {appearance}
+              {fontStatus}
+              {readFontFile}
+            />
           {:else if route.name === 'history'}
             <HistoryScreen {portfolio} {past} {future} {undo} {redo} />
           {:else if route.name === 'sheet'}
@@ -455,6 +501,7 @@
   <Sheet.Root open={drawerOpen} onOpenChange={(next) => (drawerOpen = next)}>
     <Sheet.Content
       side="left"
+      closeLabel={te('editor.io.close', language)}
       class="gap-0 border-r-0 bg-[#1b1b35] p-0 text-white data-[side=left]:w-[280px] data-[side=left]:sm:max-w-[280px] [&_[data-slot=sheet-close]]:min-h-11 [&_[data-slot=sheet-close]]:min-w-11 [&_[data-slot=sheet-close]]:text-white"
     >
       <Sheet.Title class="sr-only">{te('editor.nav.aria', language)}</Sheet.Title>
@@ -484,10 +531,5 @@
 <!-- Outside `.editor` on purpose: the slideshow is a full-screen overlay, and
      the editor keeps its state untouched underneath until it comes back. -->
 {#if slideshowAt !== undefined}
-  <SlideshowHost
-    {portfolio}
-    startAt={slideshowAt}
-    close={() => (slideshowAt = undefined)}
-    {exportStandalone}
-  />
+  <SlideshowHost {portfolio} startAt={slideshowAt} close={closeSlideshow} {exportStandalone} />
 {/if}

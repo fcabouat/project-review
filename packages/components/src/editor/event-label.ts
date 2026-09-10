@@ -52,6 +52,9 @@ function formatValue(field: string, value: unknown, language: Language): string 
     case 'logo':
       // A data URI would flood the history: name the change, never the bytes.
       return te('editor.value.image', language)
+    case 'fontFaces':
+      // Same rule as the logo — the faces are counted, never spelled out.
+      return te('editor.value.fontFaces', language, { n: (value as readonly unknown[]).length })
     case 'language':
       return String(value).toUpperCase()
     case 'progress':

@@ -270,7 +270,7 @@
        the dialog open and says which id is taken. -->
   {#if renumbering}
     <Dialog.Root open onOpenChange={(o) => o || (renumbering = false)}>
-      <Dialog.Content class="w-[420px]">
+      <Dialog.Content class="w-[420px]" closeLabel={te('editor.io.close', language)}>
         <Dialog.Header>
           <Dialog.Title>{te('editor.sheet.renumber', language)}</Dialog.Title>
           <Dialog.Description>

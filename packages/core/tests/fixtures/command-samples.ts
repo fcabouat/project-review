@@ -53,7 +53,7 @@ export const COMMAND_SAMPLES: CommandSamples = {
   },
   ChangeSetting: {
     command: { type: 'ChangeSetting', setting: 'palette', after: 'material' },
-    event: { type: 'SettingChanged', setting: 'palette', before: 'dsfr', after: 'material' },
+    event: { type: 'SettingChanged', setting: 'palette', before: 'gov', after: 'material' },
   },
   CreateCategory: {
     command: { type: 'CreateCategory', category: NEW_CATEGORY, index: 1 },

@@ -189,7 +189,7 @@ describe('theme stamp', () => {
     const html = buildStandaloneHtml({
       lang: 'fr',
       slideStyle: 'flat',
-      palette: 'dsfr',
+      palette: 'gov',
       title: 'T',
       styles: '',
       slidesHtml: '<section></section>',
@@ -199,7 +199,7 @@ describe('theme stamp', () => {
     })
     // The frozen palette keeps the exported deck's category colors whatever
     // the live app later switches to (palettes.css scopes on this attribute).
-    expect(html).toContain('<html lang="fr" data-slide-style="flat" data-palette="dsfr">')
+    expect(html).toContain('<html lang="fr" data-slide-style="flat" data-palette="gov">')
   })
 
   it('omits both attributes when absent', () => {

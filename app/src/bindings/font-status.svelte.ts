@@ -1,7 +1,9 @@
 /**
  * Wiring of the live font verdict (Settings ▸ Appearance): watches the
- * portfolio's font family and, for the ONE locally served family (Marianne),
- * runs the injected probe — the infrastructure's `document.fonts` sounding in
+ * portfolio's font family and answers with its SOURCE. A family covered by
+ * the portfolio's own embedded faces is `embedded` — no probe, the strongest
+ * answer. Otherwise, for the ONE locally served family (Marianne), the
+ * injected probe runs — the infrastructure's `document.fonts` sounding in
  * production, a controllable fake in tests. Between two answers the status is
  * `unknown`: the card must never flash «not found» while the browser is still
  * looking, and a STALE answer (the user already switched families again) is
@@ -14,10 +16,11 @@ import type { FontStatus } from '@project-review/components/screens/contracts'
 const LOCAL_FAMILY = 'Marianne'
 
 export interface FontStatusWiring {
-  /** Current verdict — `unknown` for every family but the local one. */
+  /** Current verdict — `unknown` for every family but the covered ones. */
   readonly status: FontStatus
-  /** Feed it from an effect reading `settings.theme.font`. */
-  readonly watch: (family: string) => void
+  /** Feed it from an effect reading `settings.theme.font` AND the embedded
+   * families (`embeddedFamilies(settings.theme.fontFaces)`). */
+  readonly watch: (family: string, embedded?: readonly string[]) => void
 }
 
 export const createFontStatus = (
@@ -30,12 +33,17 @@ export const createFontStatus = (
     get status() {
       return status
     },
-    watch(family: string) {
+    watch(family: string, embedded: readonly string[] = []) {
       epoch += 1
       const mine = epoch
+      const clean = family.trim()
+      if (embedded.includes(clean)) {
+        status = 'embedded'
+        return
+      }
       status = 'unknown'
-      if (family.trim() !== LOCAL_FAMILY) return
-      void probe(family.trim()).then((verdict) => {
+      if (clean !== LOCAL_FAMILY) return
+      void probe(clean).then((verdict) => {
         if (mine === epoch) status = verdict
       })
     },

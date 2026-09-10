@@ -38,6 +38,16 @@ export const PARSE_ERROR_CODES = [
   'invalidLogo',
   /** A logo data URI beyond the size guard — `params.max` gives the bound. */
   'oversizedLogo',
+  /** An embedded face whose `dataUri` is not `data:font/woff2;base64,` plus
+   * clean base64 — the exact string the deck's stylesheet will carry. */
+  'invalidFontFace',
+  /** An embedded face `weight` that is not an integer in 400–800 nor an
+   * ascending "min max" pair of such integers. */
+  'invalidFontWeight',
+  /** One embedded face beyond the per-face size guard — `params.max`. */
+  'oversizedFontFace',
+  /** All embedded faces together beyond the total size guard — `params.max`. */
+  'oversizedFontFaces',
   /** A free slide with zero blocks. */
   'emptyBlocks',
 ] as const

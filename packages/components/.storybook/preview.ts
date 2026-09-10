@@ -38,7 +38,7 @@ const preview: Preview = {
         icon: 'paintbrush',
         items: [
           { value: 'flat', title: 'Flat' },
-          { value: 'classic', title: 'Classic' },
+          { value: 'institutional', title: 'Institutional' },
         ],
         dynamicTitle: true,
       },
@@ -70,7 +70,7 @@ const preview: Preview = {
         items: [
           { value: 'material', title: 'Material' },
           { value: 'tailwind', title: 'Tailwind' },
-          { value: 'dsfr', title: 'DSFR' },
+          { value: 'gov', title: 'Gov' },
         ],
         dynamicTitle: true,
       },
@@ -79,7 +79,7 @@ const preview: Preview = {
   decorators: [
     (story, context) => {
       document.documentElement.dataset.slideStyle =
-        context.globals['style'] === 'classic' ? 'classic' : 'flat'
+        context.globals['style'] === 'institutional' ? 'institutional' : 'flat'
       document.documentElement.dataset.palette =
         typeof context.globals['palette'] === 'string' ? context.globals['palette'] : 'material'
       document.documentElement.classList.toggle('dark', context.globals['scheme'] === 'dark')

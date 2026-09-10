@@ -90,7 +90,7 @@ describe('decide — trivial scalar no-op → undefined', () => {
     { type: 'ChangeReviewField', field: 'title', after: 'Revue des projets' },
     { type: 'ChangeReviewField', field: 'previousReviewDate', after: d('2026-07-02') },
     { type: 'ChangeIdentityField', field: 'unit', after: 'DSI' },
-    { type: 'ChangeSetting', setting: 'palette', after: 'dsfr' },
+    { type: 'ChangeSetting', setting: 'palette', after: 'gov' },
     { type: 'RenameCategory', id: 'infra', after: 'Infrastructure' },
     { type: 'RecolorCategory', id: 'poste', after: 'green' },
     { type: 'MoveCategory', id: 'infra', to: 0 },
