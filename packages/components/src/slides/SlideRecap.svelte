@@ -101,12 +101,14 @@
     'px-[9px] py-[9px] text-xs leading-[1.45] font-bold tracking-[0.02em] print:px-1.5 print:text-[11.5px]'}
   {@const TD = 'px-[9px] py-1 align-middle print:px-1.5 print:py-[5px]'}
   <table class="table table--recap w-full table-fixed">
+    <!-- The print canvas is narrower than the screen one: the same eight widths,
+         scaled by 0.87, keep every column — including Decision — on the page. -->
     <colgroup>
-      <col style:width="50px" /><col style:width="232px" /><col style:width="196px" /><col
-        style:width="174px"
-      /><col style:width="90px" /><col style:width="132px" /><col style:width="173px" /><col
-        style:width="74px"
-      />
+      <col class="w-[50px] print:w-[44px]" /><col class="w-[232px] print:w-[202px]" /><col
+        class="w-[196px] print:w-[170px]"
+      /><col class="w-[174px] print:w-[151px]" /><col class="w-[90px] print:w-[78px]" /><col
+        class="w-[132px] print:w-[115px]"
+      /><col class="w-[173px] print:w-[150px]" /><col class="w-[74px] print:w-[64px]" />
     </colgroup>
     <thead>
       <tr>
