@@ -16,7 +16,7 @@ import '@fontsource/inter/latin-700.css'
 import '@fontsource/inter/latin-800.css'
 
 import './app.css'
-import { storedRevision } from '@project-review/core/services/persistence'
+import { storedStamp } from '@project-review/core/services/persistence'
 import { defaultStorage } from '@project-review/infrastructure/local-storage'
 import App from './App.svelte'
 import { detectLanguage, fetchSample, shouldBootSample } from './sample-boot'
@@ -24,11 +24,11 @@ import { detectLanguage, fetchSample, shouldBootSample } from './sample-boot'
 // `?sample` — resolved BEFORE the app mounts (top-level await): the sample
 // set is fetched from next door over http, silently skipped from file://,
 // and an existing base always wins (policy in `sample-boot.ts`). The stored
-// side is asked through `storedRevision`, which reads one number off the head
-// of the bytes and is TOTAL over a storage that throws — the boot must not
-// hinge on a `getItem` no one caught.
+// side is asked through `storedStamp`, which reads the head of the bytes and
+// is TOTAL over a storage that throws — the boot must not hinge on a `getItem`
+// no one caught.
 const storage = defaultStorage()
-const sampleBoot = shouldBootSample(location.search, storage && storedRevision(storage))
+const sampleBoot = shouldBootSample(location.search, storage && storedStamp(storage))
   ? await fetchSample(detectLanguage(navigator.language))
   : undefined
 

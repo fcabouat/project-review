@@ -45,11 +45,12 @@ export const defaultStorage = (): KeyValueStorage | null => {
  * The browser's own cross-tab signal: `storage` fires on every OTHER document
  * of the same origin, never on the one that wrote. Narrowed to the saved
  * document — a `null` key means the whole storage was cleared, which concerns
- * it too. Nothing is read here: the caller compares revisions and decides.
+ * it too. Nothing is read here: the caller compares stamps and decides.
  *
  * Total like its neighbour: a host with no `window`, or one that refuses the
- * subscription, simply never signals — the compare-and-swap is the guard, this
- * is the courtesy (see the core's `WatchStored`).
+ * subscription, simply never signals — the write's own guard is what protects
+ * the document, this only brings its verdict forward (see the core's
+ * `WatchStored`).
  */
 export const watchStored: WatchStored = (onChange): Cancel => {
   const listener = (event: StorageEvent): void => {

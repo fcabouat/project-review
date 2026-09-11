@@ -32,14 +32,17 @@
  * only the state it actually wrote: it cannot clear the failure of a state it
  * never carried, and a later edit cannot inherit an earlier success.
  *
- * THE THIRD INVARIANT — two tabs share one storage, so every write is a
- * compare-and-swap on the stored revision (`writeState`). A `conflict` writes
- * nothing, says so, and waits: {@link PersistenceControl.takeStored} loads the
- * other tab's document (undoable), {@link PersistenceControl.keepMine}
- * replaces it with this one. Nothing merges by itself. The host's `storage`
- * subscription feeds {@link PersistenceWiring.noticeStoredChange}, which
- * raises the same conflict as soon as the other tab writes, rather than at the
- * next deadline.
+ * THE THIRD INVARIANT — two tabs share one storage, so every write names the
+ * stored state it expects and is refused when the storage holds another one
+ * (`writeState`, whose header states exactly how far that guard reaches and
+ * where it stops). A `conflict` writes nothing, says so, and waits:
+ * {@link PersistenceControl.takeStored} loads the other tab's document
+ * (undoable), {@link PersistenceControl.keepMine} replaces it with this one.
+ * Nothing merges by itself. The host's `storage` subscription feeds
+ * {@link PersistenceWiring.noticeStoredChange}, which raises the same conflict
+ * as soon as the other tab writes, rather than at the next deadline — and it
+ * compares the STAMP of the stored bytes, so a tab whose save was overwritten
+ * by a document of the same revision number hears about it too.
  *
  * THE FOURTH INVARIANT — a browser that offers NO storage is a state, not an
  * absence. `storage === null` (the access throws, or there is none) makes the
@@ -56,11 +59,11 @@ import {
   clearStored,
   debounce,
   readStored,
-  storedRevision,
+  storedStamp,
   writeState,
   savePersistEnabled,
   type KeyValueStorage,
-  type Revision,
+  type StateStamp,
   type Scheduler,
   type StateRefusal,
   type StoredState,
@@ -109,7 +112,8 @@ export interface PersistenceWiring {
  * from `loadPersistEnabled` — read by the caller BEFORE building the store,
  * since it decides whether the stored document is even loaded — and `stored`
  * is the verdict `readStored` gave on that same boot, so the wiring starts in
- * the state the storage is actually in, revision included.
+ * the state the storage is actually in — the stamp to write against, and the
+ * document that stamp names.
  */
 export const createPersistenceControl = (
   store: Store,
@@ -128,9 +132,9 @@ export const createPersistenceControl = (
    * pending and NOTHING has been written yet. */
   let offered = $state<Portfolio | undefined>(undefined)
 
-  /** The revision this tab believes the storage holds — the COMPARE half of
-   * every compare-and-swap. `null` means "nothing was there". */
-  let base: Revision | null = stored.state === 'restored' ? stored.revision : null
+  /** The stored state this tab believes is in there — the COMPARE half of
+   * every guarded write. `null` means "nothing was there". */
+  let base: StateStamp | null = stored.state === 'restored' ? stored.stamp : null
   /**
    * The revision of the document IN THIS TAB: one per recorded change.
    * Deliberately NOT reactive. It is bumped by `scheduleSave`, which the host
@@ -148,13 +152,34 @@ export const createPersistenceControl = (
     phase: stored.state === 'restored' ? 'saved' : 'dirty',
   })
   /**
-   * True until the mounting effect's FIRST, echoing call has been swallowed.
-   * That call carries the document the storage just handed over, so writing it
-   * back would store nothing new — and would announce to every other tab that
-   * this one changed something. Opening a second tab must not put the first
-   * one in conflict over a document the two agree on.
+   * THE DOCUMENT THE STORAGE IS KNOWN TO HOLD — and the whole anti-echo rule:
+   * a save asked for THIS very value writes nothing, because it is already in
+   * there. The mounting effect's first call carries the document the storage
+   * just handed over, so writing it back would store nothing new and would
+   * announce to every other tab that this one changed something; opening a
+   * second tab must not put the first in conflict over a document the two
+   * agree on.
+   *
+   * IDENTITY, NOT A LIFECYCLE FLAG, and that is the correction: this used to
+   * be a boolean armed at boot and cleared by whichever call came first.
+   * `keepOpen()` wrote without clearing it, so the user's FIRST edit after
+   * « keep the open document » was swallowed as if it were the echo, and the
+   * close saved the document from before it.
+   *
+   * WHY A REFERENCE IS ENOUGH, and in which direction. The store replaces its
+   * state wholesale and never mutates it (`createStore`, `$state.raw`; the
+   * runtime rebuilds `present` on every step it records), so the same object
+   * IS the same document — that is the implication this rule needs, and the
+   * only one it uses. The converse does not hold and does not have to: two
+   * equal documents under different references simply cost one redundant
+   * write, never a lost edit. It follows that the caller must hydrate the
+   * store from `stored.portfolio` itself, as `App.svelte` does — one that
+   * copies it first loses nothing but the boot's silence.
+   *
+   * Set by every path that actually writes: the boot that read, the debounced
+   * save, the explicit ones. Cleared by the two that ERASE the storage.
    */
-  let bootEcho = stored.state === 'restored'
+  let saved: Portfolio | undefined = stored.state === 'restored' ? stored.portfolio : undefined
 
   const blocked = (): boolean => unreadable !== undefined
 
@@ -168,7 +193,10 @@ export const createPersistenceControl = (
     status = { revision: attempt, phase: 'saving' }
     const outcome = writeState(storage, base, portfolio, history)
     if (outcome.outcome === 'written') {
-      base = outcome.revision
+      base = outcome.stamp
+      // What is in the storage, from now on: an effect echoing this very
+      // document back has nothing left to save.
+      saved = portfolio
       // Acknowledge THIS revision only: a change recorded while the write was
       // running is still unsaved, and keeps saying so.
       status =
@@ -210,7 +238,7 @@ export const createPersistenceControl = (
       status = { revision: edit, phase: 'error' }
       return undefined
     }
-    base = found.state === 'restored' ? found.revision : null
+    base = found.state === 'restored' ? found.stamp : null
     return found
   }
 
@@ -261,6 +289,8 @@ export const createPersistenceControl = (
         saver?.cancel()
         clearStored(storage)
         base = null
+        // Nothing is in there any more, so nothing is an echo of it.
+        saved = undefined
         return
       }
       // ON is a write path: read the storage BEFORE touching it. The save may
@@ -311,10 +341,8 @@ export const createPersistenceControl = (
     control,
     scheduleSave: (portfolio, history) => {
       if (!enabled || blocked()) return
-      if (bootEcho) {
-        bootEcho = false
-        return
-      }
+      // Already in there, byte for byte: nothing to save, nothing to announce.
+      if (portfolio === saved) return
       edit += 1
       status = { revision: edit, phase: 'dirty' }
       saver?.run(portfolio, history)
@@ -328,7 +356,7 @@ export const createPersistenceControl = (
     },
     noticeStoredChange: () => {
       if (!storage || !enabled || blocked()) return
-      if (storedRevision(storage) === base) return
+      if (storedStamp(storage) === base) return
       // Someone else's bytes are in there. Disarm first — the pending save
       // still names the old revision and would be refused anyway, but a
       // conflict that waits for a deadline to be announced is a conflict the
@@ -348,6 +376,7 @@ export const createPersistenceControl = (
       // than the blob the user just abandoned.
       if (storage) clearStored(storage)
       base = null
+      saved = undefined
       unreadable = undefined
       status = { revision: edit, phase: 'dirty' }
     },

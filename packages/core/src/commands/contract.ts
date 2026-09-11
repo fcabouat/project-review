@@ -13,11 +13,13 @@
  * over). Nothing is restated here; this module only says WHICH aggregate each
  * command would produce.
  *
- * AND THE BUDGET IS WEIGHED ON THE PROJECTED STATE. A creation, a merge and a
- * replacement are the three commands that GROW the document, and each is
- * judged on the whole portfolio it would produce — not on its payload. That
- * is the difference between refusing the two-thousand-and-first project now
- * and discovering at the next boot that the file no longer loads.
+ * THE SIZE OF THE DOCUMENT IS NOT JUDGED HERE. This gate answers one question
+ * — would the VALUE the command carries be readable back? — and the memory
+ * budget answers another, about the whole document the event would leave
+ * behind. That second one is weighed once, after the event is completed, in
+ * `decide`: a gate that had to know which commands grow the document was a
+ * gate that had to enumerate them, and the enumeration is what let a
+ * ten-million-character title through.
  *
  * HOW IT STAYS EXHAUSTIVE. Nothing here re-lists fields one by one: a command
  * is validated by BUILDING the aggregate it would produce — through `apply`'s
@@ -40,7 +42,6 @@
  */
 import { COLORS } from '../model/category'
 import type { Portfolio } from '../model/portfolio'
-import { withinMemoryBudget } from '../model/budget'
 import {
   isId,
   withinRows,
@@ -105,52 +106,6 @@ const byId = <T extends { readonly id: string }>(list: readonly T[], id: string)
   list.find((x) => x.id === id)
 
 /**
- * THE STATE A GROWING COMMAND WOULD PRODUCE — the whole document, not the
- * payload it arrives with. A payload that fits says nothing about the
- * portfolio it joins: a project under every per-aggregate rule is still the
- * two-thousand-and-first, and a merge of perfectly valid contributions is
- * still the one that pushes the file past what can be read back.
- *
- * Only SIZE is judged on this value, and size is order-blind — so the
- * reconstruction below does not have to reproduce the merge's positions, only
- * its content: the same elements, hence the same entity count, the same nested
- * lengths and the same serialised length as the state `apply` will build.
- */
-const projectedState = (p: Portfolio, c: Command): Portfolio | undefined => {
-  switch (c.type) {
-    case 'CreateCategory':
-      return { ...p, categories: [...p.categories, c.category] }
-    case 'CreateProject':
-      return { ...p, projects: [...p.projects, c.project] }
-    case 'CreateFreeSlide':
-      return { ...p, freeSlides: [...p.freeSlides, c.slide] }
-    case 'ReplacePortfolio':
-      return c.portfolio
-    case 'MergeProjects': {
-      // The merge contract (commands/merge.ts): an incoming project REPLACES
-      // its homonym, an unknown category is appended, a homonym category keeps
-      // the present version. Content-identical to what `apply` will hold.
-      const arriving = new Set(c.projects.map((x) => x.id))
-      const present = new Set(p.categories.map((x) => x.id))
-      return {
-        ...p,
-        projects: [...p.projects.filter((x) => !arriving.has(x.id)), ...c.projects],
-        categories: [...p.categories, ...c.categories.filter((x) => !present.has(x.id))],
-      }
-    }
-    default:
-      return undefined
-  }
-}
-
-/** The memory-safety budget on the projected state — `true` for the commands
- * that cannot grow the document (there is nothing to weigh). */
-const affordable = (p: Portfolio, c: Command): boolean => {
-  const next = projectedState(p, c)
-  return next === undefined || withinMemoryBudget(next)
-}
-
-/**
  * `true` when the command may become an event: the portfolio it would produce
  * still honors the file format's contract. `decide` calls this FIRST and
  * refuses (`undefined`, its ordinary refusal) otherwise — a refused command
@@ -171,11 +126,7 @@ export const honorsContract = (p: Portfolio, c: Command): boolean => {
       return validSetting(c)
 
     case 'CreateCategory':
-      return (
-        validCategory(c.category) &&
-        byId(p.categories, c.category.id) === undefined &&
-        affordable(p, c)
-      )
+      return validCategory(c.category) && byId(p.categories, c.category.id) === undefined
 
     case 'RenameCategory':
       return isText(c.after)
@@ -184,9 +135,7 @@ export const honorsContract = (p: Portfolio, c: Command): boolean => {
       return oneOf(c.after, COLORS)
 
     case 'CreateProject':
-      return (
-        validProject(c.project) && byId(p.projects, c.project.id) === undefined && affordable(p, c)
-      )
+      return validProject(c.project) && byId(p.projects, c.project.id) === undefined
 
     case 'RenumberProject':
       // Uniqueness and triviality stay with `decide`; the id MOTIF is here.
@@ -209,9 +158,7 @@ export const honorsContract = (p: Portfolio, c: Command): boolean => {
       return withinRows(c.after) && c.after.every(validDecision)
 
     case 'CreateFreeSlide':
-      return (
-        validFreeSlide(c.slide) && byId(p.freeSlides, c.slide.id) === undefined && affordable(p, c)
-      )
+      return validFreeSlide(c.slide) && byId(p.freeSlides, c.slide.id) === undefined
 
     case 'ChangeFreeSlide': {
       // The replacement may carry a NEW id — free as long as no other slide
@@ -221,7 +168,7 @@ export const honorsContract = (p: Portfolio, c: Command): boolean => {
     }
 
     case 'ReplacePortfolio':
-      return validPortfolio(c.portfolio) && affordable(p, c)
+      return validPortfolio(c.portfolio)
 
     case 'MergeProjects':
       return (
@@ -230,11 +177,7 @@ export const honorsContract = (p: Portfolio, c: Command): boolean => {
         uniqueIds(c.projects) &&
         Array.isArray(c.categories) &&
         c.categories.every(validCategory) &&
-        uniqueIds(c.categories) &&
-        // LAST, and it has to be: the projected state is built from the
-        // payload, so the payload must have been judged a shape first — the
-        // gate is total over a command carrying anything at all.
-        affordable(p, c)
+        uniqueIds(c.categories)
       )
 
     case 'DeleteCategory':

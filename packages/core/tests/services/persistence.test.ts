@@ -1,7 +1,7 @@
 /**
  * Pins the persistence policy (`src/services/persistence.ts`) on its two
  * in-memory doubles: the round trip of the stored ENVELOPE, the opt-out
- * preference, the compare-and-swap that guards every write, and the debounce
+ * preference, the guard that stands before every write, and the debounce
  * driven by a manual scheduler (no real clock in the business tests —
  * production time is the infrastructure's `timeoutScheduler`).
  *
@@ -10,8 +10,14 @@
  *    all, so a log can never describe a document that is not there;
  *  - reading is a verdict: `absent`, `restored`, `unreadable` — never a silent
  *    "start empty" that would let a caller overwrite the only copy;
- *  - writing is a compare-and-swap: a storage that moved on since the caller
- *    last read it yields `conflict`, and NOT ONE BYTE moves.
+ *  - writing is guarded: a storage that moved on since the caller last read it
+ *    yields `conflict`, and NOT ONE BYTE moves;
+ *  - and the guard is NOT a lock. `localStorage` offers no mutual exclusion,
+ *    so two documents can both pass the check and both write. What is pinned
+ *    below is the property that survives that window: the state is named by a
+ *    STAMP of its bytes, not by a counter, so the writer whose document was
+ *    overwritten no longer recognises what is in there and is refused its next
+ *    write. A lost write is announced; it is never silent.
  */
 
 import { describe, expect, it } from 'vitest'
@@ -27,9 +33,11 @@ import {
   loadPersistEnabled,
   readStored,
   savePersistEnabled,
-  storedRevision,
+  storedStamp,
   writeState,
   type KeyValueStorage,
+  type StateStamp,
+  type WriteOutcome,
 } from '../../src/services/persistence'
 import { otherPortfolio, testPortfolio } from '../fixtures/hand-built-portfolios'
 import { createManualScheduler, createMemoryStorage } from '../fixtures/persistence-doubles'
@@ -39,6 +47,18 @@ const restored = (storage: KeyValueStorage) => {
   const back = readStored(storage)
   return back.state === 'restored' ? back : null
 }
+
+/** The stamp a successful write handed back — and an assertion that it WAS
+ * one, so a test can chain writes the way a tab does. */
+const written = (outcome: WriteOutcome): StateStamp => {
+  expect(outcome.outcome).toBe('written')
+  return outcome.outcome === 'written' ? outcome.stamp : ''
+}
+
+/** The monotone number the stored envelope announces — read from the bytes,
+ * since nothing outside the policy reads it off a stamp. */
+const revisionInStorage = (storage: KeyValueStorage): unknown =>
+  JSON.parse(storage.getItem(STATE_KEY)!).revision
 
 /** Seeds an envelope by hand — the only way to stage a state no write path
  * could produce (a hand-edited storage, another build's format). */
@@ -62,13 +82,13 @@ describe('writeState / readStored — one envelope, one key', () => {
       future: [{ type: 'SettingChanged', setting: 'language', before: 'fr', after: 'en' }],
     } as const
 
-    expect(writeState(storage, null, testPortfolio(), history)).toStrictEqual({
-      outcome: 'written',
-      revision: 1,
-    })
+    const stamp = written(writeState(storage, null, testPortfolio(), history))
 
     const back = restored(storage)!
-    expect(back.revision).toBe(1)
+    // The write hands back the identity of the bytes it left behind, and the
+    // read finds the same one on the same bytes.
+    expect(back.stamp).toBe(stamp)
+    expect(storedStamp(storage)).toBe(stamp)
     // `toEqual`, not `toStrictEqual`: the round trip through the FORMAT
     // normalises an explicitly-undefined optional into an absent one — the
     // parse's own rule (absence is the meaningful state). No value is lost.
@@ -86,14 +106,11 @@ describe('writeState / readStored — one envelope, one key', () => {
 
   it('numbers the revisions monotonically, one per write', () => {
     const storage = createMemoryStorage()
-    expect(writeState(storage, null, testPortfolio(), emptyHistory)).toStrictEqual({
-      outcome: 'written',
-      revision: 1,
-    })
-    expect(writeState(storage, 1, otherPortfolio(), emptyHistory)).toStrictEqual({
-      outcome: 'written',
-      revision: 2,
-    })
+    const first = written(writeState(storage, null, testPortfolio(), emptyHistory))
+    expect(revisionInStorage(storage)).toBe(1)
+    const second = written(writeState(storage, first, otherPortfolio(), emptyHistory))
+    expect(revisionInStorage(storage)).toBe(2)
+    expect(first).not.toBe(second)
     expect(restored(storage)!.portfolio).toEqual(otherPortfolio())
     expect(storage.content.size).toBe(1)
   })
@@ -234,14 +251,35 @@ describe('the log rides inside the envelope', () => {
   })
 })
 
-describe('storedRevision — the compare half of the swap', () => {
-  it('reads the announced revision off the head, without parsing the document', () => {
+describe('storedStamp — the compare half of the guard', () => {
+  it('names the stored bytes, and names the same bytes the same way twice', () => {
     const storage = createMemoryStorage()
-    expect(storedRevision(storage)).toBeNull()
-    writeState(storage, null, testPortfolio(), emptyHistory)
-    expect(storedRevision(storage)).toBe(1)
-    writeState(storage, 1, testPortfolio(), emptyHistory)
-    expect(storedRevision(storage)).toBe(2)
+    expect(storedStamp(storage)).toBeNull()
+    const first = written(writeState(storage, null, testPortfolio(), emptyHistory))
+    expect(storedStamp(storage)).toBe(first)
+    // Read twice, same answer: the stamp is a function of the bytes, so a
+    // caller can compare it against what it holds without re-reading anything.
+    expect(storedStamp(storage)).toBe(first)
+    const second = written(writeState(storage, first, otherPortfolio(), emptyHistory))
+    expect(storedStamp(storage)).toBe(second)
+  })
+
+  it('tells two documents apart even when they carry the SAME revision number', () => {
+    // The whole reason the stamp is not a counter. Two tabs that both start
+    // from revision 1 both write revision 2; a counter cannot tell which of
+    // the two is in the storage, and this is what that costs.
+    const one = createMemoryStorage()
+    const two = createMemoryStorage()
+    const start = testPortfolio()
+    const a = written(writeState(one, null, start, emptyHistory))
+    const b = written(writeState(two, null, start, emptyHistory))
+    expect(a).toBe(b) // same bytes, same name
+
+    const afterA = written(writeState(one, a, testPortfolio(), emptyHistory))
+    const afterB = written(writeState(two, b, otherPortfolio(), emptyHistory))
+    expect(revisionInStorage(one)).toBe(2)
+    expect(revisionInStorage(two)).toBe(2) // the counters agree…
+    expect(afterA).not.toBe(afterB) // …the stamps do not
   })
 
   it('calls anything it does not recognise `unreadable` — never a licence to write', () => {
@@ -253,12 +291,16 @@ describe('storedRevision — the compare half of the swap', () => {
       JSON.stringify({ format: STATE_FORMAT, revision: 0, portfolio: {} }),
     ]) {
       storage.setItem(STATE_KEY, raw)
-      expect(storedRevision(storage)).toBe('unreadable')
+      expect(storedStamp(storage)).toBe('unreadable')
+      // …and a head the guard cannot read is not restorable either: a caller
+      // holding a stamp nothing can match would be refused every write it
+      // ever attempted, which is worse than being told now.
+      expect(readStored(storage).state).toBe('unreadable')
     }
   })
 })
 
-describe('the compare-and-swap', () => {
+describe('the guarded write', () => {
   it('refuses to overwrite a storage that moved on, and touches nothing', () => {
     const storage = createMemoryStorage()
     writeState(storage, null, testPortfolio(), emptyHistory) // the other tab
@@ -285,14 +327,51 @@ describe('the compare-and-swap', () => {
 
   it('lets the write through on an exact match, in both directions', () => {
     const storage = createMemoryStorage()
-    expect(writeState(storage, 7, testPortfolio(), emptyHistory)).toStrictEqual({
+    expect(writeState(storage, 'no-such-state', testPortfolio(), emptyHistory)).toStrictEqual({
       outcome: 'conflict',
-    }) // expecting 7 where nothing is stored
-    writeState(storage, null, testPortfolio(), emptyHistory)
-    expect(writeState(storage, 2, testPortfolio(), emptyHistory)).toStrictEqual({
+    }) // naming a state where nothing is stored
+    const stamp = written(writeState(storage, null, testPortfolio(), emptyHistory))
+    expect(writeState(storage, 'some-other-state', testPortfolio(), emptyHistory)).toStrictEqual({
       outcome: 'conflict',
-    }) // expecting 2 where 1 is stored
-    expect(writeState(storage, 1, testPortfolio(), emptyHistory).outcome).toBe('written')
+    }) // naming a state other than the one in there
+    expect(writeState(storage, stamp, testPortfolio(), emptyHistory).outcome).toBe('written')
+  })
+
+  it('two documents interleaved on one storage: exactly one wins, and the other is TOLD', () => {
+    // THE WINDOW THE GUARD CANNOT CLOSE, reproduced. Both tabs read the same
+    // state and both pass the check; nothing makes the read and the write one
+    // step, so the second `setItem` simply lands on the first. What is pinned
+    // here is what happens NEXT — the loser must not go on believing its
+    // document is the stored one.
+    const shared = createMemoryStorage()
+    const start = written(writeState(shared, null, testPortfolio(), emptyHistory))
+    const staleBytes = shared.getItem(STATE_KEY)
+
+    // B gets there first.
+    const b = written(writeState(shared, start, otherPortfolio(), emptyHistory))
+
+    // A's guard read the bytes BEFORE B wrote — a storage handing back what A
+    // saw is exactly that window, and nothing in the policy can notice it.
+    const inTheWindow: KeyValueStorage = {
+      getItem: () => staleBytes,
+      setItem: (k, v) => shared.setItem(k, v),
+      removeItem: (k) => shared.removeItem(k),
+    }
+    const a = written(writeState(inTheWindow, start, testPortfolio(), emptyHistory))
+
+    // Both wrote revision 2 — a counter could not have told them apart …
+    expect(revisionInStorage(shared)).toBe(2)
+    expect(a).not.toBe(b)
+    // … and the storage now holds A's document, not B's.
+    expect(storedStamp(shared)).toBe(a)
+    expect(restored(shared)!.portfolio).toEqual(testPortfolio())
+
+    // THE PROPERTY: B cannot write on top of A without being told first.
+    expect(writeState(shared, b, otherPortfolio(), emptyHistory)).toStrictEqual({
+      outcome: 'conflict',
+    })
+    // A, which did write, is not disturbed by its own bytes.
+    expect(writeState(shared, a, testPortfolio(), emptyHistory).outcome).toBe('written')
   })
 })
 
@@ -434,11 +513,11 @@ describe('debounced saving (the app wiring in miniature)', () => {
   it('condenses a burst of states into a single write', () => {
     const storage = createMemoryStorage()
     const clock = createManualScheduler()
-    let base: number | null = null
+    let base: StateStamp | null = null
     const record = debounce(
       (p: ReturnType<typeof testPortfolio>) => {
         const outcome = writeState(storage, base, p, emptyHistory)
-        if (outcome.outcome === 'written') base = outcome.revision
+        if (outcome.outcome === 'written') base = outcome.stamp
       },
       SAVE_DELAY_MS,
       clock.schedule,

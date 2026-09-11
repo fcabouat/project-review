@@ -44,7 +44,6 @@
   import FieldSegmented from '../../editor/FieldSegmented.svelte'
   import { Button } from '../../commons/ui/button'
   import * as RadioGroup from '../../commons/ui/radio-group'
-  import defaultLogo from '../../assets/logo-dejavu.svg'
   import type { AppearanceControl, ColorScheme, Dispatch, FontStatus } from '../contracts'
 
   interface Props {
@@ -203,7 +202,7 @@
     })
   }
 
-  /* ---- inline logo (data URI in the JSON, bundled Déjà Vu fallback) ---- */
+  /* ---- inline logo: a data URI in the JSON, or nothing at all ---------- */
 
   let logoInput = $state<HTMLInputElement | undefined>()
   let logoError = $state<string | undefined>(undefined)
@@ -512,11 +511,22 @@
       >{te('editor.settings.logo', language)}</span
     >
     <div class="flex items-center gap-3.5">
-      <img
-        class="border-border h-11 w-[124px] rounded-md border bg-white object-contain object-left px-2 py-1"
-        src={identity.logo ?? defaultLogo}
-        alt=""
-      />
+      {#if identity.logo === undefined}
+        <!-- EDITOR ONLY, and it goes no further: an empty frame says « there is
+             no logo » where the deck simply draws nothing. Nothing is bundled
+             to fall back on — a portfolio with no mark carries no mark. -->
+        <p
+          class="border-border text-muted-foreground flex h-11 w-[124px] items-center justify-center rounded-md border border-dashed text-[11.5px]"
+        >
+          {te('editor.settings.logoNone', language)}
+        </p>
+      {:else}
+        <img
+          class="border-border h-11 w-[124px] rounded-md border bg-white object-contain object-left px-2 py-1"
+          src={identity.logo}
+          alt=""
+        />
+      {/if}
       <div class="flex flex-col gap-1.5">
         <Button
           variant="outline"

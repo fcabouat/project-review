@@ -25,7 +25,7 @@ export interface Identity {
   readonly orgLong?: string
   readonly unitLong?: string
   readonly contact?: string
-  /** Inline logo (`data:image/…` URI); absent → bundled Déjà Vu logo. */
+  /** Inline logo (`data:image/…` URI); absent → no logo is drawn at all. */
   readonly logo?: string
 }
 

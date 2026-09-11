@@ -406,7 +406,8 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
   },
   'editor.settings.logo': { fr: 'Logo', en: 'Logo' },
   'editor.settings.logoImport': { fr: 'Importer un logo…', en: 'Import a logo…' },
-  'editor.settings.logoReset': { fr: 'Logo par défaut', en: 'Default logo' },
+  'editor.settings.logoReset': { fr: 'Retirer le logo', en: 'Remove logo' },
+  'editor.settings.logoNone': { fr: 'Aucun logo', en: 'No logo' },
   'editor.settings.logoHint': {
     fr: `SVG ou PNG, embarqué dans le fichier .json (300${NBSP}Ko max).`,
     en: 'SVG or PNG, embedded in the .json file (300 KB max).',

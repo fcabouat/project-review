@@ -8,9 +8,12 @@
  *
  * `undefined` means "no event to record", in exactly three situations:
  *  - OFF CONTRACT — the value carried would produce a portfolio the file
- *    format cannot read back (contract.ts): the running model is never allowed
- *    to be more permissive than the serialised one, so what `parsePortfolio`
- *    refuses at the door, `decide` refuses on the way out. Checked FIRST;
+ *    format cannot read back: the running model is never allowed to be more
+ *    permissive than the serialised one, so what `parsePortfolio` refuses at
+ *    the door, `decide` refuses on the way out. Two halves, and they are
+ *    weighed at two different moments — the SHAPE of the value before the
+ *    event is built (contract.ts, checked first), the SIZE of the document
+ *    after it is (see {@link decide} itself);
  *  - INAPPLICABLE — the target id resolves to nothing (or, for a renumber,
  *    the requested id is already taken: recording it would break the
  *    uniqueness invariant of `collections.ts`);
@@ -29,6 +32,8 @@
 import type { Portfolio } from '../model/portfolio'
 import type { DomainEvent } from '../events/index'
 import type { Command } from './index'
+import { apply } from '../events/apply'
+import { withinMemoryBudget } from '../model/budget'
 import { settingValue } from '../events/settings'
 import { completeMerge } from './merge'
 import { honorsContract } from './contract'
@@ -40,18 +45,14 @@ const indexOf = (list: readonly { readonly id: string }[], id: string): number |
 }
 
 /**
- * Decides one command against the present portfolio. Total: returns the
- * completed event, or `undefined` when the command is off contract,
- * inapplicable or trivial (module header). The three field-indexed constructions assert their result:
+ * Completes one command into the event it would record — the per-aggregate
+ * rules and nothing else. `undefined` for an inapplicable or trivial command
+ * (module header). The three field-indexed constructions assert their result:
  * the field ↔ value-type correlation is guaranteed by the command's own typing
  * but escapes inference over a correlated union — same documented pattern as
  * `invert`'s `swap`.
  */
-export const decide = (p: Portfolio, c: Command): DomainEvent | undefined => {
-  // The contract first: a command carrying a value the file format would
-  // refuse never becomes an event, whatever else is true of it.
-  if (!honorsContract(p, c)) return undefined
-
+const complete = (p: Portfolio, c: Command): DomainEvent | undefined => {
   switch (c.type) {
     case 'ChangeReviewField': {
       const before = p.review[c.field]
@@ -203,4 +204,36 @@ export const decide = (p: Portfolio, c: Command): DomainEvent | undefined => {
   const _unreachable: never = c
   return undefined
   /* v8 ignore stop */
+}
+
+/**
+ * Decides one command against the present portfolio. Total: returns the
+ * completed event, or `undefined` when the command is off contract,
+ * inapplicable or trivial (module header).
+ *
+ * THE MEMORY BUDGET IS WEIGHED HERE, ON THE STATE THE EVENT WOULD PRODUCE —
+ * once, after the event is completed, and therefore for whatever the union
+ * holds today or gains tomorrow. It used to be weighed inside the shape gate,
+ * on a projection listing the commands thought to GROW the document; a title
+ * is not on such a list and a ten-million-character title was accepted, kept,
+ * and refused only when the save came round. There is no list any more: the
+ * candidate state is built and measured.
+ *
+ * WHAT IT COSTS, SAID PLAINLY. `withinMemoryBudget` serialises the candidate,
+ * so every accepted command now pays one `JSON.stringify` of the document and
+ * one extra `apply` (`execute` applies the event again to keep it). On the
+ * sample set (~50 kB) that is a fraction of a millisecond per keystroke; at
+ * the entity ceiling it is tens of milliseconds, on a document a hundred times
+ * larger than any real one. The order inside `withinMemoryBudget` is the
+ * mitigation — three array lengths, then the nested ones, then the
+ * serialisation — and the trade is deliberate: discovering at the next reload
+ * that the file no longer loads costs more than any keystroke.
+ */
+export const decide = (p: Portfolio, c: Command): DomainEvent | undefined => {
+  // The shape first: a command carrying a value the file format would refuse
+  // never becomes an event, whatever else is true of it.
+  if (!honorsContract(p, c)) return undefined
+  const event = complete(p, c)
+  if (event === undefined) return undefined
+  return withinMemoryBudget(apply(p, event)) ? event : undefined
 }

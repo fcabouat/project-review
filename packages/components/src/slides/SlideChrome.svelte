@@ -1,7 +1,8 @@
 <script lang="ts">
   /**
    * Common chrome of the inner slides: colored vertical rail with its vertical
-   * text, normalized logo box, cartouche at the top right (26 / 44 inset) and
+   * text, logo box (reserved, filled only when the identity carries a mark),
+   * cartouche at the top right (26 / 44 inset) and
    * the three-part foot (month · legend · "page / total").
    *
    * The title slide and the dividers do NOT use it: they are full-bleed
@@ -19,7 +20,6 @@
   import { t } from '@project-review/core/services/i18n'
   import Cartouche from '../commons/Cartouche.svelte'
   import { monthLabel } from './labels'
-  import defaultLogo from '../assets/logo-dejavu.svg'
   import './theme.css'
   import './print.css'
   import './flat.css'
@@ -64,7 +64,13 @@
 
   const language = $derived<Language>(portfolio.settings.language)
   const month = $derived(monthLabel(portfolio.review.reviewDate, language))
-  const shownLogo = $derived(logo ?? portfolio.settings.identity.logo ?? defaultLogo)
+  /** The identity's own mark, or NOTHING — no logo is bundled with the
+   * deliverable (see SlideTitle). The `.logo` class stays on the box either
+   * way: the themes size it, and the cartouche opposite keeps its inset. */
+  const shownLogo = $derived(logo ?? portfolio.settings.identity.logo)
+  const logoBox = $derived(
+    `logo block ${sheet ? 'h-12 w-[135px] print:h-[45px] print:w-[127px]' : 'h-16 w-[180px] print:h-[60px] print:w-[170px]'}`,
+  )
   /** 'flat' restructures the chrome (no rail, sheet header as a color plane). */
   const flat = $derived(portfolio.settings.theme.style === 'flat')
 </script>
@@ -129,13 +135,11 @@
           ? 'h-auto'
           : 'h-16 print:h-[60px]'}"
       >
-        <img
-          class="logo block object-contain object-left {sheet
-            ? 'h-12 w-[135px] print:h-[45px] print:w-[127px]'
-            : 'h-16 w-[180px] print:h-[60px] print:w-[170px]'}"
-          src={shownLogo}
-          alt=""
-        />
+        <div class={logoBox}>
+          {#if shownLogo}
+            <img class="h-full w-full object-contain object-left" src={shownLogo} alt="" />
+          {/if}
+        </div>
         <Cartouche identity={portfolio.settings.identity} review={portfolio.review} {language} />
       </div>
       {#if flat}

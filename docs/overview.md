@@ -95,9 +95,14 @@ An `unreadable` one is never overwritten — the app opens the recovery screen
 instead of the editor, hands the stored bytes back verbatim, and writes
 nothing at all until a person decides.
 
-Writing it is a COMPARE-AND-SWAP on the revision: a second tab is told that
-the first one saved, and overwrites nothing; the two answers (take theirs,
-keep mine) are a person's, and nothing merges by itself. The save state is on
+Writing it is GUARDED, and the guard is not a lock: a write names the stored
+state it expects — a STAMP of the bytes, not a counter — and is refused when
+the storage holds another one. `localStorage` offers no mutual exclusion, so
+two tabs can still both pass the check and both write; what the stamp buys is
+that the one whose document was overwritten stops recognising what is in
+there, and is told at the next `storage` event or the next write instead of
+never. The two answers (take theirs, keep mine) are a person's, and nothing
+merges by itself. The save state is on
 screen at all times, and a write the browser refuses says so and offers a
 download on the spot — the open document is never lost for want of a save.
 

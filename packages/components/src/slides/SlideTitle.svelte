@@ -15,7 +15,6 @@
   import { formatLongDate, t, type CatalogKey } from '@project-review/core/services/i18n'
   import Cartouche from '../commons/Cartouche.svelte'
   import { identityLine } from '../commons/identity-line'
-  import defaultLogo from '../assets/logo-dejavu.svg'
   import './theme.css'
   import './print.css'
   import './flat.css'
@@ -32,7 +31,11 @@
   const language = $derived(portfolio.settings.language)
   const review = $derived(portfolio.review)
   const identity = $derived(portfolio.settings.identity)
-  const shownLogo = $derived(logo ?? identity.logo ?? defaultLogo)
+  /** The identity's own mark, or NOTHING. No logo is bundled: a portfolio
+   * that carries none shows none, and the deliverable ships no brand of its
+   * own to fall back on. The sample sets carry theirs in the .json, as a data
+   * URI, like any imported identity. */
+  const shownLogo = $derived(logo ?? identity.logo)
   const longDate = $derived(formatLongDate(review.reviewDate, language))
   const k = $derived(kpis(portfolio))
 
@@ -82,7 +85,7 @@
 
 {#if flat}
   <section class="{SLIDE_FRAME} slide--flat-title">
-    <img class="flat-title-logo" src={shownLogo} alt="" />
+    {#if shownLogo}<img class="flat-title-logo" src={shownLogo} alt="" />{/if}
     <div class="flat-title-cart">
       <Cartouche {identity} {review} {language} onColoredBackground />
     </div>
@@ -101,11 +104,13 @@
     <div
       class="title-left flex w-(--title-column) flex-none flex-col p-(--slide-margin) print:w-[434px] print:p-10"
     >
-      <img
-        class="block h-[88px] w-[180px] self-start object-contain object-left print:h-[84px] print:w-[170px]"
-        src={shownLogo}
-        alt=""
-      />
+      <!-- The box is reserved whether or not there is a mark to draw in it:
+           the vertical word below keeps its place either way. -->
+      <div class="block h-[88px] w-[180px] flex-none self-start print:h-[84px] print:w-[170px]">
+        {#if shownLogo}
+          <img class="h-full w-full object-contain object-left" src={shownLogo} alt="" />
+        {/if}
+      </div>
       <div
         class="title-vertical mt-auto rotate-180 self-start text-[44px] leading-none font-extrabold tracking-[-0.01em] uppercase [writing-mode:vertical-rl] print:text-[42px]"
       >

@@ -261,7 +261,9 @@ réseau.
   qu'elle a cherchés. Une famille qu'aucune des trois ne couvre s'affiche sur
   la pile système, et la carte le dit plutôt que de vous laisser le découvrir.
 - **Logo** — la marque de votre organisation, embarquée dans le fichier (SVG
-  ou PNG, 300 Ko max) ; sans logo, le diaporama affiche celui de l'exemple.
+  ou PNG, 300 Ko max) ; sans logo, le diaporama n'en affiche aucun. Rien n'est
+  embarqué dans l'application : la marque du jeu d'exemple appartient au jeu
+  d'exemple, portée par son `.json` comme n'importe quelle autre.
 
 Une palette, une police ou un logo importés restent soumis à leurs droits
 propres — les embarquer dans un fichier diffusé constitue une redistribution :

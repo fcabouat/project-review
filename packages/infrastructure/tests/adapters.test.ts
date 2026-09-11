@@ -141,6 +141,31 @@ describe('watchStored', () => {
       host.restore()
     }
   })
+
+  it('a host that refuses the subscription simply never signals', () => {
+    // There is no `window` at all in a worker, and a restricted context can
+    // throw on the very `addEventListener`. Neither may reach the boot: the
+    // courtesy is lost, the editor is not — the write's own guard is what
+    // protects the document (see the core's `WatchStored`).
+    ;(globalThis as { window?: unknown }).window = {
+      addEventListener: () => {
+        throw new DOMException('denied', 'SecurityError')
+      },
+      removeEventListener: () => {},
+    }
+    try {
+      let calls = 0
+      const stop = watchStored(() => {
+        calls += 1
+      })
+      // The cancel handed back is inert, and calling it is safe: there is
+      // nothing to disarm, and a caller must not have to know that.
+      expect(() => stop()).not.toThrow()
+      expect(calls).toBe(0)
+    } finally {
+      delete (globalThis as { window?: unknown }).window
+    }
+  })
 })
 
 describe('timeoutScheduler', () => {

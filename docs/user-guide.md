@@ -239,7 +239,9 @@ standalone export and printing included, with no deployment and no network.
   looked for. A family none of the three covers renders on the system stack,
   and the card says so rather than leaving you to notice.
 - **Logo** — your organization's mark, inlined in the file (SVG or PNG,
-  300 KB max); without one the deck shows the bundled sample logo.
+  300 KB max); without one the deck shows no logo at all. Nothing is bundled:
+  the mark in the sample set is the sample set's own, carried in its `.json`
+  like any other.
 
 An imported palette, font or logo stays under its own rights — embedding one
 in a distributed file is redistribution: check that its license allows it.

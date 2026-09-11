@@ -25,8 +25,8 @@ describe('shouldBootSample — the demo never overwrites an existing base', () =
     // effect save the demo set over a real portfolio — the one loss the
     // feature must never cause. Bytes nobody could read count as an existing
     // base too: they are not free real estate until a person says so.
-    expect(shouldBootSample('?sample', 1)).toBe(false)
-    expect(shouldBootSample('?sample', 42)).toBe(false)
+    expect(shouldBootSample('?sample', '1.420.9xk3p')).toBe(false)
+    expect(shouldBootSample('?sample', '42.9001.1a2b3c')).toBe(false)
     expect(shouldBootSample('?sample', 'unreadable')).toBe(false)
   })
 

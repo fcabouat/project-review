@@ -1,7 +1,7 @@
 /**
  * Pins the persistence wiring (`src/bindings/persistence-control.svelte.ts`)
  * — the local-save switch, the debounced save of the whole envelope, the save
- * state the shell shows, and the compare-and-swap that keeps two tabs honest.
+ * state the shell shows, and the guarded write that keeps two tabs honest.
  * In-memory storage (`../fixtures/failing-storage.ts`) and fake timers: the
  * debounce rides the real `SAVE_DELAY_MS` through the infrastructure's
  * `timeoutScheduler`.
@@ -11,8 +11,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Portfolio } from '@project-review/core/model/portfolio'
 import { emptyHistory } from '@project-review/core/events/history'
 import { testPortfolio } from '../../../packages/core/tests/fixtures/hand-built-portfolios'
-import { createStore } from '../../src/bindings/runtime.svelte'
-import { createPersistenceControl } from '../../src/bindings/persistence-control.svelte'
+import { createStore, type Store } from '../../src/bindings/runtime.svelte'
+import {
+  createPersistenceControl,
+  type PersistenceWiring,
+} from '../../src/bindings/persistence-control.svelte'
 import {
   PREF_KEY,
   SAVE_DELAY_MS,
@@ -20,9 +23,12 @@ import {
   clearStored,
   loadPersistEnabled,
   readStored,
-  storedRevision,
+  storedStamp,
   writeState,
   type KeyValueStorage,
+  type StateStamp,
+  type StoredState,
+  type WriteOutcome,
 } from '@project-review/core/services/persistence'
 import { timeoutScheduler } from '@project-review/infrastructure/scheduler'
 import {
@@ -55,6 +61,50 @@ const otherPortfolio = (): Portfolio => ({
   ...testPortfolio(),
   review: { ...testPortfolio().review, title: 'The stored one' },
 })
+
+/** The title the storage currently holds — how an edit is told from an echo. */
+const storedTitle = (storage: KeyValueStorage): string | undefined => {
+  const back = readStored(storage)
+  return back.state === 'restored' ? back.portfolio.review.title : undefined
+}
+
+/** The monotone number the stored envelope announces — read from the bytes,
+ * since a stamp is opaque to everything but an equality test. */
+const revisionInStorage = (storage: KeyValueStorage): unknown =>
+  JSON.parse(storage.getItem(STATE_KEY)!).revision
+
+/** The stamp a successful write handed back, asserting that it WAS one. */
+const writtenStamp = (outcome: WriteOutcome): StateStamp => {
+  expect(outcome.outcome).toBe('written')
+  return outcome.outcome === 'written' ? outcome.stamp : ''
+}
+
+/**
+ * The wiring as the APP builds it (App.svelte): the store hydrated from the
+ * very document the storage handed over. That is what makes the mounting
+ * effect's first call an echo rather than an edit — the anti-echo compares
+ * documents, and the document it was handed is the one it reads back.
+ */
+const bootedOn = (storage: KeyValueStorage, found: StoredState, enabled = true) => {
+  const store = createStore(
+    found.state === 'restored' ? found.portfolio : testPortfolio(),
+    found.state === 'restored' ? found.history : undefined,
+  )
+  return {
+    store,
+    wiring: createPersistenceControl(store, storage, enabled, timeoutScheduler, found),
+  }
+}
+
+/** What the mounting effect hands over: the document and its two stacks. */
+const effect = (wiring: PersistenceWiring, store: Store): void =>
+  wiring.scheduleSave(store.present, { past: store.past, future: store.future })
+
+/** ONE real edit — the runtime rebuilds `present` on every step it records
+ * (`execute`), so what the effect carries afterwards is a NEW document. */
+const editTitle = (store: Store, title: string): void => {
+  store.dispatch({ type: 'ChangeReviewField', field: 'title', after: title })
+}
 
 describe('createPersistenceControl', () => {
   it('toggle(on) on an empty storage writes the whole envelope right away', () => {
@@ -154,19 +204,20 @@ describe('createPersistenceControl', () => {
     const storage = createMemoryStorage()
     writeState(storage, null, testPortfolio(), emptyHistory)
     const found = readStored(storage)
-    const store = createStore(testPortfolio())
-    const wiring = createPersistenceControl(store, storage, true, timeoutScheduler, found)
+    const { store, wiring } = bootedOn(storage, found)
     storage.writes = 0
 
-    wiring.scheduleSave(store.present, emptyHistory) // the mounting effect
+    effect(wiring, store) // the mounting effect
     vi.advanceTimersByTime(SAVE_DELAY_MS)
     expect(storage.writes).toBe(0)
-    expect(storedRevision(storage)).toBe(1)
+    expect(revisionInStorage(storage)).toBe(1)
     expect(wiring.control.save).toStrictEqual({ revision: 0, phase: 'saved' })
 
-    wiring.scheduleSave(store.present, emptyHistory) // a real change
+    editTitle(store, 'Une vraie modification') // a real change
+    effect(wiring, store)
     vi.advanceTimersByTime(SAVE_DELAY_MS)
-    expect(storedRevision(storage)).toBe(2)
+    expect(revisionInStorage(storage)).toBe(2)
+    expect(storedTitle(storage)).toBe('Une vraie modification')
     expect(wiring.control.save).toStrictEqual({ revision: 1, phase: 'saved' })
   })
 
@@ -199,10 +250,10 @@ describe('createPersistenceControl', () => {
 
     expect(() => readStored(storage)).not.toThrow()
     expect(readStored(storage)).toStrictEqual({ state: 'unavailable' })
-    expect(() => storedRevision(storage)).not.toThrow()
+    expect(() => storedStamp(storage)).not.toThrow()
     // Not knowing what is in there is exactly the state in which nothing may
     // be written over it.
-    expect(storedRevision(storage)).toBe('unreadable')
+    expect(storedStamp(storage)).toBe('unreadable')
     expect(loadPersistEnabled(storage)).toBe(true)
     // `refused`, not `conflict`: no second tab is involved — the storage
     // simply does not answer, and the wiring must not blame one that does not
@@ -318,29 +369,30 @@ describe('a storage that refuses the document key and accepts the others', () =>
 })
 
 /**
- * TWO TABS, ONE STORAGE. Every write names the revision it believes is there;
- * a storage that moved on yields a conflict, and NOT ONE BYTE is overwritten.
- * Nothing merges by itself — the user picks.
+ * TWO TABS, ONE STORAGE. Every write names the state it believes is there; a
+ * storage that moved on yields a conflict, and NOT ONE BYTE is overwritten.
+ * Nothing merges by itself — the user picks. The guard is not a lock (see the
+ * policy's header): what is pinned here is that the tab which lost is TOLD.
  */
-describe('the compare-and-swap between tabs', () => {
+describe('the guarded write between tabs', () => {
   /** This tab booted on revision 1; the other tab then saved its own. */
   const contendedSetup = () => {
     const storage = createMemoryStorage()
-    writeState(storage, null, testPortfolio(), emptyHistory) // revision 1
+    const first = writtenStamp(writeState(storage, null, testPortfolio(), emptyHistory))
     const found = readStored(storage)
-    const store = createStore(testPortfolio())
-    const wiring = createPersistenceControl(store, storage, true, timeoutScheduler, found)
-    wiring.scheduleSave(store.present, emptyHistory) // the mounting effect's echo
+    const { store, wiring } = bootedOn(storage, found)
+    effect(wiring, store) // the mounting effect's echo
     // …and now the OTHER tab writes revision 2 behind this one's back.
-    writeState(storage, 1, otherPortfolio(), emptyHistory)
+    writeState(storage, first, otherPortfolio(), emptyHistory)
     storage.writes = 0
-    return { storage, store, wiring }
+    return { storage, store, wiring, first }
   }
 
   it('refuses to overwrite what the other tab wrote, and says so', () => {
     const { storage, store, wiring } = contendedSetup()
 
-    wiring.scheduleSave(store.present, emptyHistory)
+    editTitle(store, 'Ma version')
+    effect(wiring, store)
     vi.advanceTimersByTime(SAVE_DELAY_MS)
 
     expect(wiring.control.save).toStrictEqual({ revision: 1, phase: 'conflict' })
@@ -352,7 +404,8 @@ describe('the compare-and-swap between tabs', () => {
     const { storage, store, wiring } = contendedSetup()
 
     // An edit is armed; the `storage` event arrives first.
-    wiring.scheduleSave(store.present, emptyHistory)
+    editTitle(store, 'Ma version')
+    effect(wiring, store)
     wiring.noticeStoredChange()
     expect(wiring.control.save).toStrictEqual({ revision: 1, phase: 'conflict' })
 
@@ -367,11 +420,45 @@ describe('the compare-and-swap between tabs', () => {
     const store = createStore(testPortfolio())
     const wiring = createPersistenceControl(store, storage, true, timeoutScheduler)
 
-    wiring.scheduleSave(store.present, emptyHistory)
+    effect(wiring, store)
     vi.advanceTimersByTime(SAVE_DELAY_MS)
     wiring.noticeStoredChange() // an unrelated key, or our own write echoing
 
     expect(wiring.control.save?.phase).toBe('saved')
+  })
+
+  it('a conflict over a document of the SAME revision number is still a conflict', () => {
+    // THE FAILURE A COUNTER CANNOT SEE. The other tab booted on revision 1 too,
+    // so the document it writes carries the very number this tab just wrote:
+    // comparing numbers, the two states look identical, and the overwrite
+    // passes unnoticed. Comparing the bytes' STAMP, it does not.
+    const storage = createMemoryStorage()
+    const first = writtenStamp(writeState(storage, null, testPortfolio(), emptyHistory))
+    const staleBytes = storage.getItem(STATE_KEY)
+    const found = readStored(storage)
+    const { store, wiring } = bootedOn(storage, found)
+
+    effect(wiring, store) // the echo
+    editTitle(store, 'Ma version')
+    effect(wiring, store)
+    vi.advanceTimersByTime(SAVE_DELAY_MS)
+    expect(revisionInStorage(storage)).toBe(2)
+    expect(wiring.control.save?.phase).toBe('saved')
+
+    // The other tab's guard read revision 1 before this one wrote; its own
+    // `setItem` lands anyway — the window `writeState` describes and cannot
+    // close. It writes revision 2, exactly like this tab did.
+    const inTheWindow: KeyValueStorage = {
+      getItem: () => staleBytes,
+      setItem: (k, v) => storage.setItem(k, v),
+      removeItem: (k) => storage.removeItem(k),
+    }
+    writtenStamp(writeState(inTheWindow, first, otherPortfolio(), emptyHistory))
+    expect(revisionInStorage(storage)).toBe(2) // the same number…
+
+    wiring.noticeStoredChange()
+    expect(wiring.control.save?.phase).toBe('conflict') // …and it is heard
+    expect(stored(storage)).toEqual(otherPortfolio()) // nothing overwritten since
   })
 
   it('takeStored() loads the other tab’s document — undoably — and saves on top', () => {
@@ -383,7 +470,7 @@ describe('the compare-and-swap between tabs', () => {
     expect(store.present).toEqual(otherPortfolio())
     expect(store.canUndo).toBe(true) // an ordinary replacement, Ctrl+Z away
     expect(wiring.control.save?.phase).toBe('saved')
-    expect(storedRevision(storage)).toBe(3)
+    expect(revisionInStorage(storage)).toBe(3)
   })
 
   it('keepMine() is the deliberate overwrite: this document wins, once asked', () => {
@@ -407,7 +494,7 @@ describe('the compare-and-swap between tabs', () => {
     wiring.control.takeStored() // there is nothing to take: this one stays
     expect(store.present).toEqual(testPortfolio())
     expect(stored(storage)).toEqual(testPortfolio())
-    expect(storedRevision(storage)).toBe(1)
+    expect(revisionInStorage(storage)).toBe(1)
   })
 
   it('the two answers are inert outside a conflict', () => {
@@ -585,7 +672,7 @@ describe('turning the save back on reads the storage first', () => {
     expect(wiring.control.enabled).toBe(true)
     expect(wiring.control.pendingRestore).toBe(false)
     expect(stored(storage)).toEqual(otherPortfolio())
-    expect(storedRevision(storage)).toBe(2) // written against what was read
+    expect(revisionInStorage(storage)).toBe(2) // written against what was read
   })
 
   it('keepOpen() is the deliberate overwrite: the open document wins, once asked', () => {
@@ -653,5 +740,85 @@ describe('turning the save back on reads the storage first', () => {
     expect(wiring.control.pendingRestore).toBe(false)
     wiring.control.toggle(false)
     expect(wiring.control.enabled).toBe(false)
+  })
+})
+
+/**
+ * THE FIRST EDIT AFTER A DECISION IS NOT AN ECHO — the fault this block
+ * exists for. The anti-echo used to be a boolean armed at boot and cleared by
+ * whichever save came first; `keepOpen()` wrote WITHOUT clearing it, so the
+ * user's next edit was swallowed as if it were the boot's echo and the close
+ * stored the document from before it. It is now the document itself that is
+ * remembered, so only the document already in the storage is ever skipped.
+ *
+ * Each path below does exactly what the fault needed: one decision, ONE edit,
+ * then the close.
+ */
+describe('the first edit after a write is saved, on every path that writes', () => {
+  /** A storage already holding `seeded`, and a wiring on ANOTHER document —
+   * the local save switched off, as it is when the question can arise. */
+  const offWithStored = (seeded: Portfolio) => {
+    const storage = createMemoryStorage()
+    writeState(storage, null, seeded, emptyHistory)
+    const store = createStore(testPortfolio())
+    const wiring = createPersistenceControl(
+      store,
+      storage,
+      false,
+      timeoutScheduler,
+      readStored(storage),
+    )
+    return { storage, store, wiring }
+  }
+
+  /** One edit, the effect it triggers, and the page going away. */
+  const editThenClose = (store: Store, wiring: PersistenceWiring, title: string): void => {
+    editTitle(store, title)
+    effect(wiring, store)
+    wiring.flush() // 'pagehide'
+  }
+
+  it('keepOpen(): the open document wins, and what is typed next is stored', () => {
+    const { storage, store, wiring } = offWithStored(otherPortfolio())
+    wiring.control.toggle(true)
+    wiring.control.keepOpen()
+
+    editThenClose(store, wiring, 'Après keepOpen')
+    expect(storedTitle(storage)).toBe('Après keepOpen')
+  })
+
+  it('restore(): the stored copy is loaded, and what is typed next is stored', () => {
+    const { storage, store, wiring } = offWithStored(otherPortfolio())
+    wiring.control.toggle(true)
+    wiring.control.restore()
+
+    editThenClose(store, wiring, 'Après restore')
+    expect(storedTitle(storage)).toBe('Après restore')
+  })
+
+  it('activation on an empty storage: what is typed next is stored', () => {
+    const storage = createMemoryStorage()
+    const store = createStore(testPortfolio())
+    const wiring = createPersistenceControl(store, storage, false, timeoutScheduler)
+    wiring.control.toggle(true)
+
+    editThenClose(store, wiring, 'Après activation')
+    expect(storedTitle(storage)).toBe('Après activation')
+  })
+
+  it('and the document already in there is still skipped, however often it is offered', () => {
+    // The other half of the rule: what is NOT an edit must not be announced to
+    // the other tabs. A restored boot echoed twice writes nothing at all.
+    const storage = createMemoryStorage()
+    writeState(storage, null, testPortfolio(), emptyHistory)
+    const { store, wiring } = bootedOn(storage, readStored(storage))
+    storage.writes = 0
+
+    effect(wiring, store)
+    effect(wiring, store)
+    wiring.flush()
+    vi.advanceTimersByTime(SAVE_DELAY_MS)
+    expect(storage.writes).toBe(0)
+    expect(wiring.control.save).toStrictEqual({ revision: 0, phase: 'saved' })
   })
 })
