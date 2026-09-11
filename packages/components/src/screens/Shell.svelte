@@ -77,6 +77,8 @@
     readonly fontStatus?: FontStatus
     /** Host-injected reader of picked font files (Settings ▸ Appearance). */
     readonly readFontFile?: (file: File) => Promise<string | null>
+    /** Host-injected reader of the picked logo file (Settings ▸ Appearance). */
+    readonly readLogoFile?: (file: File) => Promise<string | null>
     /**
      * « Enregistrer » — the standalone .html. Injected by the app
      * (infrastructure's dom-export, reveal options bound); layering forbids
@@ -101,6 +103,7 @@
     appearance,
     fontStatus,
     readFontFile,
+    readLogoFile,
     exportStandalone,
   }: Props = $props()
 
@@ -495,6 +498,7 @@
               {appearance}
               {fontStatus}
               {readFontFile}
+              {readLogoFile}
             />
           {:else if route.name === 'history'}
             <HistoryScreen {portfolio} {past} {future} {undo} {redo} />

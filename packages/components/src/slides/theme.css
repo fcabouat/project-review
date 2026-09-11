@@ -89,12 +89,40 @@
   color: var(--muted);
 }
 
-/* category pill and id chip: the category tint at 12 % over white */
+/* THE READABLE INK OF A CATEGORY TINT — ONE derivation, no second table.
+   `tailwind` and `material` carry the names of colour systems anyone can look
+   up, so not one hex in `palettes.css` is retuned for contrast. What is
+   derived is the INK, and only where a tint carries TEXT rather than filling a
+   surface: every FILL — rail, divider plane, bars, rules, dots, rings, and the
+   12 % chip ground right below — keeps the palette's exact value.
+
+   THE RULE, in one factor. k = 0.5 / max(l, 0.5) scales BOTH the lightness and
+   the chroma in OKLCH: a straight contraction towards black, hue untouched.
+   Three consequences, and they are the whole reason it is written this way:
+     - a tint already at or under L 0.5 has k = 1 and comes through byte for
+       byte (uniform is built at L 0.55 and under, so most of it never moves);
+     - contracting rather than lowering L alone keeps the result INSIDE the
+       sRGB gamut, so no chroma is clipped and no hue drifts — a capped-L amber
+       would have clipped its way to brick;
+     - L 0.5 is the point where all twelve of the three families AND the grey
+       sentinel clear 4.5:1 on both grounds a tinted glyph sits on, white and
+       their own 12 % tint (measured floor 4.70:1).
+   `max()` keeps the divisor off zero, so the derivation is total: black stays
+   black, and a palette a portfolio carries cannot break it either.
+
+   The rule reaches the descendants, not just `.slide`: a table row re-scopes
+   `--cat` line by line, and each line derives its own ink from it. */
+.slide,
+.slide * {
+  --cat-ink: oklch(from var(--cat, var(--accent)) min(l, 0.5) calc(c * 0.5 / max(l, 0.5)) h);
+}
+
+/* category pill and id chip: the readable ink on the EXACT tint at 12 % over white */
 .pill,
 .id-chip {
   border-radius: 999px;
   background: color-mix(in srgb, var(--cat, var(--accent)) 12%, #fff);
-  color: var(--cat, var(--accent));
+  color: var(--cat-ink);
   /* fallback: stable metrics, then a hairline in the text hue */
   border: 1px solid transparent;
   border-color: color-mix(in srgb, currentColor 25%, transparent);

@@ -12,12 +12,12 @@ tests. When this page and the code disagree, the page is wrong.
 
 ## Four packages, one-way flow
 
-| Package                   | Role                                                                                                                 |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `packages/core`           | Pure domain: no DOM, no clock, no storage, zero dependencies — embeddable anywhere                                   |
-| `packages/components`     | Svelte views: slides, editor widgets, slideshow host, five pure-props screens                                        |
-| `packages/infrastructure` | Browser adapters for the interfaces the core declares (localStorage, scheduler, hash router, fonts, palette, export) |
-| `app`                     | The deliverable — wiring only: `src/bindings/` binds core state to runes, `App.svelte` injects and mounts            |
+| Package                   | Role                                                                                                                                |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/core`           | Pure domain: no DOM, no clock, no storage, zero dependencies — embeddable anywhere                                                  |
+| `packages/components`     | Svelte views: slides, editor widgets, slideshow host, five pure-props screens                                                       |
+| `packages/infrastructure` | Browser adapters for the interfaces the core declares (localStorage, scheduler, hash router, fonts, picked images, palette, export) |
+| `app`                     | The deliverable — wiring only: `src/bindings/` binds core state to runes, `App.svelte` injects and mounts                           |
 
 Dependency rule: core imports nothing; components and infrastructure import
 only core; the app imports all three. Views render and emit commands, never

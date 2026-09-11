@@ -66,13 +66,19 @@ ever edited by hand.
 - **Accessibility as a target** — WCAG 2.1 AA aimed for and checked by an
   axe-core pass (zero serious/critical across every screen, both schemes) and
   a scripted keyboard walk; motion honours `prefers-reduced-motion`. The
-  editor holds AA text contrast, and the slides' semantic inks (labels,
-  health and risk scales, all three themes) were measured and brought to AA
-  text contrast; the category-tinted accents (id chips, divider text) remain
-  below 4.5:1 in the two borrowed palettes, by design. The `uniform` palette
-  is the exception — it holds AA on all twelve — and `modern` + `uniform` is
-  the one pairing an axe pass over the whole 34-page deck finds nothing in.
-  No formal RGAA audit.
+  editor holds AA text contrast, and the slides' semantic inks (labels, health
+  and risk scales, all three themes) were measured and brought to AA text
+  contrast. Where a category tint carries TEXT — the id chips and pills — the
+  glyph takes an ink DERIVED from that tint, contracted in OKLCH until it
+  clears 4.5:1 on both grounds it sits on (measured floor 4.70:1, over the
+  three families' twelve colours and the neutral sentinel): `palettes.css`
+  keeps its hexes exactly as the ecosystems it names publish them, and only
+  the ink moves. What stays below 4.5:1 is white text ON a category plane —
+  the divider, the sheet rail — wherever the tint itself is light: the two
+  borrowed families at full white, and the divider's translucent lines in
+  every family, `uniform` included. Darkening those planes would be retuning
+  the palettes by another route; `modern` gives the other answer and takes its
+  rail off the tint altogether. No formal RGAA audit.
 - **Light and dark editor** — System/Light/Dark reader preference, stored on
   the device, never in the portfolio file; the slides are the artifact and
   stay light in both schemes.

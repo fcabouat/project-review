@@ -50,6 +50,7 @@
     probeFont,
     readWoff2File,
   } from '@project-review/infrastructure/fonts'
+  import { readImageFile } from '@project-review/infrastructure/image'
   import { applyCustomPalette } from '@project-review/infrastructure/palette'
   import { saveStandalone } from '@project-review/infrastructure/dom-export'
   import { MediaQuery } from 'svelte/reactivity'
@@ -249,6 +250,7 @@
     {appearance}
     fontStatus={fontStatus.status}
     readFontFile={readWoff2File}
+    readLogoFile={readImageFile}
     {exportStandalone}
   />
 {/if}

@@ -17,8 +17,9 @@
    *
    * Two controls here do not dispatch commands themselves: the scheme picker
    * (a reader preference the host wires in, `AppearanceControl`) and the file
-   * READING of the embed zone — FileReader is an effect, so the host injects
-   * `readFontFile` and the card only maps names, checks caps and dispatches.
+   * READING of the two rows that take one — FileReader is an effect, so the
+   * host injects `readFontFile` and `readLogoFile`, and the card only maps
+   * names, checks caps and dispatches.
    */
   import type { Portfolio } from '@project-review/core/model/portfolio'
   import type {
@@ -58,9 +59,12 @@
      * unusable (infrastructure's FileReader); absent — a bare story — the
      * embed buttons stay inert. */
     readonly readFontFile?: (file: File) => Promise<string | null>
+    /** Same seam for the mark: one picked file into an image data URI, `null`
+     * for anything unusable; absent, the import button stays inert. */
+    readonly readLogoFile?: (file: File) => Promise<string | null>
   }
 
-  let { portfolio, dispatch, appearance, fontStatus, readFontFile }: Props = $props()
+  let { portfolio, dispatch, appearance, fontStatus, readFontFile, readLogoFile }: Props = $props()
 
   const SCHEMES: readonly ColorScheme[] = ['system', 'light', 'dark']
 
@@ -204,25 +208,22 @@
   let logoInput = $state<HTMLInputElement | undefined>()
   let logoError = $state<string | undefined>(undefined)
 
-  function importLogo(files: FileList | null): void {
+  /** One pick → one refusal line or one undoable action, exactly like the
+   * faces above: the host reads the file, the card checks the cap it words. */
+  async function importLogo(files: FileList | null): Promise<void> {
     logoError = undefined
     const file = files?.[0]
-    if (!file) return
-    const reader = new FileReader()
-    reader.onerror = () => (logoError = te('editor.settings.logoUnreadable', language))
-    reader.onload = () => {
-      const uri = typeof reader.result === 'string' ? reader.result : undefined
-      if (!uri || !uri.startsWith('data:image/')) {
-        logoError = te('editor.settings.logoUnreadable', language)
-        return
-      }
-      if (uri.length > LOGO_MAX_CHARS) {
-        logoError = te('editor.settings.logoTooBig', language)
-        return
-      }
-      dispatch({ type: 'ChangeIdentityField', field: 'logo', after: uri })
+    if (!readLogoFile || !file) return
+    const uri = await readLogoFile(file)
+    if (uri === null) {
+      logoError = te('editor.settings.logoUnreadable', language)
+      return
     }
-    reader.readAsDataURL(file)
+    if (uri.length > LOGO_MAX_CHARS) {
+      logoError = te('editor.settings.logoTooBig', language)
+      return
+    }
+    dispatch({ type: 'ChangeIdentityField', field: 'logo', after: uri })
   }
 
   function resetLogo(): void {
@@ -517,7 +518,12 @@
         alt=""
       />
       <div class="flex flex-col gap-1.5">
-        <Button variant="outline" size="sm" onclick={() => logoInput?.click()}>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={readLogoFile === undefined}
+          onclick={() => logoInput?.click()}
+        >
           {te('editor.settings.logoImport', language)}
         </Button>
         {#if identity.logo !== undefined}
@@ -532,7 +538,10 @@
       type="file"
       accept="image/svg+xml,image/png,image/jpeg,image/webp"
       class="hidden"
-      onchange={(e) => importLogo(e.currentTarget.files)}
+      onchange={(e) => {
+        void importLogo(e.currentTarget.files)
+        e.currentTarget.value = ''
+      }}
     />
     {#if logoError}
       <p class="text-destructive text-[11.5px]" role="alert">{logoError}</p>

@@ -157,11 +157,12 @@
 
   /* ---------- primitives: square wire chips --------------------------------- */
 
+  /* the ground is the bare slide, so the ink carries the chip on its own */
   .slide .pill,
   .slide .id-chip {
     border-radius: 0;
     background: transparent;
-    color: var(--cat, var(--accent));
+    color: var(--cat-ink);
     border: 1.5px solid currentColor;
     font-size: 11px;
     font-weight: 700;
@@ -515,10 +516,11 @@
     border-color: rgba(255, 255, 255, 0.75);
     background: transparent;
   }
+  /* the one chip that reverses: white ground, so it takes the readable ink */
   .flat-head .health.chip {
     background: #fff;
     border-color: #fff;
-    color: var(--cat, var(--accent));
+    color: var(--cat-ink);
   }
   .flat-head .health.chip .dot {
     display: none;

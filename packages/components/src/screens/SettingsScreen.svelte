@@ -34,15 +34,32 @@
     readonly fontStatus?: FontStatus
     /** Host-injected file reader of the embed zone (Appearance card). */
     readonly readFontFile?: (file: File) => Promise<string | null>
+    /** Host-injected file reader of the logo row (Appearance card). */
+    readonly readLogoFile?: (file: File) => Promise<string | null>
   }
 
-  let { portfolio, dispatch, persistence, appearance, fontStatus, readFontFile }: Props = $props()
+  let {
+    portfolio,
+    dispatch,
+    persistence,
+    appearance,
+    fontStatus,
+    readFontFile,
+    readLogoFile,
+  }: Props = $props()
 </script>
 
 <div class="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
   <div class="flex min-w-0 flex-col gap-4">
     <IdentityCard {portfolio} {dispatch} />
-    <AppearanceCard {portfolio} {dispatch} {appearance} {fontStatus} {readFontFile} />
+    <AppearanceCard
+      {portfolio}
+      {dispatch}
+      {appearance}
+      {fontStatus}
+      {readFontFile}
+      {readLogoFile}
+    />
     <AggregateSlidesCard {portfolio} {dispatch} />
     <DataCard {portfolio} {dispatch} {persistence} />
   </div>
