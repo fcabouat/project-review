@@ -13,6 +13,9 @@
    *    nowhere else, so the one offer that actually saves it is made on the
    *    spot: « download a copy ». The in-memory document is never lost for
    *    want of a write;
+   *  - `unavailable` — this browser has no storage to refuse WITH. Same
+   *    consequence, said from the first second rather than at the first
+   *    deadline, and the same offer;
    *  - `conflict` — another tab wrote over the copy this one was working
    *    from. NOTHING was overwritten, and the two answers are the only honest
    *    ones: take theirs (undoable) or keep this one. No silent merge.
@@ -42,14 +45,17 @@
   let { portfolio, save, takeStored, keepMine }: Props = $props()
 
   const language = $derived(portfolio.settings.language)
-  /** The two phases a person must not scroll past: they carry actions, and
+  /** The phase leaves the document in this tab alone — same consequence, same
+   * offer, whether the write failed or was never possible. */
+  const unsaved = $derived(save.phase === 'error' || save.phase === 'unavailable')
+  /** The three phases a person must not scroll past: they carry actions, and
    * they are the only ones announced to assistive tech. */
-  const alarming = $derived(save.phase === 'error' || save.phase === 'conflict')
+  const alarming = $derived(unsaved || save.phase === 'conflict')
 
-  /** Ground and ink per phase — the two alarming ones use the AA-checked
-   * token pairs (`--err`/`--err-bg`, `--warn`/`--warn-bg`). */
+  /** Ground and ink per phase — the alarming ones use the AA-checked token
+   * pairs (`--err`/`--err-bg`, `--warn`/`--warn-bg`). */
   const tone = $derived(
-    save.phase === 'error'
+    unsaved
       ? 'bg-(--err-bg) text-(--err) border-(--err)/30'
       : save.phase === 'conflict'
         ? 'bg-(--warn-bg) text-(--warn) border-(--warn)/30'
@@ -89,7 +95,7 @@
   {:else}
     <p class={message}>{te(`editor.save.${save.phase}`, language)}</p>
   {/if}
-  {#if save.phase === 'error'}
+  {#if unsaved}
     <Button variant="outline" size="sm" class="max-lg:min-h-11" onclick={downloadCopy}>
       {te('editor.save.download', language)}
     </Button>

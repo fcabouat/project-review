@@ -27,6 +27,7 @@
   import { categoryId, projectId as asProjectId } from '@project-review/core/values/ids'
   import { catColor } from '../commons/cat-color'
   import type { ProjectScalarField } from '@project-review/core/events'
+  import { TEXT_CAPACITY } from '@project-review/core/model/budget'
   import { te } from '../i18n'
   import { projectWarnings } from '../editor/validation'
   import Icon from '../commons/Icon.svelte'
@@ -179,7 +180,7 @@
             {language}
             label={te('editor.field.name', language)}
             value={project.name}
-            max={60}
+            max={TEXT_CAPACITY.projectName}
             commit={(v) => set('name', v ?? project.id)}
           />
         </div>

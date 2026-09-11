@@ -186,11 +186,15 @@ export default tseslint.config(
         'the flat services rest on model + values + events; the parse belongs to startup, projections to the views.',
     }),
   },
-  // The persistence policy is the one flat service allowed to reach the parse:
-  // a stored PortfolioReplaced embeds whole portfolios, and loadHistory replays
-  // them through the strict parse before they may reach apply/invert.
+  // The persistence policy and the stored-event decoder are the flat services
+  // allowed to reach the parse and the events: the stored envelope carries a
+  // portfolio the strict parse must judge, and a log whose every event must be
+  // decoded variant by variant before it may reach apply/invert.
   {
-    files: ['packages/core/src/services/persistence.ts'],
+    files: [
+      'packages/core/src/services/persistence.ts',
+      'packages/core/src/services/stored-events.ts',
+    ],
     rules: restrict(CORE_EMBEDDABLE, {
       group: [
         '**/data',

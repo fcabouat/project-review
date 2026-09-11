@@ -1,13 +1,23 @@
 /**
- * THE MEMORY/FILE CONTRACT — the rule that a running portfolio may never hold
- * a value its own file format would refuse to read back. The strict parse
- * (services/parse/) is the door every byte comes through; this module is the
- * SAME contract on the way out, applied to the intents the editor emits, so
- * `decide` refuses exactly what `parsePortfolio` would refuse.
+ * THE COMMAND GATE of the memory/file contract — the rule that a running
+ * portfolio may never hold a value its own file format would refuse to read
+ * back, applied to the intents the editor emits, so `decide` refuses exactly
+ * what `parsePortfolio` would refuse.
  *
  * Without it the in-memory model is more permissive than the serialised one: a
  * value the editor accepts, the next boot cannot re-read — and a stored
  * document that cannot be re-read is data the application no longer owns.
+ *
+ * THE RULES THEMSELVES LIVE IN `model/contract.ts` — one statement, three
+ * callers (this gate, the stored-event decoder, and whoever hands a portfolio
+ * over). Nothing is restated here; this module only says WHICH aggregate each
+ * command would produce.
+ *
+ * AND THE BUDGET IS WEIGHED ON THE PROJECTED STATE. A creation, a merge and a
+ * replacement are the three commands that GROW the document, and each is
+ * judged on the whole portfolio it would produce — not on its payload. That
+ * is the difference between refusing the two-thousand-and-first project now
+ * and discovering at the next boot that the file no longer loads.
  *
  * HOW IT STAYS EXHAUSTIVE. Nothing here re-lists fields one by one: a command
  * is validated by BUILDING the aggregate it would produce — through `apply`'s
@@ -21,11 +31,6 @@
  * TOTAL, like every domain function: a command whose payload is missing or of
  * the wrong shape is REFUSED, never thrown on.
  *
- * WHERE EACH RULE COMES FROM. Enumerations come from `model/`, the refined
- * scalars from `values/` (`isoDate`, `progressOf`, `isFontFamily`,
- * `isFontWeight`, `isWoff2DataUri`, `isLogo`, `isHexColor`, `isRecapRows`) —
- * the very constructors and predicates the parse calls. No rule is restated here.
- *
  * TYPES ARE NOT THE GUARD. Every command is typed, but a hand-written command,
  * a cast at a form's edge or a replayed payload can carry anything: these
  * checks are deliberately RUNTIME ones, on values the compiler already
@@ -33,211 +38,32 @@
  *
  * PURE module: no Svelte/DOM import, no clock, no mutation.
  */
-import type { Category, Color } from '../model/category'
 import { COLORS } from '../model/category'
-import type { Anchor, FreeSlide } from '../model/free-slide'
-import type { Identity, Portfolio, Review, Settings } from '../model/portfolio'
-import type { Decision, Milestone, Project } from '../model/project'
-import { HEALTH_LEVELS, PRIORITIES, SHEET_MODES, STAGES } from '../model/project'
-import type { CustomPalette, EmbeddedFontFace } from '../model/theme'
-import { FONT_FACE_STYLES, LANGUAGES, PALETTES, THEME_STYLES } from '../model/theme'
-import { isoDate } from '../values/date'
+import type { Portfolio } from '../model/portfolio'
+import { withinMemoryBudget } from '../model/budget'
 import {
-  FONT_FACE_MAX_CHARS,
-  FONT_FACES_TOTAL_MAX_CHARS,
-  isFontFamily,
-  isFontWeight,
-  isWoff2DataUri,
-} from '../values/font'
-import { isLogo } from '../values/logo'
-import { isHexColor } from '../values/palette'
-import { progressOf } from '../values/progress'
+  isId,
+  withinRows,
+  isText,
+  oneOf,
+  uniqueIds,
+  validCategory,
+  validCustomPalette,
+  validDecision,
+  validFontFaces,
+  validFreeSlide,
+  validIdentity,
+  validMilestone,
+  validPortfolio,
+  validProject,
+  validReview,
+} from '../model/contract'
+import { LANGUAGES, PALETTES, THEME_STYLES } from '../model/theme'
+import { isFontFamily } from '../values/font'
 import { isRecapRows } from '../values/recap-rows'
 import { withField } from '../events/collections'
 import type { ChangeSetting } from './settings'
 import type { Command } from './index'
-
-/* --------------------------- shared vocabulary --------------------------- */
-
-const isText = (x: unknown): x is string => typeof x === 'string'
-
-/** A plain object — the shape a table of colors must have before it is read. */
-const isRecord = (x: unknown): x is Record<string, unknown> =>
-  typeof x === 'object' && x !== null && !Array.isArray(x)
-
-/** A non-empty string — the id motif (values/ids.ts) and the parse's `emptyId`. */
-const isId = (x: unknown): boolean => isText(x) && x !== ''
-
-/** A calendar-valid YYYY-MM-DD, built through the one constructor. */
-const isDate = (x: unknown): boolean => isText(x) && isoDate(x) !== undefined
-
-/** An absent value passes; a present one must satisfy the rule. */
-const absentOr = (x: unknown, rule: (v: unknown) => boolean): boolean => x === undefined || rule(x)
-
-/** A member of a closed enumeration — the `enumVal` of the parse. */
-const oneOf = (x: unknown, values: readonly string[]): boolean => isText(x) && values.includes(x)
-
-const isTextList = (x: unknown): boolean => Array.isArray(x) && x.every(isText)
-
-/* ---------------------------- the aggregates ----------------------------- */
-
-const validDecision = (d: Decision): boolean =>
-  isText(d?.question) &&
-  absentOr(d.decider, isText) &&
-  // All or nothing: the parse refuses a half-settled outcome rather than
-  // invent one, so an outcome carries BOTH a text and a real date.
-  absentOr(
-    d.taken,
-    (v) =>
-      typeof v === 'object' &&
-      v !== null &&
-      isText((v as Decision['taken'])?.text) &&
-      isDate((v as Decision['taken'])?.when),
-  )
-
-const validMilestone = (m: Milestone): boolean =>
-  isText(m?.label) && isDate(m.date) && absentOr(m.display, isText) && typeof m.done === 'boolean'
-
-/** One project, judged exactly as `parseProjects` judges its serialised twin.
- * `categoryId` may be `''` — the sanctioned unassigned reference. */
-const validProject = (p: Project): boolean =>
-  isId(p?.id) &&
-  isText(p.name) &&
-  isText(p.categoryId) &&
-  absentOr(p.priority, (v) => oneOf(v, PRIORITIES)) &&
-  oneOf(p.stage, STAGES) &&
-  typeof p.onHold === 'boolean' &&
-  absentOr(p.health, (v) => oneOf(v, HEALTH_LEVELS)) &&
-  absentOr(p.progress, (v) => typeof v === 'number' && progressOf(v) !== undefined) &&
-  absentOr(p.lead, isText) &&
-  absentOr(p.sponsor, isText) &&
-  absentOr(p.scope, isText) &&
-  isText(p.goal) &&
-  absentOr(p.budget, isText) &&
-  absentOr(p.start, isDate) &&
-  absentOr(p.targetEnd, isDate) &&
-  absentOr(p.actualEnd, isDate) &&
-  isTextList(p.done) &&
-  isTextList(p.ongoing) &&
-  isTextList(p.next) &&
-  absentOr(p.risks, isText) &&
-  Array.isArray(p.decisions) &&
-  p.decisions.every(validDecision) &&
-  Array.isArray(p.milestones) &&
-  p.milestones.every(validMilestone) &&
-  oneOf(p.sheet, SHEET_MODES) &&
-  absentOr(p.updatedOn, isDate) &&
-  absentOr(p.author, isText)
-
-/** One category — id non-empty, name a string, color one of the twelve. */
-const validCategory = (c: Category): boolean =>
-  isId(c?.id) && isText(c.name) && oneOf(c.color, COLORS)
-
-/** An anchor a deck can place: a `beforeCategory` pointing at a category that
- * no longer exists is fine (the deck degrades it), an EMPTY reference is not. */
-const validAnchor = (a: Anchor): boolean =>
-  a?.type === 'opening' ||
-  a?.type === 'closing' ||
-  (a?.type === 'beforeCategory' && isId(a.categoryId))
-
-/** One free slide — id non-empty, structural anchor, and at least one block. */
-const validFreeSlide = (s: FreeSlide): boolean =>
-  isId(s?.id) &&
-  validAnchor(s.anchor) &&
-  isText(s.title) &&
-  Array.isArray(s.blocks) &&
-  s.blocks.length > 0 &&
-  s.blocks.every(isTextList)
-
-/** The embedded faces — `undefined` is "none embedded"; `[]` says the same
- * thing and the parse normalises it away, so it never becomes a stored key. */
-const validFontFaces = (faces: readonly EmbeddedFontFace[] | undefined): boolean => {
-  if (faces === undefined) return true
-  if (!Array.isArray(faces) || faces.length === 0) return false
-  const sound = faces.every(
-    (f) =>
-      isText(f?.family) &&
-      isFontFamily(f.family) &&
-      isText(f.weight) &&
-      isFontWeight(f.weight) &&
-      oneOf(f.style, FONT_FACE_STYLES) &&
-      isText(f.dataUri) &&
-      isWoff2DataUri(f.dataUri) &&
-      f.dataUri.length <= FONT_FACE_MAX_CHARS,
-  )
-  const total = faces.reduce((sum, f) => sum + (isText(f?.dataUri) ? f.dataUri.length : 0), 0)
-  return sound && total <= FONT_FACES_TOTAL_MAX_CHARS
-}
-
-/** The portfolio's own palette — `undefined` is "it carries none". The table
- * is judged EXHAUSTIVE, exactly as the parse judges it: the twelve names of
- * the domain, no more and no less, each an exact `#rrggbb`. */
-const validCustomPalette = (palette: CustomPalette | undefined): boolean => {
-  if (palette === undefined) return true
-  if (typeof palette !== 'object' || palette === null) return false
-  if (!absentOr(palette.label, isText)) return false
-  const colors: unknown = palette.colors
-  if (!isRecord(colors)) return false
-  return (
-    Object.keys(colors).length === COLORS.length &&
-    COLORS.every((name: Color) => isText(colors[name]) && isHexColor(colors[name] as string))
-  )
-}
-
-const validIdentity = (i: Identity): boolean =>
-  isText(i?.org) &&
-  isText(i.unit) &&
-  absentOr(i.orgLong, isText) &&
-  absentOr(i.unitLong, isText) &&
-  absentOr(i.contact, isText) &&
-  absentOr(i.logo, (v) => isText(v) && isLogo(v))
-
-const validReview = (r: Review): boolean =>
-  isText(r?.title) &&
-  absentOr(r.subtitle, isText) &&
-  isDate(r.reviewDate) &&
-  absentOr(r.previousReviewDate, isDate)
-
-const validSettings = (s: Settings): boolean =>
-  oneOf(s?.language, LANGUAGES) &&
-  validIdentity(s.identity) &&
-  oneOf(s.theme?.style, THEME_STYLES) &&
-  oneOf(s.theme.palette, PALETTES) &&
-  isText(s.theme.font) &&
-  isFontFamily(s.theme.font) &&
-  validFontFaces(s.theme.fontFaces) &&
-  validCustomPalette(s.theme.customPalette) &&
-  typeof s.show?.healthDashboard === 'boolean' &&
-  typeof s.show.recap === 'boolean' &&
-  typeof s.show.archives === 'boolean' &&
-  typeof s.show.decisions === 'boolean' &&
-  typeof s.recapRows === 'number' &&
-  isRecapRows(s.recapRows)
-
-/** No id twice in one collection — the invariant `apply` and `collections.ts`
- * rest on, and the parse's `duplicateId`. */
-const uniqueIds = (items: readonly { readonly id: string }[]): boolean =>
-  new Set(items.map((x) => x.id)).size === items.length
-
-/**
- * A WHOLE portfolio, judged by the rules of the file format — the same verdict
- * `parsePortfolio` would return on its serialised form, reached without
- * re-reading JSON. This is what an import (`ReplacePortfolio`) is measured
- * against, whoever built it.
- */
-const validPortfolio = (p: Portfolio): boolean =>
-  p?.version === 3 &&
-  validReview(p.review) &&
-  validSettings(p.settings) &&
-  Array.isArray(p.categories) &&
-  p.categories.every(validCategory) &&
-  uniqueIds(p.categories) &&
-  Array.isArray(p.projects) &&
-  p.projects.every(validProject) &&
-  uniqueIds(p.projects) &&
-  Array.isArray(p.freeSlides) &&
-  p.freeSlides.every(validFreeSlide) &&
-  uniqueIds(p.freeSlides)
 
 /* ------------------------------ the settings ----------------------------- */
 
@@ -279,6 +105,52 @@ const byId = <T extends { readonly id: string }>(list: readonly T[], id: string)
   list.find((x) => x.id === id)
 
 /**
+ * THE STATE A GROWING COMMAND WOULD PRODUCE — the whole document, not the
+ * payload it arrives with. A payload that fits says nothing about the
+ * portfolio it joins: a project under every per-aggregate rule is still the
+ * two-thousand-and-first, and a merge of perfectly valid contributions is
+ * still the one that pushes the file past what can be read back.
+ *
+ * Only SIZE is judged on this value, and size is order-blind — so the
+ * reconstruction below does not have to reproduce the merge's positions, only
+ * its content: the same elements, hence the same entity count, the same nested
+ * lengths and the same serialised length as the state `apply` will build.
+ */
+const projectedState = (p: Portfolio, c: Command): Portfolio | undefined => {
+  switch (c.type) {
+    case 'CreateCategory':
+      return { ...p, categories: [...p.categories, c.category] }
+    case 'CreateProject':
+      return { ...p, projects: [...p.projects, c.project] }
+    case 'CreateFreeSlide':
+      return { ...p, freeSlides: [...p.freeSlides, c.slide] }
+    case 'ReplacePortfolio':
+      return c.portfolio
+    case 'MergeProjects': {
+      // The merge contract (commands/merge.ts): an incoming project REPLACES
+      // its homonym, an unknown category is appended, a homonym category keeps
+      // the present version. Content-identical to what `apply` will hold.
+      const arriving = new Set(c.projects.map((x) => x.id))
+      const present = new Set(p.categories.map((x) => x.id))
+      return {
+        ...p,
+        projects: [...p.projects.filter((x) => !arriving.has(x.id)), ...c.projects],
+        categories: [...p.categories, ...c.categories.filter((x) => !present.has(x.id))],
+      }
+    }
+    default:
+      return undefined
+  }
+}
+
+/** The memory-safety budget on the projected state — `true` for the commands
+ * that cannot grow the document (there is nothing to weigh). */
+const affordable = (p: Portfolio, c: Command): boolean => {
+  const next = projectedState(p, c)
+  return next === undefined || withinMemoryBudget(next)
+}
+
+/**
  * `true` when the command may become an event: the portfolio it would produce
  * still honors the file format's contract. `decide` calls this FIRST and
  * refuses (`undefined`, its ordinary refusal) otherwise — a refused command
@@ -299,7 +171,11 @@ export const honorsContract = (p: Portfolio, c: Command): boolean => {
       return validSetting(c)
 
     case 'CreateCategory':
-      return validCategory(c.category) && byId(p.categories, c.category.id) === undefined
+      return (
+        validCategory(c.category) &&
+        byId(p.categories, c.category.id) === undefined &&
+        affordable(p, c)
+      )
 
     case 'RenameCategory':
       return isText(c.after)
@@ -308,7 +184,9 @@ export const honorsContract = (p: Portfolio, c: Command): boolean => {
       return oneOf(c.after, COLORS)
 
     case 'CreateProject':
-      return validProject(c.project) && byId(p.projects, c.project.id) === undefined
+      return (
+        validProject(c.project) && byId(p.projects, c.project.id) === undefined && affordable(p, c)
+      )
 
     case 'RenumberProject':
       // Uniqueness and triviality stay with `decide`; the id MOTIF is here.
@@ -325,13 +203,15 @@ export const honorsContract = (p: Portfolio, c: Command): boolean => {
     }
 
     case 'ChangeProjectMilestones':
-      return Array.isArray(c.after) && c.after.every(validMilestone)
+      return withinRows(c.after) && c.after.every(validMilestone)
 
     case 'ChangeProjectDecisions':
-      return Array.isArray(c.after) && c.after.every(validDecision)
+      return withinRows(c.after) && c.after.every(validDecision)
 
     case 'CreateFreeSlide':
-      return validFreeSlide(c.slide) && byId(p.freeSlides, c.slide.id) === undefined
+      return (
+        validFreeSlide(c.slide) && byId(p.freeSlides, c.slide.id) === undefined && affordable(p, c)
+      )
 
     case 'ChangeFreeSlide': {
       // The replacement may carry a NEW id — free as long as no other slide
@@ -341,7 +221,7 @@ export const honorsContract = (p: Portfolio, c: Command): boolean => {
     }
 
     case 'ReplacePortfolio':
-      return validPortfolio(c.portfolio)
+      return validPortfolio(c.portfolio) && affordable(p, c)
 
     case 'MergeProjects':
       return (
@@ -350,7 +230,11 @@ export const honorsContract = (p: Portfolio, c: Command): boolean => {
         uniqueIds(c.projects) &&
         Array.isArray(c.categories) &&
         c.categories.every(validCategory) &&
-        uniqueIds(c.categories)
+        uniqueIds(c.categories) &&
+        // LAST, and it has to be: the projected state is built from the
+        // payload, so the payload must have been judged a shape first — the
+        // gate is total over a command carrying anything at all.
+        affordable(p, c)
       )
 
     case 'DeleteCategory':

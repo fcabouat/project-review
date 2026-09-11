@@ -19,10 +19,28 @@ export type Route =
   | { readonly name: 'about' }
   | { readonly name: 'sheet'; readonly id: string }
 
+/** The address every unrecognized hash falls back to — the app has no 404. */
+const DEFAULT_ROUTE: Route = { name: 'review' }
+
+/**
+ * `decodeURIComponent` is the one THROWING call on this path: `%`, `%zz` and
+ * any lone surrogate escape raise a `URIError`, and the hash is attacker- and
+ * typo-supplied alike. A segment that cannot be decoded is not an id, so it
+ * yields `undefined` and the caller falls back — a malformed address must cost
+ * a redirect, never the whole router.
+ */
+const decodeSegment = (segment: string): string | undefined => {
+  try {
+    return decodeURIComponent(segment)
+  } catch {
+    return undefined
+  }
+}
+
 /**
  * Total parse of a `location.hash`: anything unrecognized — empty hash, typo,
- * `#/sheet/` without an id — lands on the default screen rather than a 404 the
- * app does not have.
+ * `#/sheet/` without an id, `#/sheet/%` whose escape is malformed — lands on
+ * the default screen rather than a 404 the app does not have.
  */
 export const parseRoute = (hash: string): Route => {
   const path = hash.replace(/^#/, '')
@@ -31,8 +49,9 @@ export const parseRoute = (hash: string): Route => {
   if (path === '/history') return { name: 'history' }
   if (path === '/about') return { name: 'about' }
   const sheet = /^\/sheet\/([^/]+)$/.exec(path)
-  if (sheet) return { name: 'sheet', id: decodeURIComponent(sheet[1]!) }
-  return { name: 'review' }
+  if (sheet === null) return DEFAULT_ROUTE
+  const id = decodeSegment(sheet[1]!)
+  return id === undefined ? DEFAULT_ROUTE : { name: 'sheet', id }
 }
 
 /** The `href` of a route — used verbatim by the sidebar's `<a>` links. */

@@ -249,3 +249,24 @@ describe('theme stamp', () => {
     expect(html).toContain('<html lang="en">')
   })
 })
+
+describe('the permission that travels with the inlined engine', () => {
+  it('emits reveal.js MIT terms next to the engine it inlines', () => {
+    const html = buildStandaloneHtml(parts)
+    // Naming the licence is not carrying it: the engine's own banner says
+    // "MIT licensed" and stops there, while the export IS a copy of the
+    // software — MIT requires the notice in every one of them.
+    expect(html).toContain(
+      'Copyright (C) 2011-2026 Hakim El Hattab, http://hakim.se, and reveal.js contributors',
+    )
+    expect(html).toContain('Permission is hereby granted, free of charge')
+    expect(html).toContain(
+      'The above copyright notice and this permission notice shall be included in',
+    )
+    expect(html).toContain('THE SOFTWARE IS PROVIDED "AS IS"')
+    // …and it sits BEFORE the code it governs.
+    expect(html.indexOf('Permission is hereby granted')).toBeLessThan(
+      html.indexOf(parts.revealSource),
+    )
+  })
+})

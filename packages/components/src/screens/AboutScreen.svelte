@@ -46,6 +46,12 @@
     <p class="text-(--txt2) mb-2 text-[13.5px] leading-[1.55]">
       {te('editor.about.licenseMit', language)}
     </p>
+    <!-- The declarative table below names the components; the FULL permission
+         texts ship as a file beside the deliverable, because naming a licence
+         is not carrying it. -->
+    <p class="text-muted-foreground mb-2 text-[12.5px] leading-[1.55]">
+      {te('editor.about.licenseTexts', language)}
+    </p>
     <!-- The same sentence the README carries and the font-embedding form
          shows: MIT frees this software, never what a person imports into
          their own document. -->

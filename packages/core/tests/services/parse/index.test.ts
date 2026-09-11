@@ -10,13 +10,12 @@ import rawFr from '../../../samples/sample-portfolio.fr.json'
 import rawEn from '../../../samples/sample-portfolio.en.json'
 import schema from '../../../samples/portfolio.schema.json'
 import {
-  IMPORT_MAX_CHARS,
-  MAX_ENTITIES,
   PARSE_ERROR_CODES,
   parsePortfolio,
   readPortfolioJson,
   type ParseResult,
 } from '../../../src/services/parse/index'
+import { MAX_CHARS, MAX_ENTITIES } from '../../../src/model/budget'
 import { deck } from '../../../src/projections/index'
 import { rawPortfolio, rawProject } from '../../fixtures/raw-portfolios'
 
@@ -596,7 +595,7 @@ describe('refusal — rows and slides', () => {
   it('readPortfolioJson: size cap BEFORE JSON.parse, badJson under it, parse result through', () => {
     // A brace repeated a hair past the cap: the refusal must be the size one —
     // JSON.parse is never reached.
-    const oversized = '{'.repeat(IMPORT_MAX_CHARS + 1)
+    const oversized = '{'.repeat(MAX_CHARS + 1)
     expect(readPortfolioJson(oversized)).toEqual({ ok: false, refusal: 'tooLarge' })
     expect(readPortfolioJson('{ not json')).toEqual({ ok: false, refusal: 'badJson' })
     const r = readPortfolioJson(JSON.stringify(rawPortfolio()))

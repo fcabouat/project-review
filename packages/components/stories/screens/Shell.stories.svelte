@@ -35,6 +35,7 @@
   const persistence = createPersistenceMock()
   const refused = createPersistenceMock({ revision: 12, phase: 'error' })
   const contended = createPersistenceMock({ revision: 12, phase: 'conflict' })
+  const storageless = createPersistenceMock({ revision: 0, phase: 'unavailable' }, false)
 
   /** Story-local mock of the app's appearance control: same contract, and it
    * stamps the `dark` class exactly as the app's wiring does (`system` reads
@@ -111,6 +112,29 @@
     {navigate}
     replaceRoute={navigate}
     persistence={contended}
+    {appearance}
+  />
+</Story>
+
+<!-- The browser offers no storage at all (blocked third-party storage, a
+     restricted context). The editor mounts and works exactly as ever — only
+     the saving cannot happen, and it is said from the first second instead of
+     discovered at the next reload. Settings ▸ Data disables the switch and
+     states the reason there too. -->
+<Story name="No storage in this browser" asChild>
+  <Shell
+    portfolio={store.present}
+    past={store.past}
+    future={store.future}
+    canUndo={store.canUndo}
+    canRedo={store.canRedo}
+    dispatch={store.dispatch}
+    undo={store.undo}
+    redo={store.redo}
+    route={{ name: 'settings' }}
+    {navigate}
+    replaceRoute={navigate}
+    persistence={storageless}
     {appearance}
   />
 </Story>

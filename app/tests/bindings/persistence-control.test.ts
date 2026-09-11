@@ -17,13 +17,19 @@ import {
   PREF_KEY,
   SAVE_DELAY_MS,
   STATE_KEY,
+  clearStored,
+  loadPersistEnabled,
   readStored,
   storedRevision,
   writeState,
   type KeyValueStorage,
 } from '@project-review/core/services/persistence'
 import { timeoutScheduler } from '@project-review/infrastructure/scheduler'
-import { createMemoryStorage, observeWrites } from '../fixtures/failing-storage'
+import {
+  createHostileStorage,
+  createMemoryStorage,
+  observeWrites,
+} from '../fixtures/failing-storage'
 
 beforeEach(() => {
   vi.useFakeTimers()
@@ -179,8 +185,50 @@ describe('createPersistenceControl', () => {
       wiring.control.keepMine()
       vi.advanceTimersByTime(SAVE_DELAY_MS)
     }).not.toThrow()
-    // Nothing can be saved, so nothing is claimed about a save.
-    expect(wiring.control.save).toBeUndefined()
+    // Nothing CAN be saved here, ever — and that is said, not left to be
+    // discovered at the next reload. `undefined` would render no strip at all.
+    expect(wiring.control.available).toBe(false)
+    expect(wiring.control.save).toStrictEqual({ revision: 0, phase: 'unavailable' })
+  })
+
+  it('a storage whose every call throws is the same case, and the boot survives it', () => {
+    // The browser that blocks third-party storage throws on the ACCESS, reads
+    // included. Every entry point of the wiring must be total over it.
+    const storage = createHostileStorage()
+    const store = createStore(testPortfolio())
+
+    expect(() => readStored(storage)).not.toThrow()
+    expect(readStored(storage)).toStrictEqual({ state: 'unavailable' })
+    expect(() => storedRevision(storage)).not.toThrow()
+    // Not knowing what is in there is exactly the state in which nothing may
+    // be written over it.
+    expect(storedRevision(storage)).toBe('unreadable')
+    expect(loadPersistEnabled(storage)).toBe(true)
+    // `refused`, not `conflict`: no second tab is involved — the storage
+    // simply does not answer, and the wiring must not blame one that does not
+    // exist.
+    expect(writeState(storage, null, testPortfolio(), emptyHistory)).toStrictEqual({
+      outcome: 'refused',
+    })
+    expect(() => clearStored(storage)).not.toThrow()
+
+    const wiring = createPersistenceControl(store, storage, true, timeoutScheduler, {
+      state: 'unavailable',
+    })
+    expect(() => {
+      wiring.control.toggle(true)
+      wiring.flush()
+      wiring.noticeStoredChange()
+      wiring.control.takeStored()
+      wiring.control.keepMine()
+      wiring.scheduleSave(store.present, emptyHistory)
+      vi.advanceTimersByTime(SAVE_DELAY_MS)
+    }).not.toThrow()
+    // The storage object EXISTS — the host handed one over — so the switch is
+    // live; what it cannot do is write, and the save state says exactly that:
+    // the document lives in this tab, and the strip offers the copy.
+    expect(wiring.control.available).toBe(true)
+    expect(wiring.control.save?.phase).toBe('error')
   })
 })
 
@@ -594,12 +642,14 @@ describe('turning the save back on reads the storage first', () => {
     expect(storage.writes).toBe(0)
   })
 
-  it('with no storage at all the switch just flips — there is nothing to read', () => {
+  it('with no storage at all the switch is inert — it governs nothing', () => {
     const store = createStore(testPortfolio())
     const wiring = createPersistenceControl(store, null, false, timeoutScheduler)
 
+    // A switch that moves but changes nothing is worse than no switch: the
+    // person would read "on" and believe their work is being kept.
     wiring.control.toggle(true)
-    expect(wiring.control.enabled).toBe(true)
+    expect(wiring.control.enabled).toBe(false)
     expect(wiring.control.pendingRestore).toBe(false)
     wiring.control.toggle(false)
     expect(wiring.control.enabled).toBe(false)

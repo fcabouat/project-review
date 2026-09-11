@@ -57,7 +57,6 @@
         {language}
         label={te('editor.field.author', language)}
         value={project.author}
-        max={40}
         commit={(v) => set('author', v)}
       />
     </div>

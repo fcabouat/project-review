@@ -216,24 +216,30 @@
     );
   }
   .slide .kpi {
-    border-top-color: rgb(255 255 255 / 0.22);
+    border-top-color: color-mix(in srgb, var(--plane-ink) 22%, transparent);
   }
 
   /* ---------- dividers: the same plane, deepened -------------------------- */
 
+  /* THE ONE PLANE THAT LOST ITS GRADIENT, and the reason is arithmetic, not
+     taste: a gradient from a category tint to that tint darkened crosses the
+     lightness at which the readable ink flips (theme.css). Neither ink clears
+     4.5:1 at BOTH ends — white fails the light end on the lighter tints, black
+     fails the dark one. The plane is therefore flat, and deepened by the same
+     amount the gradient used to reach, so the theme keeps its register and the
+     ink is derived from exactly what is painted. (`--accent` keeps its
+     gradient below: it is a fixed, dark colour per theme, so white holds from
+     end to end — 11.8:1 at the lightest point.) */
   .slide.slide--divider {
-    background: linear-gradient(
-      152deg,
-      var(--cat, var(--accent)) 0%,
-      color-mix(in srgb, var(--cat, var(--accent)) 80%, #000) 100%
-    );
+    --plane: color-mix(in srgb, var(--cat, var(--accent)) 88%, #000);
+    background: var(--plane);
   }
   .slide .divider-numeral {
-    color: rgb(255 255 255 / 0.14);
+    color: color-mix(in srgb, var(--plane-ink) 14%, transparent);
   }
   .slide .divider-list,
   .slide .divider-list li {
-    border-color: rgb(255 255 255 / 0.22);
+    border-color: color-mix(in srgb, var(--plane-ink) 22%, transparent);
   }
 
   /* ---------- project sheet ---------------------------------------------- */

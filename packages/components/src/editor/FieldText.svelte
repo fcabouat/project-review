@@ -11,6 +11,14 @@
    * An empty string commits as `undefined`: the model has no "empty text", it
    * has an absent field (see `withField` in the store).
    *
+   * A TEXT PAST ITS FRAME IS SAID TOO, AND NEVER REFUSED. `max` is the
+   * VISUAL-CAPACITY budget (core's `model/budget.ts`): what the slide's frame
+   * was measured to hold, not what the file format allows. Over it, the
+   * counter turns AND a line says what happens — the slide will clip the
+   * text — because a coloured number is not a message. The value is still
+   * committed: refusing a paste would lose the user's words, which is the
+   * worse failure of the two.
+   *
    * REFUSED INPUT IS SAID, NOT SWALLOWED. Some fields carry a rule the file
    * format enforces (a font charset, a calendar date): when the caller refuses
    * a value it passes `error`, and the field shows it under the input, marks
@@ -33,10 +41,14 @@
     /** Set by the caller when it REFUSED the last commit: the rule, in the
      * reader's language. Shown under the field; the typed text stays. */
     readonly error?: string
-    /** Character budget of the content model — a counter, never a block. */
+    /** Character budget of the FRAME the value is drawn in (measured — see
+     * core's `TEXT_CAPACITY`). A counter and a warning, never a block. */
     readonly max?: number
     /** Line budget (`risks`, narrative lists) — counted instead of characters. */
     readonly maxLines?: number
+    /** Per-LINE character budget, where each line is drawn in its own frame
+     * (one narrative bullet). Counted alongside {@link maxLines}. */
+    readonly maxLineChars?: number
     readonly rows?: number
     readonly placeholder?: string
     readonly readonly?: boolean
@@ -53,6 +65,7 @@
     error,
     max,
     maxLines,
+    maxLineChars,
     rows,
     placeholder,
     readonly = false,
@@ -72,9 +85,14 @@
     draft = value ?? ''
   })
 
-  const lineCount = $derived(draft === '' ? 0 : draft.split('\n').length)
+  const lines = $derived(draft === '' ? [] : draft.split('\n'))
+  const lineCount = $derived(lines.length)
+  /** The longest line, when each line has a frame of its own. */
+  const longestLine = $derived(lines.reduce((n, l) => Math.max(n, l.length), 0))
   const over = $derived(
-    (max !== undefined && draft.length > max) || (maxLines !== undefined && lineCount > maxLines),
+    (max !== undefined && draft.length > max) ||
+      (maxLines !== undefined && lineCount > maxLines) ||
+      (maxLineChars !== undefined && longestLine > maxLineChars),
   )
 
   function onblur(): void {
@@ -118,6 +136,14 @@
   {/if}
   {#if error}
     <span class="text-destructive mt-[5px] text-[11.5px]" role="alert">{error}</span>
+  {/if}
+  <!-- The overrun, in words. `role="status"` and not `alert`: nothing was
+       refused and nothing is lost — the slide will simply clip what does not
+       fit, and the person decides whether to shorten it. -->
+  {#if over}
+    <span class="text-(--warn) mt-[5px] text-[11.5px]" role="status">
+      {te('editor.counter.over', language)}
+    </span>
   {/if}
   {#if hint || max !== undefined || maxLines !== undefined}
     <span class="mt-[5px] flex items-baseline justify-between gap-3.5">

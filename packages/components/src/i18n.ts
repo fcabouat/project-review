@@ -74,6 +74,14 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
     fr: 'Ce logiciel est distribué sous licence MIT.',
     en: 'This software is distributed under the MIT license.',
   },
+  /* The permission texts themselves travel as a neighbour file of the
+     deliverable (`dist/THIRD-PARTY-LICENSES.txt`, written by
+     `bun run docs:notices`): the table below names the components, that file
+     carries their terms in full. */
+  'editor.about.licenseTexts': {
+    fr: `Les textes complets des licences des composants ci-dessous accompagnent le livrable, dans le fichier «${NBSP}THIRD-PARTY-LICENSES.txt${NBSP}» placé à côté de lui.`,
+    en: 'The full licence texts of the components below travel with the deliverable, in the “THIRD-PARTY-LICENSES.txt” file placed beside it.',
+  },
   'editor.about.thirdParty': {
     fr: 'Composants tiers embarqués',
     en: 'Embedded third-party components',
@@ -416,6 +424,12 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
     fr: `La base et l'historique annuler/rétablir survivent au rechargement de la page.`,
     en: 'The database and the undo/redo history survive a page reload.',
   },
+  /* The browser refuses local storage outright: the switch governs nothing,
+     so it is disabled and says why rather than looking broken. */
+  'editor.data.persistUnavailable': {
+    fr: `Ce navigateur refuse le stockage local${NBSP}: rien ne sera enregistré ici. Exportez votre fichier pour le conserver.`,
+    en: 'This browser refuses local storage: nothing will be saved here. Export your file to keep it.',
+  },
   /* Turning the save back ON found a readable document already stored: the
      switch wrote nothing and asks. The three answers are the dialog's. */
   'editor.data.restoreTitle': {
@@ -476,6 +490,10 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
   'editor.save.error': {
     fr: `Échec de l'enregistrement local${NBSP}: ce document n'existe que dans cet onglet. Téléchargez-en une copie.`,
     en: 'Local save failed: this document exists only in this tab. Download a copy of it.',
+  },
+  'editor.save.unavailable': {
+    fr: `Ce navigateur n'autorise aucune sauvegarde locale${NBSP}: ce document n'existe que dans cet onglet. Téléchargez-en une copie.`,
+    en: 'This browser allows no local save: this document exists only in this tab. Download a copy of it.',
   },
   'editor.save.download': { fr: 'Télécharger une copie', en: 'Download a copy' },
   'editor.save.conflict': {
@@ -633,6 +651,13 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
   'editor.counter.lines': {
     fr: `{n}${NBSP}/${NBSP}{max} lignes`,
     en: `{n}${NBSP}/${NBSP}{max} lines`,
+  },
+  /* Over the VISUAL-CAPACITY budget (core's model/budget.ts): the frame the
+     value is drawn in was MEASURED to hold less than this. Nothing is refused
+     and nothing is lost — the slide clips what does not fit. */
+  'editor.counter.over': {
+    fr: `Au-delà de ce que le cadre de la slide peut afficher${NBSP}: le texte sera tronqué à l'écran et à l'impression.`,
+    en: 'Beyond what the slide frame can show: the text will be clipped on screen and in print.',
   },
 
   /* --------------------------- history screen ---------------------------- */

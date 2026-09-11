@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "portfolio.schema.json",
   "title": "Portfolio — project review",
-  "description": "Schema of the portfolio file (editor export \"project-review-{reviewDate}.json\", sample sets \"sample-portfolio.{fr,en}.json\"). It states the SAME closed contract the application's strict import enforces (core parse/): required keys, no unknown key, closed enumerations, bounded numbers. Four checks only the parse can express: dates must be CALENDAR-valid (the pattern here just fixes the shape), ids must be unique per collection, the embedded font faces together must stay under 2 000 000 data-URI characters (~1.5 MB of binary), and categories, projects and free slides TOGETHER must not exceed 2000 entities (the per-array maxItems below states the weaker bound this schema can express).",
+  "description": "Schema of the portfolio file (editor export \"project-review-{reviewDate}.json\", sample sets \"sample-portfolio.{fr,en}.json\"). It states the SAME closed contract the application's strict import enforces (core parse/): required keys, no unknown key, closed enumerations, bounded numbers. Four checks only the parse can express: dates must be CALENDAR-valid (the pattern here just fixes the shape), ids must be unique per collection, the embedded font faces together must stay under 2 000 000 data-URI characters (~1.5 MB of binary), and categories, projects and free slides TOGETHER must not exceed 2000 entities (the per-array maxItems below states the weaker bound this schema can express). The same 2000 bounds every NESTED collection — a project’s decisions, its milestones, each of its three narrative lists, a free slide’s blocks and the lines of one block: one memory-safety budget, stated once in the core (model/budget.ts) and restated here for outside tooling.",
   "type": "object",
   "additionalProperties": false,
   "required": ["version", "review", "settings", "categories", "projects", "freeSlides"],
@@ -227,18 +227,42 @@
                     "taupe"
                   ],
                   "properties": {
-                    "blue": { "$ref": "#/definitions/paletteColor" },
-                    "indigo": { "$ref": "#/definitions/paletteColor" },
-                    "teal": { "$ref": "#/definitions/paletteColor" },
-                    "cyan": { "$ref": "#/definitions/paletteColor" },
-                    "green": { "$ref": "#/definitions/paletteColor" },
-                    "olive": { "$ref": "#/definitions/paletteColor" },
-                    "amber": { "$ref": "#/definitions/paletteColor" },
-                    "orange": { "$ref": "#/definitions/paletteColor" },
-                    "red": { "$ref": "#/definitions/paletteColor" },
-                    "purple": { "$ref": "#/definitions/paletteColor" },
-                    "brown": { "$ref": "#/definitions/paletteColor" },
-                    "taupe": { "$ref": "#/definitions/paletteColor" }
+                    "blue": {
+                      "$ref": "#/definitions/paletteColor"
+                    },
+                    "indigo": {
+                      "$ref": "#/definitions/paletteColor"
+                    },
+                    "teal": {
+                      "$ref": "#/definitions/paletteColor"
+                    },
+                    "cyan": {
+                      "$ref": "#/definitions/paletteColor"
+                    },
+                    "green": {
+                      "$ref": "#/definitions/paletteColor"
+                    },
+                    "olive": {
+                      "$ref": "#/definitions/paletteColor"
+                    },
+                    "amber": {
+                      "$ref": "#/definitions/paletteColor"
+                    },
+                    "orange": {
+                      "$ref": "#/definitions/paletteColor"
+                    },
+                    "red": {
+                      "$ref": "#/definitions/paletteColor"
+                    },
+                    "purple": {
+                      "$ref": "#/definitions/paletteColor"
+                    },
+                    "brown": {
+                      "$ref": "#/definitions/paletteColor"
+                    },
+                    "taupe": {
+                      "$ref": "#/definitions/paletteColor"
+                    }
                   }
                 }
               }
@@ -367,19 +391,22 @@
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "maxItems": 2000
           },
           "ongoing": {
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "maxItems": 2000
           },
           "next": {
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "maxItems": 2000
           },
           "risks": {
             "type": "string"
@@ -388,13 +415,15 @@
             "type": "array",
             "items": {
               "$ref": "#/definitions/decision"
-            }
+            },
+            "maxItems": 2000
           },
           "milestones": {
             "type": "array",
             "items": {
               "$ref": "#/definitions/milestone"
-            }
+            },
+            "maxItems": 2000
           },
           "sheet": {
             "enum": ["auto", "always", "never"]
@@ -457,8 +486,10 @@
               "items": {
                 "type": "string",
                 "description": "One bullet line — **bold** and a trailing \" — detail\" suffix only"
-              }
-            }
+              },
+              "maxItems": 2000
+            },
+            "maxItems": 2000
           }
         }
       }

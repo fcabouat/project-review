@@ -22,11 +22,18 @@
  */
 import type { Language } from '@project-review/core/model/theme'
 import type { Portfolio } from '@project-review/core/model/portfolio'
+import type { StoredRevision } from '@project-review/core/services/persistence'
 import { parsePortfolio } from '@project-review/core/services/parse'
 
-/** `true` when the URL asks for the demo AND nothing is stored locally. */
-export const shouldBootSample = (search: string, storedState: string | null): boolean =>
-  new URLSearchParams(search).has('sample') && storedState === null
+/**
+ * `true` when the URL asks for the demo AND the storage holds NOTHING — the
+ * revision the policy announces, which is `null` for an empty key and for a
+ * browser with no storage at all. An envelope this version cannot open
+ * (`'unreadable'`) counts as an existing base too: bytes nobody has decided
+ * the fate of are not free real estate.
+ */
+export const shouldBootSample = (search: string, stored: StoredRevision): boolean =>
+  new URLSearchParams(search).has('sample') && stored === null
 
 /** First-boot language: a browser announcing French gets fr, the rest en. */
 export const detectLanguage = (candidate: string): Language =>

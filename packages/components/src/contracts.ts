@@ -20,7 +20,7 @@ export type Dispatch = (command: Command) => DomainEvent | undefined
 
 /**
  * Where the open document stands with respect to the copy in the browser's
- * storage. Five states, and the last two are the ones the user must never
+ * storage. Six states, and the last three are the ones the user must never
  * have to guess at:
  *  - `dirty` — edited since the last write; a save is armed;
  *  - `saving` — the write is happening;
@@ -28,9 +28,14 @@ export type Dispatch = (command: Command) => DomainEvent | undefined
  *  - `error` — the storage refused the write (quota, private browsing). The
  *    document lives in this tab and NOWHERE else;
  *  - `conflict` — another tab saved over the copy this one was working from.
- *    Nothing was overwritten and nothing will be until a person chooses.
+ *    Nothing was overwritten and nothing will be until a person chooses;
+ *  - `unavailable` — this browser offers no storage at all (blocked
+ *    third-party storage, a restricted context, `file://` in some browsers).
+ *    Not "the save failed this time": nothing will EVER be saved here, so the
+ *    switch has nothing to switch and the only honest offer is the same as
+ *    `error`'s — take a copy away with you.
  */
-export type SavePhase = 'dirty' | 'saving' | 'saved' | 'error' | 'conflict'
+export type SavePhase = 'dirty' | 'saving' | 'saved' | 'error' | 'conflict' | 'unavailable'
 
 /**
  * A save verdict and the document revision it is ABOUT — the pair is the

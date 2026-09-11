@@ -108,6 +108,45 @@ export function exportFileName(reviewDate: string | undefined): string {
 }
 
 /**
+ * THE PERMISSION THAT HAS TO TRAVEL WITH THE CODE. The exported deck carries
+ * the whole reveal.js engine inlined in a `<script>`: that is a copy of the
+ * software, and MIT requires the copyright notice AND the permission notice to
+ * be included in "all copies or substantial portions". The engine's own banner
+ * says "MIT licensed" and stops there — naming a licence is not carrying it —
+ * so the terms are emitted here, next to the code they govern.
+ *
+ * Quoted verbatim from `node_modules/reveal.js/LICENSE` of the version this
+ * build inlines; the copyright line is the LICENSE's, not the minified
+ * banner's (the two differ — the banner drops "and reveal.js contributors"
+ * and writes `https://` where the licence writes `http://`).
+ *
+ * An HTML comment, not a `<script>` banner: it must survive whatever the
+ * recipient does to the file, and a comment is the one place no minifier of
+ * ours will ever touch.
+ */
+const REVEAL_NOTICE = `reveal.js — the slideshow engine inlined below.
+
+Copyright (C) 2011-2026 Hakim El Hattab, http://hakim.se, and reveal.js contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.`
+
+/**
  * The whole file, from pieces the caller harvested. The markup mirrors the
  * live host — `.rp-stage > .reveal > .slides` — so every rule scoped to
  * `.rp-stage` in `slideshow.css` applies identically from `file://`.
@@ -152,6 +191,9 @@ ${parts.styles}
 <div class="rp-stage"><div class="reveal"><div class="slides">
 ${parts.slidesHtml}
 </div></div></div>
+<!--
+${REVEAL_NOTICE}
+-->
 <script nonce="${nonce}">
 ${escapeScriptClose(parts.revealSource)}
 </script>

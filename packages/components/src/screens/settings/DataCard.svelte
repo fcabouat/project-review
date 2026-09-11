@@ -80,12 +80,21 @@
     {te('editor.nav.data', language)}
   </h2>
   {#if persistence}
+    <!-- No storage in this browser: the switch is disabled and the line below
+         says why. A control that moves but changes nothing is worse than no
+         control — the person would believe their work is being kept. -->
     <FieldSwitch
       label={te('editor.data.persist', language)}
-      checked={persistence.enabled}
+      checked={persistence.enabled && persistence.available}
+      disabled={!persistence.available}
       commit={togglePersist}
     />
-    <p class="text-muted-foreground text-[11.5px]">{te('editor.data.persistHint', language)}</p>
+    <p class="text-muted-foreground text-[11.5px]">
+      {te(
+        persistence.available ? 'editor.data.persistHint' : 'editor.data.persistUnavailable',
+        language,
+      )}
+    </p>
   {/if}
   <div class="mt-2.5 flex flex-wrap gap-2">
     <Button variant="outline" size="sm" onclick={() => (pending = 'resetSettings')}>

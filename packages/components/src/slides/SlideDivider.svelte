@@ -2,7 +2,12 @@
   /**
    * Category divider: "monument"
    * composition — giant numeral anchored bottom-left and bleeding off both
-   * edges, right-aligned content column under the cartouche.
+   * edges, right-aligned content column under the cartouche. The numeral is
+   * DECORATION and is built as such — generated content from `--numeral`,
+   * `aria-hidden` on its box: it is the divider's rank, which nothing else in
+   * the deck refers to, and it is drawn at a fraction of the ink. A glyph that
+   * deliberately sits under the contrast threshold has to be ornament in the
+   * markup too, not only in intent.
    * Three modes, decided by `dividerMode` on the project count: a plain list up
    * to 5, two columns from 6 to 10, truncated with "+n more" beyond.
    *
@@ -51,8 +56,12 @@
   const shown = $derived(mode === 'truncated' ? tracked.slice(0, MAX_ITEMS) : tracked)
   const hidden = $derived(tracked.length - shown.length)
 
-  /** Two-digit numeral: "02" reads as a section number, "2" as a page number. */
-  const numeral = $derived(String(number).padStart(2, '0'))
+  /**
+   * Two-digit numeral: "02" reads as a section number, "2" as a page number.
+   * Handed to the stylesheet as a quoted CSS string, because the monument's
+   * numeral is DRAWN, not said — see the two `aria-hidden` boxes below.
+   */
+  const numeral = $derived(`"${String(number).padStart(2, '0')}"`)
 
   /** 'flat': bottom-anchored plate, translucent numeral in flow. */
   const flat = $derived(portfolio.settings.theme.style === 'flat')
@@ -105,7 +114,13 @@
   <section class="{SLIDE_FRAME} slide--flat-divider" style:--cat={color}>
     {@render cartouche()}
     <div class="flat-divider-plate">
-      <div class="flat-divider-num">{numeral}</div>
+      <!-- Decoration, and built as decoration: the rank of the divider, at
+           200 px and a third of the ink. The digits are GENERATED CONTENT —
+           the stylesheet draws them from `--numeral` — because that is what
+           they are: an ornament of the composition, not a word of the deck.
+           The category name and the count beside it carry everything the
+           slide says, and no other slide refers to the number. -->
+      <div class="flat-divider-num" aria-hidden="true" style:--numeral={numeral}></div>
       {@render headingAndCount('', 'flat-divider-count')}
       {@render projectList(
         mode !== 'normal' ? 'flat-divider-list flat-divider-list--compact' : 'flat-divider-list',
@@ -118,11 +133,12 @@
 {:else}
   <section class="{SLIDE_FRAME} block" style:--cat={color}>
     {@render cartouche()}
+    <!-- The monument's numeral: drawn decoration, like the flat arm's above. -->
     <div
       class="divider-numeral absolute -bottom-[92px] -left-7 z-1 text-[400px] leading-none font-extrabold tracking-[-0.02em] print:-bottom-[84px] print:-left-[26px] print:text-[360px]"
-    >
-      {numeral}
-    </div>
+      aria-hidden="true"
+      style:--numeral={numeral}
+    ></div>
     <div
       class="absolute top-[376px] right-(--slide-margin) z-2 max-w-[920px] text-right print:top-[424px] print:right-10 print:max-w-[880px]"
     >

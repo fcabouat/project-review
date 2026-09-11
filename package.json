@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "dev": "bun run --cwd app dev",
-    "build": "bun run --cwd app build",
+    "build": "bun run --cwd app build && bun run docs:notices",
     "preview": "bun run --cwd app preview",
     "check": "bun run --cwd packages/core check && bun run --cwd packages/components check && bun run --cwd packages/infrastructure check && bun run --cwd app check",
     "test": "vitest run",

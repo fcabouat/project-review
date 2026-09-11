@@ -123,7 +123,6 @@
     {language}
     label={te('editor.field.title', language)}
     value={slide.title}
-    max={60}
     commit={(v) => replace({ ...slide, title: v ?? '' })}
   />
 

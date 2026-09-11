@@ -7,7 +7,7 @@
 import type { Anchor, FreeSlide } from '../../model/free-slide'
 import type { CategoryId, FreeSlideId } from '../../values/ids'
 import type { Errors } from './json'
-import { checkKeys, enumVal, fail, idStr, list, record, str } from './json'
+import { checkKeys, enumVal, fail, idStr, list, record, str, withinRows } from './json'
 
 const ANCHOR_TYPES = ['opening', 'beforeCategory', 'closing'] as const
 
@@ -27,6 +27,7 @@ function parseAnchor(x: unknown, path: string, errors: Errors): Anchor {
 }
 
 function parseBlocks(x: unknown, path: string, errors: Errors): readonly (readonly string[])[] {
+  if (!withinRows(x, path, errors)) return [[]]
   const items = list(x, path, errors)
   if (items === undefined) return [[]]
   if (items.length === 0) {
@@ -36,6 +37,7 @@ function parseBlocks(x: unknown, path: string, errors: Errors): readonly (readon
   const blocks: (readonly string[])[] = []
   items.forEach((raw, i) => {
     const p = `${path}[${i}]`
+    if (!withinRows(raw, p, errors)) return
     const lines = list(raw, p, errors)
     if (lines === undefined) return
     const block: string[] = []

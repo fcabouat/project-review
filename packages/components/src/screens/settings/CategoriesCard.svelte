@@ -7,6 +7,7 @@
   import { deck, projectsOfCategory } from '@project-review/core/projections'
   import { nextCategoryId } from '@project-review/core/values/ids'
   import { te } from '../../i18n'
+  import { TEXT_CAPACITY } from '@project-review/core/model/budget'
   import FieldText from '../../editor/FieldText.svelte'
   import Icon from '../../commons/Icon.svelte'
   import { Button } from '../../commons/ui/button'
@@ -167,6 +168,7 @@
         <FieldText
           {language}
           label={te('editor.field.name', language)}
+          max={TEXT_CAPACITY.categoryName}
           value={category.name}
           commit={(v) =>
             dispatch({

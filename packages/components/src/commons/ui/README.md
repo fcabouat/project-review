@@ -1,8 +1,15 @@
 # commons/ui — vendored interface primitives
 
-Adapted from [shadcn-svelte](https://www.shadcn-svelte.com) (MIT License,
-Copyright (c) 2024 shadcn-svelte contributors — https://github.com/huntabyte/shadcn-svelte/blob/main/LICENSE.md),
-style `vega`, fetched with the official CLI (see `../../../components.json`).
+Adapted from [shadcn-svelte](https://www.shadcn-svelte.com), style `vega`,
+fetched with the official CLI (see `../../../components.json`).
+
+**The terms travel with the code**: [`LICENSE.md`](./LICENSE.md) next to this
+file is the upstream MIT licence, copied verbatim from the installed
+`shadcn-svelte` package — three copyright holders, 2023. Vendoring is still
+redistribution, and MIT asks for the notice in every copy; a link to someone
+else's repository is not a copy of anything. The same three lines are quoted in
+the product's notices table (core's `data/third-party.ts`) and therefore in the
+About screen and in `THIRD-PARTY.md` — one attribution, said in four places.
 
 Vendored means owned: these sources are part of this package, reviewed and
 edited like any other file. Updates are manual — re-run

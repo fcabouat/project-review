@@ -21,6 +21,7 @@ import {
   record,
   str,
   strList,
+  withinRows,
 } from './json'
 
 const REQUIRED = [
@@ -55,6 +56,7 @@ const OPTIONAL = [
 ] as const
 
 function parseDecisions(x: unknown, path: string, errors: Errors): readonly Decision[] {
+  if (!withinRows(x, path, errors)) return []
   const items = list(x, path, errors) ?? []
   const decisions: Decision[] = []
   items.forEach((raw, i) => {
@@ -82,6 +84,7 @@ function parseDecisions(x: unknown, path: string, errors: Errors): readonly Deci
 }
 
 function parseMilestones(x: unknown, path: string, errors: Errors): readonly Milestone[] {
+  if (!withinRows(x, path, errors)) return []
   const items = list(x, path, errors) ?? []
   const milestones: Milestone[] = []
   items.forEach((raw, i) => {
@@ -98,6 +101,10 @@ function parseMilestones(x: unknown, path: string, errors: Errors): readonly Mil
   })
   return milestones
 }
+
+/** One narrative list: the row ceiling first, then the strings. */
+const narrative = (x: unknown, path: string, errors: Errors): readonly string[] =>
+  withinRows(x, path, errors) ? (strList(x, path, errors) ?? []) : []
 
 /** Parses the `projects` collection, collecting every violation. */
 export function parseProjects(x: unknown, errors: Errors): readonly Project[] {
@@ -139,9 +146,9 @@ export function parseProjects(x: unknown, errors: Errors): readonly Project[] {
       start: dateVal(o['start'], `${path}.start`, errors),
       targetEnd: dateVal(o['targetEnd'], `${path}.targetEnd`, errors),
       actualEnd: dateVal(o['actualEnd'], `${path}.actualEnd`, errors),
-      done: strList(o['done'], `${path}.done`, errors) ?? [],
-      ongoing: strList(o['ongoing'], `${path}.ongoing`, errors) ?? [],
-      next: strList(o['next'], `${path}.next`, errors) ?? [],
+      done: narrative(o['done'], `${path}.done`, errors),
+      ongoing: narrative(o['ongoing'], `${path}.ongoing`, errors),
+      next: narrative(o['next'], `${path}.next`, errors),
       risks: optStr(o['risks'], `${path}.risks`, errors),
       decisions: parseDecisions(o['decisions'], `${path}.decisions`, errors),
       milestones: parseMilestones(o['milestones'], `${path}.milestones`, errors),

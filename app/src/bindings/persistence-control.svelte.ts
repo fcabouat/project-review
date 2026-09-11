@@ -40,6 +40,13 @@
  * subscription feeds {@link PersistenceWiring.noticeStoredChange}, which
  * raises the same conflict as soon as the other tab writes, rather than at the
  * next deadline.
+ *
+ * THE FOURTH INVARIANT — a browser that offers NO storage is a state, not an
+ * absence. `storage === null` (the access throws, or there is none) makes the
+ * control answer the `unavailable` phase for good: the switch is inert, the
+ * strip says so permanently and offers the one thing that still saves the work
+ * — a downloaded copy. The editor mounts and works exactly as it otherwise
+ * would; only the saving does not happen, and it says so instead of miming it.
  */
 
 import type { Portfolio } from '@project-review/core/model/portfolio'
@@ -60,6 +67,10 @@ import {
 } from '@project-review/core/services/persistence'
 import type { PersistenceControl, SaveState } from '@project-review/components/screens/contracts'
 import type { Store } from './runtime.svelte'
+
+/** The verdict of a browser with no storage — a constant, because it never
+ * moves: no revision advances something that is never written. */
+const UNAVAILABLE: SaveState = { revision: 0, phase: 'unavailable' }
 
 /** A stored document the format refuses, with the bytes the recovery screen hands back. */
 export interface UnreadableState {
@@ -192,6 +203,13 @@ export const createPersistenceControl = (
       unreadable = { raw: found.raw, refusal: found.refusal }
       return undefined
     }
+    if (found.state === 'unavailable') {
+      // The storage answered at boot and refuses now. There are no bytes to
+      // show and no revision to write against — the save simply failed, and
+      // the strip's «download a copy» is the one thing still worth offering.
+      status = { revision: edit, phase: 'error' }
+      return undefined
+    }
     base = found.state === 'restored' ? found.revision : null
     return found
   }
@@ -210,32 +228,39 @@ export const createPersistenceControl = (
       return enabled
     },
     get save() {
-      // Nothing is being saved: the switch is off, or there is no storage at
-      // all. An indicator on a document nobody is saving would be a lie.
-      return storage && enabled ? status : undefined
+      // No storage at all: say it, permanently and whatever the switch reads.
+      // A switch that is off is a CHOICE and needs no strip; a browser that
+      // refuses to store is a surprise, and finding out at the next reload is
+      // exactly the failure this strip exists to prevent.
+      if (!storage) return UNAVAILABLE
+      // The switch is off: an indicator on a document nobody is saving would
+      // be a lie.
+      return enabled ? status : undefined
     },
     get pendingRestore() {
       return offered !== undefined
+    },
+    get available() {
+      return storage !== null
     },
     toggle(next: boolean) {
       // Blocked: neither branch may run — `true` would write over the
       // unreadable envelope, `false` would erase it. Both are the recovery
       // screen's decision to take, not a switch's.
       if (blocked()) return
+      // No storage: the switch governs nothing, so it moves nothing. Flipping
+      // a flag that can never reach a write would only make the interface
+      // claim a choice the browser has already taken away.
+      if (!storage) return
       if (!next) {
         enabled = false
         offered = undefined
-        if (!storage) return
         savePersistEnabled(storage, false)
         // Disarm the pending debounce BEFORE erasing: belt (cancel here) and
         // braces (the fire-time check above) against a posthumous rewrite.
         saver?.cancel()
         clearStored(storage)
         base = null
-        return
-      }
-      if (!storage) {
-        enabled = true
         return
       }
       // ON is a write path: read the storage BEFORE touching it. The save may

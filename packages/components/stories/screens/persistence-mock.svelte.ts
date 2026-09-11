@@ -12,6 +12,9 @@ import type { PersistenceControl, SaveState } from '../../src/screens/contracts'
 
 export const createPersistenceMock = (
   initial: SaveState = { revision: 1, phase: 'saved' },
+  /** `false` reproduces a browser with NO storage: the switch is inert and the
+   * strip states the `unavailable` phase for good (seed `initial` with it). */
+  available = true,
 ): PersistenceControl => {
   let enabled = $state(true)
   let save = $state<SaveState>(initial)
@@ -26,12 +29,15 @@ export const createPersistenceMock = (
       return enabled
     },
     get save() {
-      // Same rule as the app's wiring: nothing saved, nothing to report.
-      return enabled ? save : undefined
+      // Same rule as the app's wiring: a switch that is off says nothing, a
+      // browser that cannot store says so permanently.
+      return available || enabled ? save : undefined
     },
     toggle: (next: boolean) => {
+      if (!available) return
       enabled = next
     },
+    available,
     pendingRestore: false,
     restore: () => {},
     keepOpen: () => {},

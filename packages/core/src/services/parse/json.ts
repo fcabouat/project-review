@@ -8,6 +8,7 @@
  * present, no unknown key); the value readers then only judge the VALUE of a
  * key that is there — a missing required key is never reported twice.
  */
+import { MAX_ROWS } from '../../model/budget'
 import type { IsoDate } from '../../values/date'
 import { isoDate } from '../../values/date'
 import type { ParseError, ParseErrorCode } from './errors'
@@ -66,6 +67,20 @@ export function record(
   if (isRecord(x)) return x
   fail(errors, path, 'wrongType', { expected: 'object' })
   return undefined
+}
+
+/**
+ * A nested collection within the memory-safety budget (`MAX_ROWS`,
+ * model/budget.ts) — the ceiling one aggregate may carry. Reported with the
+ * SAME code as the entity ceiling, because it is the same budget said of a
+ * smaller collection; `path` is what tells the two apart. Checked BEFORE the
+ * elements are read, like the entity count: the walk is the cost being
+ * refused.
+ */
+export function withinRows(x: unknown, path: string, errors: Errors): boolean {
+  if (!Array.isArray(x) || x.length <= MAX_ROWS) return true
+  fail(errors, path, 'tooManyEntities', { max: String(MAX_ROWS), count: String(x.length) })
+  return false
 }
 
 /** An array field — same contract as {@link record}. */

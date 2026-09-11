@@ -38,6 +38,20 @@ export const createMemoryStorage = (): MemoryStorage => {
 }
 
 /**
+ * The other failure, and the blunter one: a storage whose every call throws
+ * `SecurityError` — what a browser with third-party storage blocked actually
+ * does. It is not a storage that fails to KEEP things, it is one that refuses
+ * to be spoken to at all, READS INCLUDED, and unguarded that exception takes
+ * the whole boot down before a screen is drawn.
+ */
+export const createHostileStorage = (): KeyValueStorage => {
+  const refuse = (): never => {
+    throw new DOMException('access denied', 'SecurityError')
+  }
+  return { getItem: refuse, setItem: refuse, removeItem: refuse }
+}
+
+/**
  * A view of one storage that runs `watch` just before each write lands — the
  * only way to observe what the wiring looks like DURING a save (the `saving`
  * phase), and to make a change arrive mid-write.

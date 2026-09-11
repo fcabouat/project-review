@@ -10,10 +10,18 @@
  * notices have to be where the software is.
  *
  * WHAT IS LISTED. Everything whose code, assets or generated output ends up in
- * `dist/project-review.html` or in the static build beside it. Build-time
- * tooling that leaves no trace in the artifact (test runners, linters, type
- * checkers, bundler) is deliberately absent: a notice for something the reader
- * does not have would be noise, not honesty.
+ * `dist/project-review.html` or in the static build beside it — TRANSITIVE
+ * DEPENDENCIES INCLUDED. A package nobody typed into a manifest is still in the
+ * reader's hands: the positioning engine under the menus, the focus-order
+ * helper under the dialogs, the reactive utilities under the primitives. Seven
+ * of them travelled unnamed until the second audit.
+ *
+ * Build-time tooling that leaves no trace in the artifact (test runners,
+ * linters, type checkers, bundler) is deliberately absent: a notice for
+ * something the reader does not have would be noise, not honesty. The converse
+ * also holds, and it is the subtler half — a devDependency that SHIPS ITS
+ * OUTPUT is listed (Tailwind CSS, tw-animate-css, shadcn-svelte): what matters
+ * is what the artifact carries, never which manifest section names it.
  *
  * HOW IT IS KEPT TRUE. Every line was read from the INSTALLED package —
  * `node_modules/<name>/package.json` for the version, and the package's own
@@ -42,6 +50,17 @@ export interface ThirdPartyNotice {
   readonly use: string
   /** An obligation, a caveat or a metadata discrepancy worth stating. */
   readonly note?: string
+  /**
+   * The INSTALLED package this notice is about — the directory under
+   * `node_modules/` whose own licence file carries the terms. `build-notices`
+   * reads that file to build the permission texts that ship beside the
+   * artifact, and FAILS when it cannot find it: the day a version bump changes
+   * a licence, the build says so instead of the table quietly going stale.
+   *
+   * Absent for the entries that are not npm packages — a borrowed palette, a
+   * set of values transcribed from a design system.
+   */
+  readonly pkg?: string
 }
 
 /**
@@ -51,6 +70,7 @@ export interface ThirdPartyNotice {
 export const THIRD_PARTY_NOTICES: readonly ThirdPartyNotice[] = [
   {
     name: 'reveal.js',
+    pkg: 'reveal.js',
     version: '6.0.1',
     license: 'MIT',
     copyright:
@@ -60,14 +80,18 @@ export const THIRD_PARTY_NOTICES: readonly ThirdPartyNotice[] = [
   },
   {
     name: 'Svelte',
+    pkg: 'svelte',
     version: '5.57.0',
     license: 'MIT',
-    copyright: 'Copyright (c) 2016-2025 Svelte Contributors',
+    copyright:
+      'Copyright (c) 2016-2025 [Svelte Contributors]' +
+      '(https://github.com/sveltejs/svelte/graphs/contributors)',
     url: 'https://svelte.dev',
     use: 'the component runtime the whole interface compiles onto',
   },
   {
     name: 'Remix Icon',
+    pkg: 'remixicon',
     version: '4.9.1',
     license: 'Remix Icon License v1.0',
     copyright: 'Copyright (c) 2017–2026 Remix Design',
@@ -83,6 +107,7 @@ export const THIRD_PARTY_NOTICES: readonly ThirdPartyNotice[] = [
   },
   {
     name: 'bits-ui',
+    pkg: 'bits-ui',
     version: '2.19.1',
     license: 'MIT',
     copyright: 'Copyright (c) 2023 Hunter Johnston',
@@ -91,20 +116,100 @@ export const THIRD_PARTY_NOTICES: readonly ThirdPartyNotice[] = [
   },
   {
     name: 'shadcn-svelte',
+    pkg: 'shadcn-svelte',
     version: '1.6.1',
     license: 'MIT',
     copyright:
       'Copyright (c) 2023 Hunter Johnston <https://github.com/huntabyte>, ' +
-      'Copyright (c) 2023 CokaKoala <https://github.com/adriangonz97>',
+      'Copyright (c) 2023 CokaKoala <https://github.com/adriangonz97>, ' +
+      'Copyright (c) 2023 shadcn',
     url: 'https://www.shadcn-svelte.com',
     use: 'the interface primitives, VENDORED into the source tree and adapted',
     note:
-      'Vendored, not depended upon: the sources live in this repository ' +
-      '(packages/components/src/commons/ui/) and were edited locally. The notice ' +
-      'follows the code, wherever it lives.',
+      'Vendored AND depended upon: the primitives were fetched with the CLI into ' +
+      'packages/components/src/commons/ui/ and edited locally, and the package also ' +
+      'ships dist/tailwind.css, which the components tokens.css imports. The upstream ' +
+      'licence sits next to the vendored sources (commons/ui/LICENSE.md) — a link to ' +
+      'someone else’s repository is not a copy of anything.',
+  },
+  {
+    name: '@floating-ui/dom',
+    pkg: '@floating-ui/dom',
+    version: '1.8.0',
+    license: 'MIT',
+    copyright: 'Copyright (c) 2021-present Floating UI contributors',
+    url: 'https://floating-ui.com',
+    use: 'the positioning of the menus, selects and tooltips, under bits-ui',
+    note:
+      'Reaches the deliverable through bits-ui, with @floating-ui/core and ' +
+      '@floating-ui/utils (same licence, same holder, same version family): three ' +
+      'packages, one notice, because they are one project.',
+  },
+  {
+    name: 'tabbable',
+    pkg: 'tabbable',
+    version: '6.5.0',
+    license: 'MIT',
+    copyright: 'Copyright (c) 2015 David Clark',
+    url: 'https://github.com/focus-trap/tabbable',
+    use: 'the focus order the dialogs and menus trap, under bits-ui',
+  },
+  {
+    name: 'runed',
+    pkg: 'runed',
+    version: '0.35.1',
+    license: 'MIT',
+    copyright:
+      'Copyright (c) 2024 Hunter Johnston <https://github.com/huntabyte>, ' +
+      'Copyright (c) 2024 Thomas G. Lopes <https://github.com/tglide>',
+    url: 'https://runed.dev',
+    use: 'the reactive utilities bits-ui builds its primitives on',
+  },
+  {
+    name: 'svelte-toolbelt',
+    pkg: 'svelte-toolbelt',
+    version: '0.10.6',
+    license: 'MIT',
+    copyright:
+      'Copyright (c) 2024 Hunter Johnston <https://github.com/huntabyte>, ' +
+      'Copyright (c) 2024 Thomas G. Lopes <https://github.com/tglide>',
+    url: 'https://github.com/huntabyte/svelte-toolbelt',
+    use: 'the box/ref helpers bits-ui passes its elements through',
+    note:
+      'The package declares NO license field at all; the file it ships is MIT. The ' +
+      'file governs — a tool reading the metadata alone would report this one unknown, ' +
+      'and it is in the bundle.',
+  },
+  {
+    name: 'style-to-object',
+    pkg: 'style-to-object',
+    version: '1.0.14',
+    license: 'MIT',
+    copyright: 'Copyright (c) 2017 Menglin "Mark" Xu <mark@remarkablemark.org>',
+    url: 'https://github.com/remarkablemark/style-to-object',
+    use: 'inline-style parsing inside the vendored primitives, with inline-style-parser',
+  },
+  {
+    name: 'inline-style-parser',
+    pkg: 'inline-style-parser',
+    version: '0.2.7',
+    license: 'MIT',
+    copyright: 'Copyright (c) 2012 TJ Holowaychuk <tj@vision-media.ca>',
+    url: 'https://github.com/remarkablemark/inline-style-parser',
+    use: 'the parser under style-to-object',
+  },
+  {
+    name: 'esm-env',
+    pkg: 'esm-env',
+    version: '1.2.2',
+    license: 'MIT',
+    copyright: 'Copyright 2022 Benjamin McCann',
+    url: 'https://github.com/benmccann/esm-env',
+    use: 'the build-time environment flags Svelte and runed compile against',
   },
   {
     name: 'tailwind-merge',
+    pkg: 'tailwind-merge',
     version: '3.6.0',
     license: 'MIT',
     copyright: 'Copyright (c) 2021 Dany Castillo',
@@ -113,6 +218,7 @@ export const THIRD_PARTY_NOTICES: readonly ThirdPartyNotice[] = [
   },
   {
     name: 'tailwind-variants',
+    pkg: 'tailwind-variants',
     version: '3.3.1',
     license: 'MIT',
     copyright: 'Copyright (c) 2020 Tailwid Variants',
@@ -122,6 +228,7 @@ export const THIRD_PARTY_NOTICES: readonly ThirdPartyNotice[] = [
   },
   {
     name: 'clsx',
+    pkg: 'clsx',
     version: '2.1.1',
     license: 'MIT',
     copyright: 'Copyright (c) Luke Edwards <luke.edwards05@gmail.com> (lukeed.com)',
@@ -130,6 +237,7 @@ export const THIRD_PARTY_NOTICES: readonly ThirdPartyNotice[] = [
   },
   {
     name: 'Tailwind CSS',
+    pkg: 'tailwindcss',
     version: '4.3.3',
     license: 'MIT',
     copyright: 'Copyright (c) Tailwind Labs, Inc.',
@@ -153,6 +261,7 @@ export const THIRD_PARTY_NOTICES: readonly ThirdPartyNotice[] = [
   },
   {
     name: 'tw-animate-css',
+    pkg: 'tw-animate-css',
     version: '1.4.0',
     license: 'MIT',
     copyright: 'Copyright (c) 2025 Wombosvideo',
@@ -161,10 +270,13 @@ export const THIRD_PARTY_NOTICES: readonly ThirdPartyNotice[] = [
   },
   {
     name: 'Roboto',
+    pkg: '@fontsource/roboto',
     version: '@fontsource/roboto 5.3.0',
     license: 'SIL Open Font License 1.1',
     copyright:
       'Copyright 2011 The Roboto Project Authors ' +
+      '(https://github.com/googlefonts/roboto-classic) ' +
+      'Roboto-Italic[wdth,wght].ttf: Copyright 2011 The Roboto Project Authors ' +
       '(https://github.com/googlefonts/roboto-classic)',
     url: 'https://github.com/googlefonts/roboto-classic',
     use: 'the default typeface — woff2 files embedded in the deliverable',
@@ -175,9 +287,13 @@ export const THIRD_PARTY_NOTICES: readonly ThirdPartyNotice[] = [
   },
   {
     name: 'Inter',
+    pkg: '@fontsource/inter',
     version: '@fontsource/inter 5.3.0',
     license: 'SIL Open Font License 1.1',
-    copyright: 'Copyright 2016 The Inter Project Authors (https://github.com/rsms/inter)',
+    copyright:
+      'Copyright 2016 The Inter Project Authors (https://github.com/rsms/inter) ' +
+      'Inter-Italic[opsz,wght].ttf: Copyright 2016 The Inter Project Authors ' +
+      '(https://github.com/rsms/inter)',
     url: 'https://rsms.me/inter/',
     use: 'the second bundled typeface — woff2 files embedded in the deliverable',
     note: 'Same OFL terms as Roboto above.',

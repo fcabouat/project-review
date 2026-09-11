@@ -32,6 +32,62 @@ describe('defaultStorage', () => {
       delete host.localStorage
     }
   })
+
+  it('answers null when the ACCESS ITSELF throws — the boot must survive it', () => {
+    // Third-party storage blocked, restricted contexts: the property getter
+    // raises `SecurityError`, which is why a `typeof` guard is not enough —
+    // `typeof localStorage` evaluates that very getter. Unguarded, the
+    // exception lands in the app's startup and no editor is ever drawn.
+    const host = globalThis as { localStorage?: unknown }
+    Object.defineProperty(host, 'localStorage', {
+      configurable: true,
+      get: () => {
+        throw new DOMException('access denied', 'SecurityError')
+      },
+    })
+    try {
+      expect(() => defaultStorage()).not.toThrow()
+      expect(defaultStorage()).toBeNull()
+    } finally {
+      delete host.localStorage
+    }
+  })
+
+  it('answers null when the object is there but reading it throws', () => {
+    const host = globalThis as { localStorage?: unknown }
+    host.localStorage = {
+      getItem: () => {
+        throw new DOMException('access denied', 'SecurityError')
+      },
+      setItem: () => {},
+      removeItem: () => {},
+    }
+    try {
+      expect(defaultStorage()).toBeNull()
+    } finally {
+      delete host.localStorage
+    }
+  })
+
+  it('hands back a storage that READS but refuses to WRITE — its document is still worth restoring', () => {
+    // A quota-full or private-browsing storage answers every read. Declaring
+    // it unavailable would throw away a perfectly restorable document; the
+    // refused write already has a verdict of its own.
+    const stub = {
+      getItem: () => '{"format":1,"revision":3,',
+      setItem: () => {
+        throw new DOMException('quota exceeded', 'QuotaExceededError')
+      },
+      removeItem: () => {},
+    }
+    const host = globalThis as { localStorage?: unknown }
+    host.localStorage = stub
+    try {
+      expect(defaultStorage()).toBe(stub)
+    } finally {
+      delete host.localStorage
+    }
+  })
 })
 
 describe('watchStored', () => {

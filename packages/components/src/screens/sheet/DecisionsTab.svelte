@@ -4,6 +4,7 @@
   import { isoDate } from '@project-review/core/values/date'
   import type { Language } from '@project-review/core/model/theme'
   import { te } from '../../i18n'
+  import { TEXT_CAPACITY } from '@project-review/core/model/budget'
   import FieldText from '../../editor/FieldText.svelte'
   import Icon from '../../commons/Icon.svelte'
   import { Button } from '../../commons/ui/button'
@@ -77,7 +78,7 @@
         label={te('editor.sheet.question', language)}
         value={decision.question}
         rows={2}
-        max={160}
+        max={TEXT_CAPACITY.decisionQuestion}
         hint={te('editor.hint.question', language)}
         commit={(v) => patchDecision(index, { question: v ?? decision.question })}
       />
@@ -85,7 +86,7 @@
         {language}
         label={te('editor.sheet.decider', language)}
         value={decision.decider}
-        max={40}
+        max={TEXT_CAPACITY.decisionDecider}
         hint={te('editor.hint.decider', language)}
         commit={(v) => patchDecision(index, { decider: v })}
       />
@@ -101,7 +102,6 @@
             {language}
             label={te('editor.sheet.takenText', language)}
             value={decision.taken?.text}
-            max={160}
             placeholder="—"
             commit={(v) => patchOutcome(index, { text: v ?? '' })}
           />

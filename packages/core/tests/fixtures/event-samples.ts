@@ -11,6 +11,7 @@
  * carries none) — the two bounds an optional field can cross.
  */
 
+import type { Identity, Review } from '../../src/model/portfolio'
 import type { Project } from '../../src/model/project'
 import { categoryId, freeSlideId, projectId } from '../../src/values/ids'
 import { isoDate } from '../../src/values/date'
@@ -22,7 +23,9 @@ import {
   PROJECT_SCALAR_FIELDS,
   SETTING_KEYS,
   NARRATIVE_LISTS,
+  type IdentityField,
   type ProjectScalarField,
+  type ReviewField,
   type DomainEvent,
   type ProjectFieldChanged,
   type ReviewFieldChanged,
@@ -73,6 +76,26 @@ const NEW_VALUES = {
   updatedOn: d('2026-09-01'),
   author: 'Bob DUPONT',
 } as const satisfies { readonly [F in ProjectScalarField]: Project[F] }
+
+/** Same table for the review and the identity, and for the same reason the
+ * project one exists: a date field takes a DATE and the logo takes a data URI
+ * — an arrival value the file format would refuse is not a sample of anything
+ * the application can record. */
+const NEW_REVIEW = {
+  title: 'Titre remanié',
+  subtitle: 'Sous-titre remanié',
+  reviewDate: d('2026-12-01'),
+  previousReviewDate: d('2026-06-01'),
+} as const satisfies { readonly [F in ReviewField]: Review[F] }
+
+const NEW_IDENTITY = {
+  org: 'Org remaniée',
+  unit: 'Unité remaniée',
+  orgLong: 'Organisation au long remaniée',
+  unitLong: 'Unité au long remaniée',
+  contact: 'contact@example.org',
+  logo: 'data:image/svg+xml;base64,PHN2Zy8+',
+} as const satisfies { readonly [F in IdentityField]: Identity[F] }
 
 const NEW_SETTINGS = {
   language: 'en',
@@ -161,7 +184,7 @@ const reviewFields = (
         type: 'ReviewFieldChanged',
         field,
         before: p.review[field],
-        after: value === 'new' ? `${field} remanié` : undefined,
+        after: value === 'new' ? NEW_REVIEW[field] : undefined,
       }) as ReviewFieldChanged,
   )
 
@@ -175,7 +198,7 @@ const identityFields = (
         type: 'IdentityFieldChanged',
         field,
         before: p.settings.identity[field],
-        after: value === 'new' ? `${field} remanié` : undefined,
+        after: value === 'new' ? NEW_IDENTITY[field] : undefined,
       }) as IdentityFieldChanged,
   )
 

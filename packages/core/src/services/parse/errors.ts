@@ -55,7 +55,9 @@ export const PARSE_ERROR_CODES = [
   /** A free slide with zero blocks. */
   'emptyBlocks',
   /** More entities than the application can carry — `params.max` gives the
-   * bound and `params.count` what was offered. See `MAX_ENTITIES`. */
+   * bound and `params.count` what was offered. One code for one budget, said
+   * of the whole document (`MAX_ENTITIES`) or of one nested collection
+   * (`MAX_ROWS`); `path` tells the two apart. See model/budget.ts. */
   'tooManyEntities',
 ] as const
 

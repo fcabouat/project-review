@@ -19,7 +19,11 @@
    *    starts on an empty portfolio it NEVER saves — the persistence control
    *    is built blocked — and shows the recovery screen instead of the editor,
    *    so a person decides. A corrupted document must not keep the app from
-   *    starting; it must not be overwritten either.
+   *    starting; it must not be overwritten either;
+   *  - `unavailable`: the browser refuses local storage outright. The editor
+   *    starts and works in full; the save strip says, permanently, that this
+   *    document lives in this tab alone, and offers the copy that keeps it.
+   *    A storage the app cannot have must not cost the app its startup.
    * The storage is read whatever the local-save switch says: the switch
    * governs writing, and the one thing that must never happen is writing over
    * something we could not read. The switch obeys the same rule on its own
@@ -97,11 +101,13 @@
   const printMode =
     typeof location !== 'undefined' && new URLSearchParams(location.search).has('print')
 
-  const persistEnabled = storage ? loadPersistEnabled(storage) : false
+  const persistEnabled = storage !== null && loadPersistEnabled(storage)
 
   /** The storage's verdict, read ONCE — the boot and the write guard below
-   * both hang on it. No storage at all is the same case as nothing stored. */
-  const storedState: StoredState = storage ? readStored(storage) : { state: 'absent' }
+   * both hang on it. A browser with no storage is its own verdict
+   * (`unavailable`), which the shell states permanently rather than miming a
+   * save nobody performs. */
+  const storedState: StoredState = readStored(storage)
 
   function initialState(): { portfolio: Portfolio; log?: History } {
     if (persistEnabled && storedState.state === 'restored') {

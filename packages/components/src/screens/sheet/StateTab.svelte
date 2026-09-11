@@ -9,6 +9,7 @@
   import type { ProjectScalarField } from '@project-review/core/events'
   import { te } from '../../i18n'
   import { BAND_COLOR } from '../../commons/band-color'
+  import { TEXT_CAPACITY } from '@project-review/core/model/budget'
   import FieldText from '../../editor/FieldText.svelte'
   import FieldSegmented from '../../editor/FieldSegmented.svelte'
   import FieldSwitch from '../../editor/FieldSwitch.svelte'
@@ -143,21 +144,20 @@
       {language}
       label={te('editor.field.lead', language)}
       value={project.lead}
-      max={40}
+      max={TEXT_CAPACITY.projectPerson}
       commit={(v) => set('lead', v)}
     />
     <FieldText
       {language}
       label={te('editor.field.sponsor', language)}
       value={project.sponsor}
-      max={40}
+      max={TEXT_CAPACITY.projectPerson}
       commit={(v) => set('sponsor', v)}
     />
     <FieldText
       {language}
       label={te('editor.field.scope', language)}
       value={project.scope}
-      max={80}
       hint={te('editor.hint.scope', language)}
       commit={(v) => set('scope', v)}
     />
@@ -166,7 +166,6 @@
       label={te('editor.field.goal', language)}
       value={project.goal}
       rows={3}
-      max={240}
       hint={te('editor.hint.goal', language)}
       commit={(v) => set('goal', v ?? '')}
     />
@@ -174,7 +173,6 @@
       {language}
       label={te('editor.field.budget', language)}
       value={project.budget}
-      max={80}
       hint={te('editor.hint.budget', language)}
       commit={(v) => set('budget', v)}
     />

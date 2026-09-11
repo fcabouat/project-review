@@ -13,6 +13,14 @@
  *   - the landing page, English and French (dark = the OS preference, which
  *     the landing deliberately ignores — the pass proves it stays readable).
  *
+ * And the perimeter that actually reaches a reader on paper:
+ *   - the PRINTED DECK, all 34 pages at once, for the NINE theme x palette
+ *     pairs. The slideshow scan above proves one slide — the ACTIVE one — of
+ *     one pairing; it says nothing about the 33 others, nor about the eight
+ *     other pairings, and the deck is what gets printed and handed round. The
+ *     pair is seeded as a stored envelope so the app boots straight into
+ *     `?print` with that style and that family.
+ *
  * Gate: ZERO serious or critical violations anywhere. Minor/moderate findings
  * are listed for the record but do not fail the run.
  */
@@ -131,6 +139,45 @@ async function editorPass(browser, base, mode) {
   await context.close()
 }
 
+/**
+ * The nine theme x palette pairs, printed. One context per pair: the stored
+ * envelope decides the pairing, `?print` lays the whole deck flat, and axe
+ * reads every page of it in one pass.
+ */
+async function printPass(browser, base) {
+  const sample = JSON.parse(await readFile(join(DIST, 'sample-portfolio.fr.json'), 'utf8'))
+  for (const style of ['flat', 'institutional', 'modern']) {
+    for (const palette of ['material', 'tailwind', 'uniform']) {
+      // The envelope is written by hand, like the smoke run's: this file is
+      // plain node over the BUILT deliverable and imports no source. `format`
+      // is `STATE_FORMAT` (core's services/persistence.ts).
+      const envelope = JSON.stringify({
+        format: 1,
+        revision: 1,
+        portfolio: {
+          ...sample,
+          settings: { ...sample.settings, theme: { ...sample.settings.theme, style, palette } },
+        },
+        history: { past: [], future: [] },
+      })
+      const context = await browser.newContext({
+        locale: 'fr-FR',
+        viewport: { width: 1280, height: 900 },
+      })
+      await context.addInitScript(
+        (state) => localStorage.setItem('project-review/state', state),
+        envelope,
+      )
+      const page = await context.newPage()
+      await page.goto(`${base}/dist/index.html?print`)
+      await page.waitForSelector('.rp-print-root .slide', { timeout: 30_000 })
+      await page.waitForTimeout(600)
+      await scan(page, `print ${style}/${palette}`, 'paper')
+      await context.close()
+    }
+  }
+}
+
 async function landingPass(browser, base, mode) {
   const context = await browser.newContext({
     colorScheme: mode,
@@ -167,12 +214,13 @@ async function main() {
       await editorPass(browser, base, mode)
       await landingPass(browser, base, mode)
     }
+    await printPass(browser, base)
   } finally {
     await browser.close()
     server.close()
   }
 
-  console.log(`\na11y: ${results.length} surface×mode scans`)
+  console.log(`\na11y: ${results.length} scans (surface×mode, plus the nine printed pairs)`)
   if (gate > 0) {
     console.error(`a11y: ${gate} serious/critical violation node(s) — failing`)
     process.exit(1)

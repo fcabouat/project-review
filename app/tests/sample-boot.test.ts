@@ -20,12 +20,14 @@ describe('shouldBootSample — the demo never overwrites an existing base', () =
     expect(shouldBootSample('?foo=bar&sample', null)).toBe(true)
   })
 
-  it('refuses when a document is stored, whatever it contains', () => {
+  it('refuses when a document is stored, readable or not', () => {
     // If this breaks, following a `?sample` link would let the persistence
     // effect save the demo set over a real portfolio — the one loss the
-    // feature must never cause.
-    expect(shouldBootSample('?sample', '{"version":3}')).toBe(false)
-    expect(shouldBootSample('?sample', 'not even JSON')).toBe(false)
+    // feature must never cause. Bytes nobody could read count as an existing
+    // base too: they are not free real estate until a person says so.
+    expect(shouldBootSample('?sample', 1)).toBe(false)
+    expect(shouldBootSample('?sample', 42)).toBe(false)
+    expect(shouldBootSample('?sample', 'unreadable')).toBe(false)
   })
 
   it('refuses when the URL does not ask', () => {

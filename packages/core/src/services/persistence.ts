@@ -33,12 +33,22 @@
  * Every write is TOTAL: a storage that throws (quota, private browsing) yields
  * `refused`, never an exception — losing a save must not take the editor down
  * with it.
+ *
+ * SO IS EVERY READ, and for a blunter reason: in a browser where storage is
+ * blocked outright (third-party cookies off, restricted contexts) it is the
+ * `getItem` ITSELF that raises `SecurityError`, not just the write. Unguarded,
+ * that exception travels up through the boot and the editor never mounts —
+ * the application dies of a feature it can perfectly well live without. Every
+ * touch of the storage below therefore goes through {@link readKey} or
+ * {@link dropKey}, and a storage that refuses to be read yields the explicit
+ * `unavailable` verdict the interface can say out loud.
  */
 
 import type { Portfolio } from '../model/portfolio'
-import type { DomainEvent } from '../events'
 import { HISTORY_LIMIT, emptyHistory, type History } from '../events/history'
-import { IMPORT_MAX_CHARS, parsePortfolio, type ReadOutcome } from './parse'
+import { MAX_CHARS } from '../model/budget'
+import { parsePortfolio, type ReadOutcome } from './parse'
+import { decodeHistory } from './stored-events'
 
 /* ------------------------------ interfaces ------------------------------ */
 
@@ -72,6 +82,35 @@ export type Scheduler = (action: () => void, delayMs: number) => Cancel
  */
 export type WatchStored = (onChange: () => void) => Cancel
 
+/* ----------------------------- total access ----------------------------- */
+
+/**
+ * What reading one key yielded: its value (`null` for an absent key), or
+ * NOTHING AT ALL because the storage refused the call. The second case is not
+ * "the key is absent" and must never be mistaken for it — an absent key is a
+ * licence to write, a storage that will not answer is not.
+ */
+type KeyRead = { readonly ok: true; readonly value: string | null } | { readonly ok: false }
+
+/** The one read of this module — total over a storage that throws. */
+const readKey = (storage: KeyValueStorage, key: string): KeyRead => {
+  try {
+    return { ok: true, value: storage.getItem(key) }
+  } catch {
+    return { ok: false }
+  }
+}
+
+/** The one removal of this module — total, and silent about its own failure:
+ * a key that could not be removed could not have been written either. */
+const dropKey = (storage: KeyValueStorage, key: string): void => {
+  try {
+    storage.removeItem(key)
+  } catch {
+    /* a storage that refuses removal refuses writing too — nothing to undo */
+  }
+}
+
 /* ----------------------------- keys & flags ----------------------------- */
 
 /** localStorage key of the opt-out preference — NOT erased by `clearStored`:
@@ -93,9 +132,13 @@ export const STATE_KEY = 'project-review/state'
  */
 export const STATE_FORMAT = 1
 
-/** On unless explicitly switched off — the historic behaviour is the default. */
-export const loadPersistEnabled = (storage: KeyValueStorage): boolean =>
-  storage.getItem(PREF_KEY) !== 'off'
+/** On unless explicitly switched off — the historic behaviour is the default,
+ * and a storage that will not even be read keeps it: whether saving is WANTED
+ * is a preference, whether it is POSSIBLE is `readStored`'s verdict. */
+export const loadPersistEnabled = (storage: KeyValueStorage): boolean => {
+  const read = readKey(storage, PREF_KEY)
+  return !read.ok || read.value !== 'off'
+}
 
 /** `false` when the storage refuses the write. */
 export const savePersistEnabled = (storage: KeyValueStorage, enabled: boolean): boolean => {
@@ -137,14 +180,21 @@ const isRevision = (value: unknown): value is Revision =>
  */
 const REVISION_HEAD = /^\{"format":(\d+),"revision":(\d+),/
 
-/** What the storage holds, as a revision — the compare half of the swap. */
-export const storedRevision = (storage: KeyValueStorage): StoredRevision => {
-  const raw = storage.getItem(STATE_KEY)
+/** The revision the stored TEXT announces — the head regex, nothing else. */
+const revisionOf = (raw: string | null): StoredRevision => {
   if (raw === null) return null
   const head = REVISION_HEAD.exec(raw)
   if (head === null || Number(head[1]) !== STATE_FORMAT) return 'unreadable'
   const revision = Number(head[2])
   return isRevision(revision) ? revision : 'unreadable'
+}
+
+/** What the storage holds, as a revision — the compare half of the swap.
+ * A storage that refuses to be read is `'unreadable'`: not knowing what is in
+ * there is exactly the state in which nothing may be written over it. */
+export const storedRevision = (storage: KeyValueStorage): StoredRevision => {
+  const read = readKey(storage, STATE_KEY)
+  return read.ok ? revisionOf(read.value) : 'unreadable'
 }
 
 /* ------------------------- reading the envelope ------------------------- */
@@ -158,15 +208,20 @@ export type StateRefusal =
   Extract<ReadOutcome, { ok: false }> | { readonly ok: false; readonly refusal: 'unknownFormat' }
 
 /**
- * What the storage holds, as a VERDICT — the three cases a startup must tell
- * apart, and the reason there is no fourth "just start empty" one:
+ * What the storage holds, as a VERDICT — the four cases a startup must tell
+ * apart, and the reason there is no fifth "just start empty" one:
  *  - `absent` — nothing stored; a first run, or a cleared one;
  *  - `restored` — an envelope that honors the contract, with the revision it
  *    carries: the caller writes against THAT revision from then on;
  *  - `unreadable` — an envelope IS there and cannot be opened: the caller gets
  *    the stored bytes back (`raw`, offered to the user as-is) and the
  *    exhaustive `refusal`, and must NOT write anything over it until a person
- *    has decided (see the app's persistence control).
+ *    has decided (see the app's persistence control);
+ *  - `unavailable` — there is no storage to speak of: the browser refuses the
+ *    API itself, or the host handed none over. NOTHING will ever be saved
+ *    here, which is a fact the interface must state rather than mime a save
+ *    state nobody honours. It is kept apart from `absent` because `absent`
+ *    invites a write and this one forbids it forever.
  */
 export type StoredState =
   | { readonly state: 'absent' }
@@ -177,41 +232,7 @@ export type StoredState =
       readonly history: History
     }
   | { readonly state: 'unreadable'; readonly raw: string; readonly refusal: StateRefusal }
-
-const isEventList = (x: unknown): x is readonly DomainEvent[] =>
-  Array.isArray(x) &&
-  x.every(
-    (e) =>
-      typeof e === 'object' && e !== null && typeof (e as { type?: unknown }).type === 'string',
-  )
-
-/**
- * Per-variant shape guard, on top of the shallow `type` check: a
- * `PortfolioReplaced` carries two WHOLE portfolios that `apply`/`invert` will
- * install verbatim, so both sides must still satisfy the data contract —
- * anyone can hand-edit localStorage. Replayed through the same strict parse an
- * imported file goes through; the other variants stay under the format stamp
- * plus `apply`'s totality (they touch one aggregate at a time, never install
- * a whole portfolio).
- */
-const isSoundEvent = (e: DomainEvent): boolean =>
-  e.type !== 'PortfolioReplaced' || (parsePortfolio(e.before).ok && parsePortfolio(e.after).ok)
-
-/**
- * The undo/redo log an envelope carries, or `emptyHistory` when it is
- * misshapen or carries an event that fails its variant guard. DROPPED IN
- * SILENCE, and only it: the portfolio in the same envelope has just passed the
- * strict parse and is perfectly good — losing undo steps is not losing the
- * document, and refusing the whole envelope over them would cost the user far
- * more than it protects.
- */
-const readHistory = (value: unknown): History => {
-  if (typeof value !== 'object' || value === null) return emptyHistory
-  const { past, future } = value as { past?: unknown; future?: unknown }
-  if (!isEventList(past) || !isEventList(future)) return emptyHistory
-  if (![...past, ...future].every(isSoundEvent)) return emptyHistory
-  return { past, future }
-}
+  | { readonly state: 'unavailable' }
 
 /**
  * Reads the stored envelope: size cap, JSON, format stamp and revision, then
@@ -219,10 +240,13 @@ const readHistory = (value: unknown): History => {
  * — same strict contract, same exhaustive report). The log rides along in the
  * same bytes, so it can only ever describe the portfolio next to it.
  */
-export const readStored = (storage: KeyValueStorage): StoredState => {
-  const raw = storage.getItem(STATE_KEY)
+export const readStored = (storage: KeyValueStorage | null): StoredState => {
+  if (storage === null) return { state: 'unavailable' }
+  const read = readKey(storage, STATE_KEY)
+  if (!read.ok) return { state: 'unavailable' }
+  const raw = read.value
   if (raw === null) return { state: 'absent' }
-  if (raw.length > IMPORT_MAX_CHARS) {
+  if (raw.length > MAX_CHARS) {
     return { state: 'unreadable', raw, refusal: { ok: false, refusal: 'tooLarge' } }
   }
   let envelope: unknown
@@ -249,7 +273,10 @@ export const readStored = (storage: KeyValueStorage): StoredState => {
     state: 'restored',
     revision,
     portfolio: parsed.portfolio,
-    history: readHistory(history),
+    // The log is decoded variant by variant (`stored-events.ts`) and dropped
+    // whole if any part of it fails: stored events are ordinary text, and one
+    // that reached `invert` misshapen would crash the first Undo.
+    history: decodeHistory(history),
   }
 }
 
@@ -286,27 +313,48 @@ export const writeState = (
   portfolio: Portfolio,
   history: History,
 ): WriteOutcome => {
-  if (storedRevision(storage) !== expected) return { outcome: 'conflict' }
+  const read = readKey(storage, STATE_KEY)
+  // A storage that will not be READ cannot be compared against, and a write
+  // that skips the comparison is the blind overwrite this module exists to
+  // prevent. `refused`, not `conflict`: no other document is involved — this
+  // storage simply does not answer, and the caller must say so, not blame a
+  // second tab that does not exist.
+  if (!read.ok) return { outcome: 'refused' }
+  if (revisionOf(read.value) !== expected) return { outcome: 'conflict' }
   const revision = (expected ?? 0) + 1
   // `format` and `revision` first: `storedRevision` reads them off the head of
   // this very text without parsing the document that follows.
-  const envelope = {
-    format: STATE_FORMAT,
-    revision,
-    portfolio,
-    history: { past: history.past.slice(-HISTORY_LIMIT), future: history.future },
-  }
+  const envelope = (log: History): string =>
+    JSON.stringify({
+      format: STATE_FORMAT,
+      revision,
+      portfolio,
+      history: { past: log.past.slice(-HISTORY_LIMIT), future: log.future },
+    })
+
+  // NOTHING IS WRITTEN THAT THE NEXT BOOT WOULD REFUSE TO READ. The portfolio
+  // is inside the memory budget by the time it gets here (the command gate
+  // weighs every growing command on the projected state) — the LOG is not:
+  // five hundred `PortfolioReplaced` steps carry a thousand whole portfolios,
+  // and the envelope can pass the ceiling on its own. So the document is tried
+  // WITHOUT its log rather than not at all: losing undo steps is not losing
+  // the document, and the same trade is already the one `decodeHistory` makes
+  // on the way in.
+  let text = envelope(history)
+  if (text.length > MAX_CHARS) text = envelope(emptyHistory)
+  if (text.length > MAX_CHARS) return { outcome: 'refused' }
   try {
-    storage.setItem(STATE_KEY, JSON.stringify(envelope))
+    storage.setItem(STATE_KEY, text)
     return { outcome: 'written', revision }
   } catch {
     return { outcome: 'refused' }
   }
 }
 
-/** Erases the saved document; the opt-out preference itself stays. */
+/** Erases the saved document; the opt-out preference itself stays. Total: a
+ * storage that refuses the removal refuses the write that put it there. */
 export const clearStored = (storage: KeyValueStorage): void => {
-  storage.removeItem(STATE_KEY)
+  dropKey(storage, STATE_KEY)
 }
 
 /* -------------------------------- debounce ------------------------------- */

@@ -21,7 +21,7 @@ The MIT license covers the software and the assets distributed with it. Logos, f
 ## Svelte 5.57.0
 
 - **License**: MIT
-- **Copyright**: Copyright (c) 2016-2025 Svelte Contributors
+- **Copyright**: Copyright (c) 2016-2025 [Svelte Contributors](https://github.com/sveltejs/svelte/graphs/contributors)
 - **Used for**: the component runtime the whole interface compiles onto
 - **Home**: <https://svelte.dev>
 
@@ -43,10 +43,61 @@ The MIT license covers the software and the assets distributed with it. Logos, f
 ## shadcn-svelte 1.6.1
 
 - **License**: MIT
-- **Copyright**: Copyright (c) 2023 Hunter Johnston <https://github.com/huntabyte>, Copyright (c) 2023 CokaKoala <https://github.com/adriangonz97>
+- **Copyright**: Copyright (c) 2023 Hunter Johnston <https://github.com/huntabyte>, Copyright (c) 2023 CokaKoala <https://github.com/adriangonz97>, Copyright (c) 2023 shadcn
 - **Used for**: the interface primitives, VENDORED into the source tree and adapted
 - **Home**: <https://www.shadcn-svelte.com>
-- **Note**: Vendored, not depended upon: the sources live in this repository (packages/components/src/commons/ui/) and were edited locally. The notice follows the code, wherever it lives.
+- **Note**: Vendored AND depended upon: the primitives were fetched with the CLI into packages/components/src/commons/ui/ and edited locally, and the package also ships dist/tailwind.css, which the components tokens.css imports. The upstream licence sits next to the vendored sources (commons/ui/LICENSE.md) — a link to someone else’s repository is not a copy of anything.
+
+## @floating-ui/dom 1.8.0
+
+- **License**: MIT
+- **Copyright**: Copyright (c) 2021-present Floating UI contributors
+- **Used for**: the positioning of the menus, selects and tooltips, under bits-ui
+- **Home**: <https://floating-ui.com>
+- **Note**: Reaches the deliverable through bits-ui, with @floating-ui/core and @floating-ui/utils (same licence, same holder, same version family): three packages, one notice, because they are one project.
+
+## tabbable 6.5.0
+
+- **License**: MIT
+- **Copyright**: Copyright (c) 2015 David Clark
+- **Used for**: the focus order the dialogs and menus trap, under bits-ui
+- **Home**: <https://github.com/focus-trap/tabbable>
+
+## runed 0.35.1
+
+- **License**: MIT
+- **Copyright**: Copyright (c) 2024 Hunter Johnston <https://github.com/huntabyte>, Copyright (c) 2024 Thomas G. Lopes <https://github.com/tglide>
+- **Used for**: the reactive utilities bits-ui builds its primitives on
+- **Home**: <https://runed.dev>
+
+## svelte-toolbelt 0.10.6
+
+- **License**: MIT
+- **Copyright**: Copyright (c) 2024 Hunter Johnston <https://github.com/huntabyte>, Copyright (c) 2024 Thomas G. Lopes <https://github.com/tglide>
+- **Used for**: the box/ref helpers bits-ui passes its elements through
+- **Home**: <https://github.com/huntabyte/svelte-toolbelt>
+- **Note**: The package declares NO license field at all; the file it ships is MIT. The file governs — a tool reading the metadata alone would report this one unknown, and it is in the bundle.
+
+## style-to-object 1.0.14
+
+- **License**: MIT
+- **Copyright**: Copyright (c) 2017 Menglin "Mark" Xu <mark@remarkablemark.org>
+- **Used for**: inline-style parsing inside the vendored primitives, with inline-style-parser
+- **Home**: <https://github.com/remarkablemark/style-to-object>
+
+## inline-style-parser 0.2.7
+
+- **License**: MIT
+- **Copyright**: Copyright (c) 2012 TJ Holowaychuk <tj@vision-media.ca>
+- **Used for**: the parser under style-to-object
+- **Home**: <https://github.com/remarkablemark/inline-style-parser>
+
+## esm-env 1.2.2
+
+- **License**: MIT
+- **Copyright**: Copyright 2022 Benjamin McCann
+- **Used for**: the build-time environment flags Svelte and runed compile against
+- **Home**: <https://github.com/benmccann/esm-env>
 
 ## tailwind-merge 3.6.0
 
@@ -95,7 +146,7 @@ The MIT license covers the software and the assets distributed with it. Logos, f
 ## Roboto @fontsource/roboto 5.3.0
 
 - **License**: SIL Open Font License 1.1
-- **Copyright**: Copyright 2011 The Roboto Project Authors (https://github.com/googlefonts/roboto-classic)
+- **Copyright**: Copyright 2011 The Roboto Project Authors (https://github.com/googlefonts/roboto-classic) Roboto-Italic[wdth,wght].ttf: Copyright 2011 The Roboto Project Authors (https://github.com/googlefonts/roboto-classic)
 - **Used for**: the default typeface — woff2 files embedded in the deliverable
 - **Home**: <https://github.com/googlefonts/roboto-classic>
 - **Note**: The OFL requires this notice and the license text to travel with the font files, which they do here. No Reserved Font Name is declared, and the font is not sold on its own — the two things the OFL forbids.
@@ -103,7 +154,7 @@ The MIT license covers the software and the assets distributed with it. Logos, f
 ## Inter @fontsource/inter 5.3.0
 
 - **License**: SIL Open Font License 1.1
-- **Copyright**: Copyright 2016 The Inter Project Authors (https://github.com/rsms/inter)
+- **Copyright**: Copyright 2016 The Inter Project Authors (https://github.com/rsms/inter) Inter-Italic[opsz,wght].ttf: Copyright 2016 The Inter Project Authors (https://github.com/rsms/inter)
 - **Used for**: the second bundled typeface — woff2 files embedded in the deliverable
 - **Home**: <https://rsms.me/inter/>
 - **Note**: Same OFL terms as Roboto above.

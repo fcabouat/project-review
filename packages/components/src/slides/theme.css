@@ -56,7 +56,7 @@
   background: var(--cat, var(--accent));
 }
 .rail-text {
-  color: #fff;
+  color: var(--plane-ink);
 }
 
 .slide-heading {
@@ -117,6 +117,62 @@
   --cat-ink: oklch(from var(--cat, var(--accent)) min(l, 0.5) calc(c * 0.5 / max(l, 0.5)) h);
 }
 
+/* THE INK ON A COLOURED PLANE — the other half of the same idea, and the one
+   the tinted-text pass deliberately left. `--cat-ink` answers "what colour
+   writes ON WHITE"; this answers "what colour writes ON THE TINT ITSELF",
+   where the ground is the hue and the glyph has nowhere to hide.
+
+   THE PLANE NAMES ITSELF. `--plane` is whatever colour the surface actually
+   paints — the category tint by default, a level field where a band declares
+   one (`--err`, `--ok`, `--warn`…). It is declared on `.slide` and INHERITED,
+   so a band re-declares it once and every glyph inside re-derives from it.
+
+   THE RULE, in one line, and it is the WCAG computation itself: the origin
+   colour is read in `srgb-linear`, where r/g/b are linear-light, so
+   0.2126r + 0.7152g + 0.0722b IS the relative luminance. Below the crossover
+   the ink is white, above it black; the `* 100000` turns the comparison into a
+   step and `clamp()` snaps it to 0 or 1 on all three channels at once.
+
+   WHY THE CROSSOVER IS 0.1791. White clears 4.5:1 up to L 0.1833, black from
+   L 0.175; the two curves cross at L 0.1791, where both stand at 4.58:1. So
+   ONE of black and white always clears the text threshold, whatever the hue —
+   there is no ground this derivation cannot write on, which is why nothing
+   below needs a per-palette exception. Measured in Chrome over the 48 grounds
+   the deck can paint (36 palette hues, the grey sentinel, the three theme
+   accents, the eight level fields): floor 4.60:1, worst case Material blue.
+
+   THE SECOND LEVEL, and its LIMIT. `--plane-ink-2` is the same ink at 75 %
+   over the plane, for the graded lines the compositions are built on. On the
+   three theme accents — fixed colours, so the figure is a fact — it holds
+   5.79:1 or better. On a CATEGORY tint it falls to 3.22:1: that is the LARGE
+   text threshold, not the text one, so on a tint it may only carry large text.
+   Small text on a tint takes the full ink; its hierarchy comes from size and
+   weight, which the compositions already carry.
+
+   The `@supports` gate keeps the fallback honest rather than clever: a browser
+   without relative colour syntax gets the historic white, which is what it
+   rendered before — never an unset colour on a coloured plane. */
+.slide {
+  --plane: var(--cat, var(--accent));
+}
+.slide,
+.slide * {
+  --plane-ink: #fff;
+  --plane-ink-2: rgba(255, 255, 255, 0.75);
+}
+@supports (color: color(from red srgb-linear r g b)) {
+  .slide,
+  .slide * {
+    --plane-ink: color(
+      from var(--plane) srgb-linear
+        clamp(0, (0.1791 - (0.2126 * r + 0.7152 * g + 0.0722 * b)) * 100000, 1)
+        clamp(0, (0.1791 - (0.2126 * r + 0.7152 * g + 0.0722 * b)) * 100000, 1)
+        clamp(0, (0.1791 - (0.2126 * r + 0.7152 * g + 0.0722 * b)) * 100000, 1)
+    );
+    --plane-ink-2: color-mix(in srgb, var(--plane-ink) 75%, transparent);
+  }
+}
+
 /* category pill and id chip: the readable ink on the EXACT tint at 12 % over white */
 .pill,
 .id-chip {
@@ -138,8 +194,9 @@
 /* ---------- tables ------------------------------------------------------- */
 
 .table th {
+  --plane: var(--accent);
   background: var(--accent);
-  color: #fff;
+  color: var(--plane-ink);
 }
 .table td {
   color: var(--txt2);
@@ -308,6 +365,25 @@
 
 /* ---------- title slide -------------------------------------------------- */
 
+/* THE ONE FRAME THAT USED TO OVERLAP ITS NEIGHBOUR. Every other slide is
+   `overflow: hidden` and CLIPS what does not fit; the cover's headline sits
+   above absolutely-positioned blocks, so a long one did not clip — it ran over
+   the indicator row and the signature. Measured: 72 characters reach the
+   indicators in `institutional` and `modern` (the audit reported 240, which is
+   the `flat` figure — the other two give way three times earlier).
+   Three lines is what the composition holds between the top inset and the
+   indicators (3 x 59 px + the sub-line, inside 259 px), so the headline is
+   clamped there and the slide degrades the way every other one does: it
+   truncates in its own frame. The editor says so at the same figure
+   (`TEXT_CAPACITY.reviewTitle`, core's model/budget.ts). */
+.slide h1 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+}
+
 .title-left {
   background: #fff;
 }
@@ -315,51 +391,64 @@
   color: var(--accent);
 }
 .title-right {
+  --plane: var(--accent);
   background: var(--accent);
-  color: #fff;
+  color: var(--plane-ink);
 }
+/* The graded lines of the cover: the second level, which the accent — a fixed
+   colour per theme — carries at 5.79:1 or better (theme.css, the derivation). */
 .title-sub {
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--plane-ink-2);
 }
 .title-sign {
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--plane-ink-2);
 }
 .title-contact {
-  /* 0.66, not the historic 0.5: the composited ink sat at 4.07:1 on the
-     accent field — under the 4.5:1 text threshold (v0.5 AA ink pass). */
-  color: rgba(255, 255, 255, 0.66);
+  color: var(--plane-ink-2);
 }
 .kpi {
-  border-top: 1px solid rgba(255, 255, 255, 0.28);
+  border-top: 1px solid color-mix(in srgb, var(--plane-ink) 28%, transparent);
 }
 .kpi span {
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--plane-ink-2);
 }
 
 /* ---------- dividers ----------------------------------------------------- */
 
+/* The one plane the PALETTE paints, so every glyph on it takes the derived
+   ink: on the lighter tints of the two borrowed families that ink is dark, and
+   that is the point — the hue is a ground here, not a glyph. The count, the
+   list and its ids are small text and take the FULL ink; their hierarchy comes
+   from size and weight, which is where it belonged. */
 .slide--divider {
   background: var(--cat, var(--accent));
-  color: #fff;
+  color: var(--plane-ink);
 }
+/* Decorative: the divider's rank as a watermark, `aria-hidden` on the element
+   (SlideDivider.svelte) — the category name and count next to it say
+   everything the slide carries, and no other slide refers to the number. */
 .divider-numeral {
-  color: rgba(255, 255, 255, 0.12);
+  color: color-mix(in srgb, var(--plane-ink) 12%, transparent);
+}
+.divider-numeral::before,
+.flat-divider-num::before {
+  content: var(--numeral, '');
 }
 .divider-count {
-  color: rgba(255, 255, 255, 0.82);
+  color: var(--plane-ink);
 }
 .divider-list {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.28);
+  border-bottom: 1px solid color-mix(in srgb, var(--plane-ink) 28%, transparent);
 }
 .divider-list li {
-  color: rgba(255, 255, 255, 0.92);
-  border-top: 1px solid rgba(255, 255, 255, 0.28);
+  color: var(--plane-ink);
+  border-top: 1px solid color-mix(in srgb, var(--plane-ink) 28%, transparent);
 }
 .divider-list li b {
-  color: #fff;
+  color: var(--plane-ink);
 }
 .divider-list li.divider-more {
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--plane-ink);
 }
 
 /* ---------- project sheet — bands composition ---------------------------- */

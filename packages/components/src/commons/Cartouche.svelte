@@ -56,13 +56,13 @@
     text-decoration: none;
     color: var(--muted);
   }
-  .on-colored-bg b {
-    color: #fff;
-  }
-  .on-colored-bg i {
-    color: rgba(255, 255, 255, 0.85);
-  }
+  /* On a coloured ground the three lines are 13 / 12 / 11 px — all SMALL
+     text, so all three take the FULL derived ink (`--plane-ink`, slides'
+     theme.css). The graded whites they used to carry sat at 3.5-4.4:1 on half
+     the palette; the hierarchy is carried by size and weight instead. */
+  .on-colored-bg b,
+  .on-colored-bg i,
   .on-colored-bg u {
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--plane-ink);
   }
 </style>

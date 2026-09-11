@@ -44,8 +44,16 @@ export type Route =
 export interface PersistenceControl {
   readonly enabled: boolean
   /**
-   * The live save state, or `undefined` when nothing is being saved at all —
-   * the switch is off, or the host has no storage to write to.
+   * `false` when this browser offers NO storage at all — the access throws
+   * (blocked third-party storage, a restricted context) or there is none. The
+   * switch then governs nothing and says so instead of pretending; {@link save}
+   * reports the `unavailable` phase for as long as the app runs.
+   */
+  readonly available: boolean
+  /**
+   * The live save state, or `undefined` when the switch is off — the one case
+   * where nothing is being saved AND nothing needs saying. A host with no
+   * storage answers the `unavailable` phase here, permanently.
    */
   readonly save: SaveState | undefined
   readonly toggle: (enabled: boolean) => void

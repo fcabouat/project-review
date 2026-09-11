@@ -33,6 +33,22 @@ describe('parseRoute — total over any hash', () => {
     expect(parseRoute('#/REVIEW')).toEqual({ name: 'review' })
   })
 
+  it('defaults to review on a malformed percent escape', () => {
+    // `decodeURIComponent` throws on these; the router must not. A hash is
+    // hand-typed, pasted and forged alike, and a `URIError` here takes the
+    // whole application down before it has drawn a single screen.
+    const malformed = [
+      '#/sheet/%',
+      '#/sheet/%%',
+      '#/sheet/%zz',
+      '#/sheet/%E0%A4%A',
+      '#/sheet/%C3%28',
+      '#/sheet/P-01%',
+      '#/sheet/%ED%A0%80',
+    ]
+    for (const hash of malformed) expect(parseRoute(hash)).toEqual({ name: 'review' })
+  })
+
   it('round-trips every route through routeHash', () => {
     const routes: readonly Route[] = [
       { name: 'review' },
