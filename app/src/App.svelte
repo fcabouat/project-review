@@ -7,19 +7,20 @@
    * than one component; nothing below imports a store, a router or an
    * adapter.
    *
-   * Startup order: the localStorage snapshot is read through the strict parse
-   * (`readSnapshot`), which answers one of three things — and the three are
+   * Startup order: the stored envelope is read through the strict parse
+   * (`readStored`), which answers one of three things — and the three are
    * kept apart on purpose:
    *  - `absent`: a first run. Empty portfolio (identity pre-filled, no
    *    content), or the `?sample` set when the URL asks for it;
-   *  - `restored`: the portfolio runs, and with it the undo/redo history
-   *    stored alongside;
+   *  - `restored`: the portfolio runs, and with it the undo/redo history that
+   *    travelled in the same bytes — so the log can only ever describe the
+   *    document it is replayed against;
    *  - `unreadable`: data IS there and the format refuses it. The application
    *    starts on an empty portfolio it NEVER saves — the persistence control
    *    is built blocked — and shows the recovery screen instead of the editor,
-   *    so a person decides. A corrupted snapshot must not keep the app from
+   *    so a person decides. A corrupted document must not keep the app from
    *    starting; it must not be overwritten either.
-   * The snapshot is read whatever the local-save switch says: the switch
+   * The storage is read whatever the local-save switch says: the switch
    * governs writing, and the one thing that must never happen is writing over
    * something we could not read. The switch obeys the same rule on its own
    * account — turning the save back on re-reads the storage first (see
@@ -31,16 +32,15 @@
   import type { History } from '@project-review/core/events/history'
   import { isoDate, type IsoDate } from '@project-review/core/values/date'
   import {
-    loadHistory,
     loadPersistEnabled,
-    readSnapshot,
-    type StoredSnapshot,
+    readStored,
+    type StoredState,
   } from '@project-review/core/services/persistence'
   import PrintView from '@project-review/components/slideshow/PrintView.svelte'
   import { STANDALONE_REVEAL_OPTIONS } from '@project-review/components/slideshow/reveal-options'
   import Shell from '@project-review/components/screens/Shell.svelte'
   import RecoveryScreen from '@project-review/components/screens/RecoveryScreen.svelte'
-  import { defaultStorage } from '@project-review/infrastructure/local-storage'
+  import { defaultStorage, watchStored } from '@project-review/infrastructure/local-storage'
   import { timeoutScheduler } from '@project-review/infrastructure/scheduler'
   import {
     applyDeployedFont,
@@ -74,7 +74,7 @@
   /**
    * ONE multilingual artifact, no per-build stamp: the first boot (no stored
    * base) auto-detects — a browser announcing French gets fr, every other
-   * locale gets en. Afterwards the snapshot's language wins (it travels inside
+   * locale gets en. Afterwards the stored document's language wins (it travels inside
    * the portfolio), and `<html lang>` follows the setting reactively below.
    */
   function initialLanguage(): Language {
@@ -101,12 +101,13 @@
 
   /** The storage's verdict, read ONCE — the boot and the write guard below
    * both hang on it. No storage at all is the same case as nothing stored. */
-  const snapshot: StoredSnapshot = storage ? readSnapshot(storage) : { state: 'absent' }
+  const storedState: StoredState = storage ? readStored(storage) : { state: 'absent' }
 
   function initialState(): { portfolio: Portfolio; log?: History } {
-    if (storage && persistEnabled && snapshot.state === 'restored') {
-      // The history refers to THAT present: restored only together with it.
-      return { portfolio: snapshot.portfolio, log: loadHistory(storage) ?? undefined }
+    if (persistEnabled && storedState.state === 'restored') {
+      // One envelope: the log came out of the same bytes as the portfolio, so
+      // it cannot describe another document.
+      return { portfolio: storedState.portfolio, log: storedState.history }
     }
     // `?sample` — the landing's « Try it » link: a full demo on the first
     // click. `main.ts` already applied the whole policy (URL asks, nothing
@@ -119,15 +120,15 @@
   const store = createStore(initial.portfolio, initial.log)
   const router = createRouter()
   // The wiring receives the storage's verdict itself: built BLOCKED on an
-  // unreadable snapshot (every write disarmed until the recovery screen's
-  // explicit decision), and it re-reads the storage whenever the switch is
-  // turned back on — the same rule, at the one write path a boot cannot see.
+  // unreadable envelope (every write disarmed until the recovery screen's
+  // explicit decision), and carrying the stored REVISION — the value every
+  // later write compares against before it overwrites anything.
   const persistence = createPersistenceControl(
     store,
     storage,
     persistEnabled,
     timeoutScheduler,
-    snapshot,
+    storedState,
   )
   const appearance = createAppearance(storage)
   const systemDark = new MediaQuery('(prefers-color-scheme: dark)')
@@ -149,16 +150,18 @@
   const exportStandalone = (slidesEl: HTMLElement, portfolio: Portfolio): Promise<void> =>
     saveStandalone(slidesEl, portfolio, STANDALONE_REVEAL_OPTIONS, loadEngineSource)
 
-  // Reads `present`, so it re-runs on every dispatch/undo/redo — debounced to
-  // 500 ms; the wiring re-checks the switch at fire time.
+  // Reads `present` AND both stacks, so it re-runs on every dispatch/undo/redo
+  // — debounced to 500 ms, and the portfolio and its log go out as ONE
+  // envelope; the wiring re-checks the switch and the stored revision at fire
+  // time.
   $effect(() => {
-    persistence.scheduleSnapshot(store.present)
+    persistence.scheduleSave(store.present, { past: store.past, future: store.future })
   })
 
-  // Same cadence for the history: past and future are plain event arrays.
-  $effect(() => {
-    persistence.scheduleHistory({ past: store.past, future: store.future })
-  })
+  // The other tab wrote: the browser says so on this very document. Hearing it
+  // turns a conflict into something the user is TOLD about, instead of
+  // something they discover at the next deadline.
+  $effect(() => watchStored(() => persistence.noticeStoredChange()))
 
   // Live font: reacts to settings.theme.font AND the embedded faces. Three
   // local sources, no third party ever (fonts.ts): the embedded rules go in

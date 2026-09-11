@@ -189,9 +189,22 @@ une police que vous avez choisi d'y servir (voir **Police** ci-dessus) ;
 ouverte depuis un fichier, l'application n'en fait aucune.
 
 - **Sauvegarde locale (localStorage)** — active par défaut. La base et
-  l'historique annuler/rétablir survivent au rechargement de la page. La
-  désactiver efface les clés enregistrées ; la base ouverte reste intacte
+  l'historique annuler/rétablir sont enregistrés ENSEMBLE, sous une seule clé :
+  un « annuler » ne peut donc jamais être rejoué sur un document auquel il
+  n'appartient pas. Les deux survivent au rechargement de la page. La
+  désactiver efface la copie enregistrée ; la base ouverte reste intacte
   jusqu'à la fermeture de l'onglet.
+- **L'état de la sauvegarde, toujours affiché** — une ligne sous la barre du
+  haut dit où en est le document : enregistré dans ce navigateur, modifications
+  non enregistrées, ou problème. Si le navigateur refuse l'écriture — stockage
+  plein, navigation privée, profil restreint — la ligne le dit et propose
+  immédiatement **Télécharger une copie**. Votre travail n'est jamais perdu
+  faute d'un enregistrement dont personne ne vous aurait parlé.
+- **Deux onglets de l'application** — ils partagent un seul stockage. Si un
+  autre onglet enregistre pendant que le vôtre est ouvert, le vôtre le signale
+  aussitôt et n'écrit RIEN par-dessus : vous choisissez entre charger la
+  version de l'autre onglet (annulable) et garder la vôtre. Rien n'est jamais
+  fusionné à votre insu.
 - **Purger la base** — vide catégories, projets et slides libres ; la revue et
   les paramètres sont conservés. Annulable.
 - **Réinitialiser les réglages** — retour au thème et à l'affichage par

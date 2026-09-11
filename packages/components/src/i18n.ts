@@ -416,7 +416,7 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
     fr: `La base et l'historique annuler/rétablir survivent au rechargement de la page.`,
     en: 'The database and the undo/redo history survive a page reload.',
   },
-  /* Turning the save back ON found a readable snapshot already stored: the
+  /* Turning the save back ON found a readable document already stored: the
      switch wrote nothing and asks. The three answers are the dialog's. */
   'editor.data.restoreTitle': {
     fr: 'Une sauvegarde existe déjà dans ce navigateur',
@@ -456,6 +456,37 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
     fr: `Chaque action ci-dessus reste annulable (Ctrl+Z).`,
     en: 'Each action above stays undoable (Ctrl+Z).',
   },
+
+  /* ---- the save state, permanently on screen (`SaveStateBar.svelte`) ----
+     One entry per `SavePhase`. The two that need a person say what happened
+     AND what can be done about it — never «an error occurred». */
+  'editor.save.aria': {
+    fr: 'État de la sauvegarde locale',
+    en: 'Local save state',
+  },
+  'editor.save.dirty': {
+    fr: 'Modifications non enregistrées',
+    en: 'Unsaved changes',
+  },
+  'editor.save.saving': { fr: 'Enregistrement…', en: 'Saving…' },
+  'editor.save.saved': {
+    fr: 'Enregistré dans ce navigateur',
+    en: 'Saved in this browser',
+  },
+  'editor.save.error': {
+    fr: `Échec de l'enregistrement local${NBSP}: ce document n'existe que dans cet onglet. Téléchargez-en une copie.`,
+    en: 'Local save failed: this document exists only in this tab. Download a copy of it.',
+  },
+  'editor.save.download': { fr: 'Télécharger une copie', en: 'Download a copy' },
+  'editor.save.conflict': {
+    fr: `Un autre onglet a enregistré une version différente${NBSP}; rien n'a été écrasé. Choisissez laquelle garder.`,
+    en: 'Another tab saved a different version; nothing was overwritten. Choose which one to keep.',
+  },
+  'editor.save.takeStored': {
+    fr: `Charger la version de l'autre onglet`,
+    en: "Load the other tab's version",
+  },
+  'editor.save.keepMine': { fr: 'Garder cette version', en: 'Keep this version' },
 
   'editor.settings.logoUnreadable': {
     fr: 'Fichier illisible ou format non reconnu.',
@@ -644,6 +675,12 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
     fr: `Fichier trop volumineux (plus de 10${NBSP}Mo) — ce n'est pas un portefeuille.`,
     en: 'File too large (over 10 MB) — not a portfolio.',
   },
+  /* The stored envelope carries its own format stamp: an envelope this build
+     cannot open is refused whole rather than half-read (recovery screen). */
+  'editor.error.unknownFormat': {
+    fr: `Les données enregistrées ne sont pas dans un format que cette version sait ouvrir.`,
+    en: 'The saved data is not in a format this version can open.',
+  },
 
   /* ------------ strict-parse errors (`{ path, code, params }`) ------------ */
   /* One entry per `ParseErrorCode` of the core parse/ — the parse names what
@@ -732,7 +769,7 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
     en: 'The review date cannot be empty: YYYY-MM-DD expected.',
   },
 
-  /* ---- recovery screen: a stored snapshot the app could not read back ---- */
+  /* ---- recovery screen: a stored document the app could not read back ---- */
   /* Said plainly, and in this order: what happened, that nothing was lost,
      then the two choices — the destructive one last and never pre-selected. */
   'editor.recovery.title': {

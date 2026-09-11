@@ -1,30 +1,45 @@
 /**
  * Wiring between the store and the persistence policy: the local-save switch
- * (Settings ▸ Data), the debounced snapshot/history saves and their failure
- * funnel. The policy itself is the core's (`services/persistence`); the
- * storage and the scheduler are whatever the caller injects — the browser
- * adapters in production, in-memory doubles in tests. Extracted from
- * `App.svelte` so the shell only mounts views; the `$effect`s that feed
- * `schedule*` stay in the component that owns the store.
+ * (Settings ▸ Data), the debounced save of the whole envelope, the live save
+ * state the shell shows, and the two questions only a person can answer. The
+ * policy itself is the core's (`services/persistence`); the storage and the
+ * scheduler are whatever the caller injects — the browser adapters in
+ * production, in-memory doubles in tests. Extracted from `App.svelte` so the
+ * shell only mounts views; the `$effect` that feeds `scheduleSave` stays in
+ * the component that owns the store.
  *
- * THE INVARIANT THIS MODULE OWNS, AND IT HAS NO EXCEPTION — the persistence
- * NEVER writes over a snapshot it has not read back. Every write path is
- * covered by it, the switch included:
- *  - built on an `unreadable` snapshot, the wiring starts BLOCKED: the two
- *    debounced saves, the pagehide flush and the switch itself are all
+ * THE FIRST INVARIANT, AND IT HAS NO EXCEPTION — the persistence NEVER writes
+ * over a document it has not read back. Every write path is covered by it, the
+ * switch included:
+ *  - built on an `unreadable` envelope, the wiring starts BLOCKED: the
+ *    debounced save, the pagehide flush and the switch itself are all
  *    disarmed, and only an explicit human decision —
  *    {@link PersistenceWiring.discard}, the recovery screen's «start empty» —
  *    lifts it;
  *  - turning the save back ON is itself a write over whatever the storage
  *    holds, so it READS FIRST ({@link PersistenceControl.toggle}): an
- *    unreadable snapshot blocks the wiring there and then (the recovery
+ *    unreadable envelope blocks the wiring there and then (the recovery
  *    screen takes over, exactly as at boot), a readable one is offered for
  *    restoration and nothing is written until a person answers.
  * The rule lives here, in the control, rather than in a branch of the mounting
  * component, because a branch protects one call site while the invariant must
- * hold for every one of them: the cause of the state found in the storage (a
- * value the format refuses, a truncating quota, a hand-edited store, a save
- * switched off for a while, a format that moves on) is irrelevant to it.
+ * hold for every one of them.
+ *
+ * THE SECOND INVARIANT — no write outcome is ever lost, and none speaks for
+ * another. The document carries a REVISION (`edit`, bumped by every change);
+ * a save attempt names the revision it is writing, and its verdict is filed
+ * against THAT revision ({@link SaveState}). A success therefore acknowledges
+ * only the state it actually wrote: it cannot clear the failure of a state it
+ * never carried, and a later edit cannot inherit an earlier success.
+ *
+ * THE THIRD INVARIANT — two tabs share one storage, so every write is a
+ * compare-and-swap on the stored revision (`writeState`). A `conflict` writes
+ * nothing, says so, and waits: {@link PersistenceControl.takeStored} loads the
+ * other tab's document (undoable), {@link PersistenceControl.keepMine}
+ * replaces it with this one. Nothing merges by itself. The host's `storage`
+ * subscription feeds {@link PersistenceWiring.noticeStoredChange}, which
+ * raises the same conflict as soon as the other tab writes, rather than at the
+ * next deadline.
  */
 
 import type { Portfolio } from '@project-review/core/model/portfolio'
@@ -33,44 +48,47 @@ import {
   SAVE_DELAY_MS,
   clearStored,
   debounce,
-  readSnapshot,
-  save as saveNow,
-  saveHistory,
+  readStored,
+  storedRevision,
+  writeState,
   savePersistEnabled,
   type KeyValueStorage,
+  type Revision,
   type Scheduler,
-  type SnapshotRefusal,
-  type StoredSnapshot,
+  type StateRefusal,
+  type StoredState,
 } from '@project-review/core/services/persistence'
-import type { PersistenceControl } from '@project-review/components/screens/contracts'
+import type { PersistenceControl, SaveState } from '@project-review/components/screens/contracts'
 import type { Store } from './runtime.svelte'
 
-/** A snapshot the format refuses, with the bytes the recovery screen hands back. */
-export interface UnreadableSnapshot {
+/** A stored document the format refuses, with the bytes the recovery screen hands back. */
+export interface UnreadableState {
   readonly raw: string
-  readonly refusal: SnapshotRefusal
+  readonly refusal: StateRefusal
 }
 
 export interface PersistenceWiring {
-  /** The Settings switch: off erases the stored keys, on writes right away. */
+  /** The Settings switch, the save state and the decisions — the UI contract. */
   readonly control: PersistenceControl
-  /** Debounced snapshot save — feed it from an effect reading `store.present`. */
-  readonly scheduleSnapshot: (portfolio: Portfolio) => void
-  /** Same cadence for the history: past and future are plain event arrays. */
-  readonly scheduleHistory: (history: History) => void
+  /** Debounced save of the whole envelope — feed it from an effect reading
+   * `store.present` and the two stacks. */
+  readonly scheduleSave: (portfolio: Portfolio, history: History) => void
   /** 'pagehide' hook: fires anything still pending, now. */
   readonly flush: () => void
-  /** `true` while a stored snapshot the app could not read is still there and
+  /** The host's `storage` subscription calls this when ANOTHER document wrote:
+   * the pending save is disarmed and a conflict raised, before this tab has
+   * had the chance to overwrite anything. */
+  readonly noticeStoredChange: () => void
+  /** `true` while a stored document the app could not read is still there and
    * no one has decided its fate: not one byte is written in this state. */
   readonly blocked: boolean
-  /** The unreadable snapshot itself while {@link blocked} — what the recovery
-   * screen renders. Found at boot, or by the switch when it read the storage. */
-  readonly unreadable: UnreadableSnapshot | undefined
+  /** The unreadable envelope itself while {@link blocked} — what the recovery
+   * screen renders. Found at boot, or later by a path that read the storage. */
+  readonly unreadable: UnreadableState | undefined
   /**
    * The one way out of `blocked`, and it is a PERSON's decision: abandon the
-   * unreadable snapshot (erased, history included — it described a document
-   * that was never loaded) and let the saves resume. Called by the recovery
-   * screen's « start empty », never automatically.
+   * unreadable envelope (erased) and let the saves resume. Called by the
+   * recovery screen's « start empty », never automatically.
    */
   readonly discard: () => void
 }
@@ -78,9 +96,9 @@ export interface PersistenceWiring {
 /**
  * Builds the wiring around one store and one storage. `initiallyEnabled` comes
  * from `loadPersistEnabled` — read by the caller BEFORE building the store,
- * since it decides whether the snapshot is even loaded — and `stored` is the
- * verdict `readSnapshot` gave on that same boot, so the wiring starts in the
- * state the storage is actually in.
+ * since it decides whether the stored document is even loaded — and `stored`
+ * is the verdict `readStored` gave on that same boot, so the wiring starts in
+ * the state the storage is actually in, revision included.
  */
 export const createPersistenceControl = (
   store: Store,
@@ -89,72 +107,119 @@ export const createPersistenceControl = (
   schedule: Scheduler,
   /** What the storage held at boot. `unreadable` starts the wiring blocked
    * and stays that way until {@link PersistenceWiring.discard}. */
-  stored: StoredSnapshot = { state: 'absent' },
+  stored: StoredState = { state: 'absent' },
 ): PersistenceWiring => {
   let enabled = $state(initiallyEnabled)
-  let unreadable = $state<UnreadableSnapshot | undefined>(
+  let unreadable = $state<UnreadableState | undefined>(
     stored.state === 'unreadable' ? { raw: stored.raw, refusal: stored.refusal } : undefined,
   )
-  /** The readable snapshot the switch found on its way ON — a decision is
+  /** The readable document the switch found on its way ON — a decision is
    * pending and NOTHING has been written yet. */
   let offered = $state<Portfolio | undefined>(undefined)
-  let saveError = $state<string | null>(null)
+
+  /** The revision this tab believes the storage holds — the COMPARE half of
+   * every compare-and-swap. `null` means "nothing was there". */
+  let base: Revision | null = stored.state === 'restored' ? stored.revision : null
+  /**
+   * The revision of the document IN THIS TAB: one per recorded change.
+   * Deliberately NOT reactive. It is bumped by `scheduleSave`, which the host
+   * calls from an effect — and `edit += 1` READS it, so a rune here would make
+   * that effect depend on the very value it writes (an update loop Svelte
+   * rightly refuses). What the screen reads is `status`, which carries the
+   * revision the verdict is about; this counter is bookkeeping.
+   */
+  let edit = 0
+  /** The verdict, and the revision it is about. Boot is honest about both: a
+   * document that came out of the storage is already saved, anything else is
+   * not stored yet. */
+  let status = $state<SaveState>({
+    revision: 0,
+    phase: stored.state === 'restored' ? 'saved' : 'dirty',
+  })
+  /**
+   * True until the mounting effect's FIRST, echoing call has been swallowed.
+   * That call carries the document the storage just handed over, so writing it
+   * back would store nothing new — and would announce to every other tab that
+   * this one changed something. Opening a second tab must not put the first
+   * one in conflict over a document the two agree on.
+   */
+  let bootEcho = stored.state === 'restored'
 
   const blocked = (): boolean => unreadable !== undefined
 
-  /** Funnel of every write outcome: last failure wins, next success clears it. */
-  const report = (ok: boolean): void => {
-    saveError = ok ? null : 'localStorage'
+  /**
+   * One write attempt, start to finish. The verdict is filed against the
+   * revision that was actually attempted — never against a later one.
+   */
+  const write = (portfolio: Portfolio, history: History): void => {
+    if (!storage || !enabled || blocked()) return
+    const attempt = edit
+    status = { revision: attempt, phase: 'saving' }
+    const outcome = writeState(storage, base, portfolio, history)
+    if (outcome.outcome === 'written') {
+      base = outcome.revision
+      // Acknowledge THIS revision only: a change recorded while the write was
+      // running is still unsaved, and keeps saying so.
+      status =
+        attempt === edit
+          ? { revision: attempt, phase: 'saved' }
+          : { revision: edit, phase: 'dirty' }
+      return
+    }
+    status = { revision: attempt, phase: outcome.outcome === 'conflict' ? 'conflict' : 'error' }
   }
 
-  // Both saves re-check `enabled` AND `blocked` AT FIRE TIME: a debounce armed
+  // The save re-checks `enabled` AND `blocked` AT FIRE TIME: a debounce armed
   // just before toggle(false) must never resurrect what clearStored() erased,
-  // and one armed before the verdict must never land on an unread snapshot.
-  const snapshotSave = storage
-    ? debounce(
-        (p: Portfolio) => {
-          if (enabled && !blocked()) report(saveNow(storage, p))
-        },
-        SAVE_DELAY_MS,
-        schedule,
-      )
-    : undefined
-  const historySave = storage
-    ? debounce(
-        (h: History) => {
-          if (enabled && !blocked()) report(saveHistory(storage, h))
-        },
-        SAVE_DELAY_MS,
-        schedule,
-      )
-    : undefined
+  // and one armed before the verdict must never land on an unread document.
+  const saver = storage ? debounce(write, SAVE_DELAY_MS, schedule) : undefined
+
+  /** The current document as one envelope's worth of arguments. */
+  const current = (): [Portfolio, History] => [
+    store.present,
+    { past: store.past, future: store.future },
+  ]
+
+  /**
+   * Re-reads the storage and re-bases this tab on what it finds — the first
+   * half of every path that is about to write after someone else may have.
+   * `undefined` when the bytes are UNREADABLE: the wiring blocks instead, and
+   * the caller must write nothing.
+   */
+  const rebase = (storageNow: KeyValueStorage): StoredState | undefined => {
+    const found = readStored(storageNow)
+    if (found.state === 'unreadable') {
+      unreadable = { raw: found.raw, refusal: found.refusal }
+      return undefined
+    }
+    base = found.state === 'restored' ? found.revision : null
+    return found
+  }
 
   /** Arms the saves and writes the current state — the tail of every path that
    * has EARNED the right to write (nothing stored, or a settled decision). */
-  const armAndWrite = (): void => {
+  const armAndWrite = (storageNow: KeyValueStorage): void => {
     enabled = true
     offered = undefined
-    if (!storage) return
-    savePersistEnabled(storage, true)
-    report(
-      saveNow(storage, store.present) &&
-        saveHistory(storage, { past: store.past, future: store.future }),
-    )
+    savePersistEnabled(storageNow, true)
+    write(...current())
   }
 
   const control: PersistenceControl = {
     get enabled() {
       return enabled
     },
-    get lastError() {
-      return saveError
+    get save() {
+      // Nothing is being saved: the switch is off, or there is no storage at
+      // all. An indicator on a document nobody is saving would be a lie.
+      return storage && enabled ? status : undefined
     },
     get pendingRestore() {
       return offered !== undefined
     },
     toggle(next: boolean) {
       // Blocked: neither branch may run — `true` would write over the
-      // unreadable snapshot, `false` would erase it. Both are the recovery
+      // unreadable envelope, `false` would erase it. Both are the recovery
       // screen's decision to take, not a switch's.
       if (blocked()) return
       if (!next) {
@@ -162,11 +227,11 @@ export const createPersistenceControl = (
         offered = undefined
         if (!storage) return
         savePersistEnabled(storage, false)
-        // Disarm the pending debounces BEFORE erasing: belt (cancel here) and
+        // Disarm the pending debounce BEFORE erasing: belt (cancel here) and
         // braces (the fire-time check above) against a posthumous rewrite.
-        snapshotSave?.cancel()
-        historySave?.cancel()
+        saver?.cancel()
         clearStored(storage)
+        base = null
         return
       }
       if (!storage) {
@@ -174,52 +239,77 @@ export const createPersistenceControl = (
         return
       }
       // ON is a write path: read the storage BEFORE touching it. The save may
-      // have been off for a while — long enough for a snapshot to be sitting
-      // there — and the open document is not automatically the right one.
-      const found = readSnapshot(storage)
-      if (found.state === 'unreadable') {
-        // The boot-time case, met later: same verdict, same screen, same rule.
-        unreadable = { raw: found.raw, refusal: found.refusal }
-        return
-      }
+      // have been off for a while — long enough for a document to be sitting
+      // there — and the open one is not automatically the right one.
+      const found = rebase(storage)
+      if (found === undefined) return
       if (found.state === 'restored') {
         offered = found.portfolio
         return
       }
-      armAndWrite()
+      armAndWrite(storage)
     },
     restore() {
       const portfolio = offered
-      if (portfolio === undefined) return
+      if (portfolio === undefined || !storage) return
       // An ordinary, UNDOABLE replacement — the same command an import emits:
       // choosing the stored copy must not cost the open one irreversibly.
       store.dispatch({ type: 'ReplacePortfolio', portfolio })
-      armAndWrite()
+      armAndWrite(storage)
     },
     keepOpen() {
-      if (offered === undefined) return
-      armAndWrite()
+      if (offered === undefined || !storage) return
+      armAndWrite(storage)
     },
     dismissRestore() {
       offered = undefined
+    },
+    takeStored() {
+      if (status.phase !== 'conflict' || !storage) return
+      const found = rebase(storage)
+      if (found === undefined) return
+      // Undoable, like every other whole-document replacement: taking the
+      // other tab's copy must not cost this one irreversibly.
+      if (found.state === 'restored') {
+        store.dispatch({ type: 'ReplacePortfolio', portfolio: found.portfolio })
+      }
+      write(...current())
+    },
+    keepMine() {
+      if (status.phase !== 'conflict' || !storage) return
+      if (rebase(storage) === undefined) return
+      write(...current())
     },
   }
 
   return {
     control,
-    scheduleSnapshot: (portfolio) => {
-      if (enabled && !blocked()) snapshotSave?.run(portfolio)
-    },
-    scheduleHistory: (history) => {
-      if (enabled && !blocked()) historySave?.run(history)
+    scheduleSave: (portfolio, history) => {
+      if (!enabled || blocked()) return
+      if (bootEcho) {
+        bootEcho = false
+        return
+      }
+      edit += 1
+      status = { revision: edit, phase: 'dirty' }
+      saver?.run(portfolio, history)
     },
     // A save still pending when the page goes away would be lost: 'pagehide'
     // is the last reliable signal (close, reload and bfcache entry alike).
     // Blocked, there is nothing to lose and everything to protect.
     flush: () => {
       if (blocked()) return
-      snapshotSave?.flush()
-      historySave?.flush()
+      saver?.flush()
+    },
+    noticeStoredChange: () => {
+      if (!storage || !enabled || blocked()) return
+      if (storedRevision(storage) === base) return
+      // Someone else's bytes are in there. Disarm first — the pending save
+      // still names the old revision and would be refused anyway, but a
+      // conflict that waits for a deadline to be announced is a conflict the
+      // user meets too late.
+      saver?.cancel()
+      status = { revision: edit, phase: 'conflict' }
     },
     get blocked() {
       return blocked()
@@ -232,7 +322,9 @@ export const createPersistenceControl = (
       // Erase FIRST, unblock second: the next reload must find nothing rather
       // than the blob the user just abandoned.
       if (storage) clearStored(storage)
+      base = null
       unreadable = undefined
+      status = { revision: edit, phase: 'dirty' }
     },
   }
 }

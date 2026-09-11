@@ -34,6 +34,7 @@
   import { Separator } from '../commons/ui/separator'
   import * as Sheet from '../commons/ui/sheet'
   import ImportExportDialog from '../editor/ImportExportDialog.svelte'
+  import SaveStateBar from '../editor/SaveStateBar.svelte'
   import SlideshowHost, { provideSlideshow } from '../slideshow/SlideshowHost.svelte'
   import type {
     AppearanceControl,
@@ -483,6 +484,19 @@
             </Button>
           </div>
         </header>
+
+        <!-- Where the document stands with the browser's storage, on EVERY
+             screen and at all times — a refused write must never be something
+             the user finds out about at the next reload. Absent only when
+             nothing is being saved at all (switch off, or no storage). -->
+        {#if persistence?.save}
+          <SaveStateBar
+            {portfolio}
+            save={persistence.save}
+            takeStored={() => persistence?.takeStored()}
+            keepMine={() => persistence?.keepMine()}
+          />
+        {/if}
 
         <main id="main" tabindex="-1" class="min-h-0 min-w-0 flex-1 p-5 outline-none max-md:p-3">
           <h1 class="sr-only">{screenTitle}</h1>

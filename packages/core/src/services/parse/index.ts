@@ -48,7 +48,7 @@ export const IMPORT_MAX_CHARS = 10_000_000
  * 2 000 is the last size that still answers: twice the comfortable one, a
  * hundred times any real portfolio (the samples carry 20), and — the other
  * reason — it stays well under what `localStorage` will actually accept, since
- * a 9 MB snapshot is REFUSED by the browser quota and could never be saved.
+ * a 9 MB document is REFUSED by the browser quota and could never be saved.
  *
  * Counted BEFORE the elements are read, so an absurd payload is refused
  * without ever being built into objects.
@@ -92,7 +92,7 @@ const ROOT_REQUIRED = ['version', 'review', 'settings', 'categories', 'projects'
 
 /**
  * The single entry point of every byte that becomes a portfolio: file import,
- * pasted JSON, the localStorage snapshot. STRICT — see the module header; the
+ * pasted JSON, the portfolio inside the stored envelope. STRICT — see the module header; the
  * one refusal shape is `{ ok: false, errors }`, and `errors` is exhaustive.
  *
  * Guarantees on success, which the rest of the app treats as invariants: every

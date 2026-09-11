@@ -1,9 +1,10 @@
 /**
- * WHY THIS FIXTURE. An in-memory `KeyValueStorage` with a failure switch: the
- * persistence wiring promises that a full or refusing localStorage surfaces
- * as `lastError` and never throws — flipping `failing` mid-test is how that
- * funnel (and its clearing on the next success) is exercised without a real
- * browser quota.
+ * WHY THIS FIXTURE. An in-memory `KeyValueStorage` that can refuse writes PER
+ * KEY. A browser storage does not fail as a whole: a quota is reached by one
+ * value, private browsing refuses some origins, an extension blocks one key —
+ * so the interesting failure is always PARTIAL. `refuse` is the switch: the
+ * wiring promises that a refused write surfaces as a visible save state, never
+ * throws, and is NEVER acknowledged by the success of some other key.
  *
  * `writes` counts the writes that LANDED: comparing stored values proves the
  * content is intact, the counter proves nothing was written at all — which is
@@ -13,23 +14,39 @@ import type { KeyValueStorage } from '@project-review/core/services/persistence'
 
 export interface MemoryStorage extends KeyValueStorage {
   readonly content: Map<string, string>
-  failing: boolean
+  /** Which keys the storage says no to. Nothing, by default. */
+  refuse: (key: string) => boolean
   /** Successful `setItem` calls since creation. */
   writes: number
 }
 
 export const createMemoryStorage = (): MemoryStorage => {
   const content = new Map<string, string>()
-  return {
+  const self: MemoryStorage = {
     content,
-    failing: false,
+    refuse: () => false,
     writes: 0,
     getItem: (k) => content.get(k) ?? null,
-    setItem(k, v) {
-      if (this.failing) throw new Error('quota')
+    setItem: (k, v) => {
+      if (self.refuse(k)) throw new Error('quota')
       content.set(k, v)
-      this.writes += 1
+      self.writes += 1
     },
     removeItem: (k) => void content.delete(k),
   }
+  return self
 }
+
+/**
+ * A view of one storage that runs `watch` just before each write lands — the
+ * only way to observe what the wiring looks like DURING a save (the `saving`
+ * phase), and to make a change arrive mid-write.
+ */
+export const observeWrites = (inner: MemoryStorage, watch: () => void): KeyValueStorage => ({
+  getItem: (key) => inner.getItem(key),
+  setItem: (key, value) => {
+    watch()
+    inner.setItem(key, value)
+  },
+  removeItem: (key) => inner.removeItem(key),
+})

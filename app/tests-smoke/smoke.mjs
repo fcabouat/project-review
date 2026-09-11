@@ -17,7 +17,7 @@
  *
  * Covered, with zero console errors tolerated anywhere (no session names a
  * family the deployment would have to serve, so no face request fires):
- *   0. recovery: a stored snapshot the format refuses opens the recovery
+ *   0. recovery: a stored document the format refuses opens the recovery
  *      screen instead of the editor, survives boot+reload byte for byte, comes
  *      back verbatim on download, and is erased only on an explicit choice;
  *   1. file://: empty boot in fr AND en; `?sample` boots EMPTY, silently;
@@ -36,7 +36,10 @@
  *      pages with the embedded face loaded;
  *   9. the 390×844 touch pass: boot, nav drawer, a sheet opened from the
  *      table, the slideshow scaled to fit with its exit bar pinned, the
- *      standalone export — and never a horizontal body scroll.
+ *      standalone export — and never a horizontal body scroll;
+ *  10. two tabs on one storage: opening the second is not a conflict, a real
+ *      one is announced as it happens, the losing tab overwrites NOTHING, and
+ *      only a person's click settles it.
  */
 
 import { access, mkdtemp, readFile, rm } from 'node:fs/promises'
@@ -479,27 +482,32 @@ async function main() {
     )
     await mobile.close()
 
-    /* ---- 10. RECOVERY: a stored snapshot the format refuses is never
+    /* ---- 10. RECOVERY: a stored document the format refuses is never
        overwritten. The one scenario where doing nothing is the feature: the
        editor stays closed, every write path stays disarmed, and the bytes are
        still there after a reload — until a person decides otherwise. ---- */
-    const CORRUPT = '{"version":3,"review":{"title":"Revue du 3 mars"},"was":"a portfolio"}'
+    // A well-formed envelope whose PORTFOLIO breaks the contract: format and
+    // revision read fine, the strict parse is what refuses — the realistic
+    // corruption, and the one that exercises the whole reading path.
+    const CORRUPT =
+      '{"format":1,"revision":7,"portfolio":{"version":3,"review":{"title":"Revue du 3 mars"},' +
+      '"was":"a portfolio"},"history":{"past":[],"future":[]}}'
     const rescue = await browser.newContext({ locale: 'fr-FR' })
     const rp = await rescue.newPage()
     const rescueErrors = []
     watchErrors(rp, rescueErrors)
 
-    // Seed the corrupt snapshot on the app's own origin, from a blank page:
+    // Seed the corrupt envelope on the app's own origin, from a blank page:
     // the app itself must never have run before the seed, or its own save
     // would overwrite it on the way out.
     await rp.goto(`${HTTP_ORIGIN}/__seed.html`)
-    await rp.evaluate((raw) => localStorage.setItem('project-review/portfolio', raw), CORRUPT)
+    await rp.evaluate((raw) => localStorage.setItem('project-review/state', raw), CORRUPT)
     await rp.goto(HTTP_APP)
     await settle(rp)
 
     check(
       await rp.getByRole('heading', { name: 'Sauvegarde locale illisible' }).isVisible(),
-      'recovery: an unreadable snapshot opens the recovery screen, not the editor',
+      'recovery: an unreadable stored state opens the recovery screen, not the editor',
     )
     check(
       (await rp.locator('nav').count()) === 0,
@@ -517,7 +525,7 @@ async function main() {
     await settle(rp)
     await rp.waitForTimeout(1500)
     check(
-      (await rp.evaluate(() => localStorage.getItem('project-review/portfolio'))) === CORRUPT,
+      (await rp.evaluate(() => localStorage.getItem('project-review/state'))) === CORRUPT,
       'recovery: the stored bytes survive the boot, the wait and a reload — byte for byte',
     )
 
@@ -538,14 +546,92 @@ async function main() {
     await settle(rp)
     check((await rp.locator('nav').count()) > 0, 'recovery: « start empty » opens the editor')
     check(
-      (await rp.evaluate(() => localStorage.getItem('project-review/portfolio'))) === null,
-      'recovery: the abandoned snapshot is erased, not overwritten in place',
+      (await rp.evaluate(() => localStorage.getItem('project-review/state'))) === null,
+      'recovery: the abandoned bytes are erased, not overwritten in place',
     )
     check(
       rescueErrors.length === 0,
       `recovery: zero console errors${rescueErrors.length ? ` — ${rescueErrors[0]}` : ''}`,
     )
     await rescue.close()
+
+    /* ---- 11. TWO TABS, ONE STORAGE: no update is ever lost in silence.
+       Both pages live in the SAME browser context, so they share one
+       localStorage and the browser delivers `storage` events between them —
+       the exact setup in which the second tab used to overwrite the first
+       without a word. ---- */
+    const tabs = await browser.newContext({ locale: 'fr-FR' })
+    const tabA = await tabs.newPage()
+    const tabB = await tabs.newPage()
+    const tabErrors = []
+    watchErrors(tabA, tabErrors)
+    watchErrors(tabB, tabErrors)
+
+    const titleField = (page) => page.getByRole('textbox', { name: 'Titre', exact: true })
+    /** The save state the shell shows, on whatever screen is open. */
+    const savePhase = (page) => page.locator('[data-save-phase]').getAttribute('data-save-phase')
+    const storedTitle = (page) =>
+      page.evaluate(
+        () => JSON.parse(localStorage.getItem('project-review/state')).portfolio.review.title,
+      )
+    /** Types a title and commits it, then waits past the 500 ms debounce. */
+    const retitle = async (page, title) => {
+      await titleField(page).fill(title)
+      await titleField(page).press('Tab')
+      await page.waitForTimeout(1200)
+    }
+
+    await tabA.goto(`${HTTP_APP}#/review`)
+    await settle(tabA)
+    await retitle(tabA, 'Revue A')
+    check((await savePhase(tabA)) === 'saved', 'two tabs: A saves, and the shell says so')
+
+    // B opens on what A saved. Merely opening it must NOT disturb A: the two
+    // hold the same document, and there is nothing to announce.
+    await tabB.goto(`${HTTP_APP}#/review`)
+    await settle(tabB)
+    await tabB.waitForTimeout(1200)
+    check(
+      (await savePhase(tabA)) === 'saved' && (await savePhase(tabB)) === 'saved',
+      'two tabs: opening the second one is not a conflict — they agree',
+    )
+
+    // Now B really does save something else.
+    await retitle(tabB, 'Revue B')
+    check((await storedTitle(tabB)) === 'Revue B', 'two tabs: B stored its own version')
+    check(
+      (await savePhase(tabA)) === 'conflict',
+      'two tabs: A is TOLD as it happens, not at its next deadline',
+    )
+
+    // A keeps working. The old failure was exactly here: A's next save would
+    // land on top of B's without a word. It now writes NOTHING.
+    await retitle(tabA, 'Revue A bis')
+    check(
+      (await storedTitle(tabA)) === 'Revue B',
+      'two tabs: while the conflict stands, A overwrites nothing of B’s',
+    )
+    check((await savePhase(tabA)) === 'conflict', 'two tabs: and A still says so')
+
+    // The only way out is a person choosing, in the open.
+    await tabA.getByRole('button', { name: 'Garder cette version' }).click()
+    await settle(tabA)
+    check(
+      (await storedTitle(tabA)) === 'Revue A bis' && (await savePhase(tabA)) === 'saved',
+      'two tabs: « keep this version » is A’s deliberate overwrite, and it lands',
+    )
+
+    // Symmetry: it is B's turn to be told rather than to lose its work.
+    await tabB.waitForTimeout(500)
+    check(
+      (await savePhase(tabB)) === 'conflict',
+      'two tabs: the warning is symmetric — B hears about A too',
+    )
+    check(
+      tabErrors.length === 0,
+      `two tabs: zero console errors${tabErrors.length ? ` — ${tabErrors[0]}` : ''}`,
+    )
+    await tabs.close()
   } finally {
     await browser.close()
     server.close()

@@ -26,8 +26,8 @@
 
   const language = $derived(portfolio.settings.language)
   // Name and payload come from the core (`services/portfolio-json`): the file
-  // stays the exact inverse of the strict parse, byte-compatible with the
-  // localStorage snapshot.
+  // stays the exact inverse of the strict parse — the bare portfolio, which
+  // the stored envelope carries inside it rather than being.
   const serialised = $derived(serializePortfolio(portfolio))
 
   /** Export checkboxes: UNCHECKED ids (empty set = full export, the default). */

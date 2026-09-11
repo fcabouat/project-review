@@ -1,10 +1,10 @@
 /**
  * The portfolio as a FILE — name and payload of the .json export, the exact
  * inverse of the strict parse (`parse/`): what `serializePortfolio` writes,
- * `readPortfolioJson` (services/parse) accepts whole. Same JSON as the
- * localStorage snapshot (`services/persistence.ts`), pretty-printed for
- * humans — the two stay interchangeable. The download trigger itself (DOM)
- * stays with the caller.
+ * `readPortfolioJson` (services/parse) accepts whole. The saved state is NOT
+ * this file: persistence wraps the same portfolio in an envelope carrying its
+ * revision and its undo/redo log (`services/persistence.ts`). The download
+ * trigger itself (DOM) stays with the caller.
  */
 
 import type { Portfolio } from '../model/portfolio'
@@ -20,12 +20,12 @@ export const portfolioFileName = (reviewDate: string, partial = false): string =
   `project-review-${reviewDate}${partial ? '-partial' : ''}.json`
 
 /**
- * Name under which the recovery screen hands back a snapshot the strict parse
- * refused. No review date: reading the file is exactly what failed, so there
- * is no date to trust — and the name says what the bytes are, an unreadable
- * snapshot, rather than promising a portfolio.
+ * Name under which the recovery screen hands back a stored envelope the strict
+ * parse refused. No review date: reading the bytes is exactly what failed, so
+ * there is no date to trust — and the name says what they are, an unreadable
+ * saved state, rather than promising a portfolio.
  */
-export const UNREADABLE_SNAPSHOT_FILE_NAME = 'project-review-unreadable-snapshot.json'
+export const UNREADABLE_STATE_FILE_NAME = 'project-review-unreadable-state.json'
 
 /** The exported payload: the bare portfolio, indented for hand editing. */
 export const serializePortfolio = (portfolio: Portfolio): string =>

@@ -1,35 +1,80 @@
 name: Pages
 # Publication follows a GREEN CI on the very same commit — never a push.
-# `workflow_run` fires when the CI workflow finishes on main; the guard below
-# drops the failed runs, and the checkout pins `head_sha` so the site is built
-# from the exact tree CI validated, not from whatever main points at by then.
+#
+# WHY TWO JOBS, AND WHY THE SECOND ONE RUNS NOTHING OF THE REPOSITORY.
+# A `workflow_run` workflow is read from the DEFAULT branch and runs with the
+# permissions THIS file grants, while the code it is about comes from the
+# triggering run — which may be a pull request, and a pull request may come
+# from a fork. Building the repository and holding the Pages credentials in
+# one job would therefore put `bun install` and `bun run build` — arbitrary
+# code from the head commit, lockfile and postinstall scripts included — next
+# to `pages: write` and `id-token: write`. So the two halves are separated:
+#   - `build` checks the head commit out and RUNS it, with `contents: read`
+#     and nothing else, and leaves no credentials on disk. Its only output is
+#     an artifact;
+#   - `deploy` holds the Pages credentials and runs NO repository code at all:
+#     no checkout, no install, no build — one action, which publishes the
+#     artifact the first job produced.
+# A compromised dependency can therefore still poison the published SITE (it
+# builds it), but it can never reach the deployment token, the OIDC identity,
+# or any write scope on the repository.
+#
+# WHO IS LET THROUGH. The `branches:` filter below is a NOISE filter, NOT the
+# guard: `workflow_run` matches it against the head branch NAME, and a fork can
+# name a branch `main` just as easily. The guard is the `if:` on `build`, and
+# it checks four things — the triggering event was a push (so no pull-request
+# run qualifies), CI concluded successfully, the head repository IS this
+# repository (so no fork qualifies), and the branch is `main`.
+#
+# `workflow_dispatch` is deliberately absent: it used to reach the privileged
+# job with no proof of CI at all. Publishing is what a green CI on main does.
+#
+# Every action is pinned to a full commit SHA (tag in the comment): a tag is a
+# mutable pointer, and this workflow is the one place where moving it would be
+# worth an attacker's time.
 on:
   workflow_run:
     workflows: [CI]
     branches: [main]
     types: [completed]
-  workflow_dispatch:
-permissions: { contents: read, pages: write, id-token: write }
+permissions: {}
 jobs:
-  site:
+  build:
     if: >-
-      github.event_name == 'workflow_dispatch' ||
-      github.event.workflow_run.conclusion == 'success'
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
+    permissions: { contents: read }
     steps:
-      - uses: actions/checkout@v4
+      # The exact tree CI validated — not whatever main points at by now.
+      # `persist-credentials: false`: nothing this job runs afterwards has any
+      # business finding a token in .git/config.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
-          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
-      - uses: oven-sh/setup-bun@v2
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
       - run: bun install --frozen-lockfile
+      # docs:site ASSEMBLES; it generates nothing. Both inputs it copies are
+      # gitignored, so both are built here first.
       - run: bun run build
       - run: bun run docs:api
       - run: bun run build-storybook
       - run: bun run docs:site
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3.0.1
         with: { path: _site }
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    # The two scopes the deployment needs, and not one more (the action's own
+    # documented minimum): no `contents`, no checkout, no code.
+    permissions: { pages: write, id-token: write }
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
       - id: deploy
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5

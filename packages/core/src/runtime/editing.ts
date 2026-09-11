@@ -46,9 +46,9 @@ export interface ExecuteResult {
 /**
  * Builds the editing state: empty log, or a `log` restored from storage
  * (re-capped). CONSISTENCY IS THE CALLER'S JOB: `portfolio` must be the very
- * one those events led to — snapshot and log are saved together, and the
- * persistence policy discards a log stamped with another schema version.
- * Nothing is replayed here; `portfolio` is trusted as-is.
+ * one those events led to — the persistence policy guarantees it by storing
+ * the two in ONE envelope, read back together or not at all. Nothing is
+ * replayed here; `portfolio` is trusted as-is.
  */
 export const hydrate = (portfolio: Portfolio, log?: History): RuntimeState => ({
   present: portfolio,

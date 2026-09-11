@@ -2,7 +2,7 @@
  * Pins the `?sample` boot policy (`src/sample-boot.ts`): when the demo link
  * may fill the app, and what it fills it with — the neighbour file over http,
  * through the strict parse, silently refused everywhere else. The DOM reads
- * (URL, stored snapshot, `document.baseURI`) live with the callers; this file
+ * (URL, stored document, `document.baseURI`) live with the callers; this file
  * exercises the whole decision with an injected base and a stubbed fetch.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -20,7 +20,7 @@ describe('shouldBootSample — the demo never overwrites an existing base', () =
     expect(shouldBootSample('?foo=bar&sample', null)).toBe(true)
   })
 
-  it('refuses when a snapshot is stored, whatever it contains', () => {
+  it('refuses when a document is stored, whatever it contains', () => {
     // If this breaks, following a `?sample` link would let the persistence
     // effect save the demo set over a real portfolio — the one loss the
     // feature must never cause.

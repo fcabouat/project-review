@@ -1,33 +1,44 @@
 /**
- * Persistence policy — keys, serialisation of the snapshot and the undo/redo
- * log (version stamp, shallow rejection), the debounce the automatic saves
- * ride on, and the opt-out preference.
+ * Persistence policy — the stored ENVELOPE (format stamp, revision, portfolio,
+ * undo/redo log), the compare-and-swap that guards every write, the debounce
+ * the automatic saves ride on, and the opt-out preference.
  *
- * The two interfaces below are declared HERE, at the consumer: the core says
- * what it needs — a key/value store, a way to defer a call — and the
- * infrastructure provides both (`local-storage.ts`, `scheduler.ts`); tests
- * plug in-memory fakes into the very same seams.
+ * The three interfaces below are declared HERE, at the consumer: the core says
+ * what it needs — a key/value store, a way to defer a call, a way to hear
+ * another document touch that store — and the infrastructure provides all
+ * three (`local-storage.ts`, `scheduler.ts`); tests plug in-memory fakes into
+ * the very same seams.
  *
- * READING IS A VERDICT, NEVER A GUESS. {@link readSnapshot} is the one way in:
+ * ONE KEY, ONE WRITE. The portfolio and the undo/redo log describe the SAME
+ * document. Written apart, they drift — and a log whose events invert a
+ * portfolio that is no longer there rewrites the wrong document on Undo. They
+ * travel in a single envelope under a single key, written in one `setItem`,
+ * and they are read back together or not at all.
+ *
+ * READING IS A VERDICT, NEVER A GUESS. {@link readStored} is the one way in:
  * it says `absent`, `restored` or `unreadable`, and in the last case it hands
  * back the STORED BYTES together with the exhaustive report. There is no
  * outcome that quietly means "start over" — because the caller that cannot
  * tell "nothing stored" from "stored, unreadable" is one debounce away from
  * writing an empty document over the only copy of the data.
  *
- * The stored HISTORY goes through the same strict parse where it embeds whole
- * portfolios: a `PortfolioReplaced` installs one verbatim, so `loadHistory`
- * replays both sides before any event may reach `apply`/`invert`.
+ * WRITING IS A COMPARE-AND-SWAP, NEVER A BLIND OVERWRITE. Every write names
+ * the {@link Revision} it believes the storage holds; {@link writeState}
+ * re-reads that revision and answers `conflict` the moment it differs. Two
+ * tabs of the same browser share one storage: without the check, whichever
+ * saves second wins, in silence. NOTHING IS MERGED — merging two documents
+ * nobody compared would be a guess dressed up as a fact; the caller shows the
+ * conflict and a person decides.
  *
- * Every write is TOTAL: a storage that throws (quota, private browsing) makes
- * the write functions return `false`, never propagate — losing a save must not
- * take the editor down with it.
+ * Every write is TOTAL: a storage that throws (quota, private browsing) yields
+ * `refused`, never an exception — losing a save must not take the editor down
+ * with it.
  */
 
 import type { Portfolio } from '../model/portfolio'
 import type { DomainEvent } from '../events'
-import { HISTORY_LIMIT, type History } from '../events/history'
-import { parsePortfolio, readPortfolioJson, type ReadOutcome } from './parse'
+import { HISTORY_LIMIT, emptyHistory, type History } from '../events/history'
+import { IMPORT_MAX_CHARS, parsePortfolio, type ReadOutcome } from './parse'
 
 /* ------------------------------ interfaces ------------------------------ */
 
@@ -42,7 +53,7 @@ export interface KeyValueStorage {
   removeItem(key: string): void
 }
 
-/** Disarms a scheduled action; calling it after the action fired is a no-op. */
+/** Disarms a scheduled action or a subscription; calling it twice is a no-op. */
 export type Cancel = () => void
 
 /**
@@ -50,6 +61,16 @@ export type Cancel = () => void
  * (`timeoutScheduler` in the infrastructure package), a manual fake in tests.
  */
 export type Scheduler = (action: () => void, delayMs: number) => Cancel
+
+/**
+ * Subscription to the stored state being changed by ANOTHER DOCUMENT — the
+ * other tab, in practice. The browser's `storage` event in production
+ * (`watchStored` in the infrastructure package), a hand-fired callback in
+ * tests. It is a courtesy, not the guard: the compare-and-swap holds even
+ * where no such event exists, this only lets the caller warn BEFORE the user
+ * has typed another word.
+ */
+export type WatchStored = (onChange: () => void) => Cancel
 
 /* ----------------------------- keys & flags ----------------------------- */
 
@@ -60,19 +81,23 @@ export const PREF_KEY = 'project-review/local-save'
 /** Debounce of the automatic save. */
 export const SAVE_DELAY_MS = 500
 
-/** localStorage key of the snapshot — the bare `Portfolio` as JSON, exactly
- * what an exported .json file contains: the two stay interchangeable. */
-export const STORAGE_KEY = 'project-review/portfolio'
+/** The one key the saved document lives under — envelope and all. */
+export const STATE_KEY = 'project-review/state'
 
-/** localStorage key of the history — separate from the snapshot so a corrupt
- * or oversized history can be discarded without losing the data. */
-export const HISTORY_KEY = 'project-review/history'
+/**
+ * Format of the stored envelope. Events serialised under one schema are NOT
+ * replayable under another (`invert` would corrupt the portfolio) and the
+ * portfolio inside answers to the published data contract, so an envelope
+ * stamped otherwise is refused rather than half-read: bump this whenever the
+ * event union or the portfolio contract changes shape.
+ */
+export const STATE_FORMAT = 1
 
 /** On unless explicitly switched off — the historic behaviour is the default. */
 export const loadPersistEnabled = (storage: KeyValueStorage): boolean =>
   storage.getItem(PREF_KEY) !== 'off'
 
-/** `false` when the storage refuses the write — same contract as `save`. */
+/** `false` when the storage refuses the write. */
 export const savePersistEnabled = (storage: KeyValueStorage, enabled: boolean): boolean => {
   try {
     storage.setItem(PREF_KEY, enabled ? 'on' : 'off')
@@ -82,83 +107,76 @@ export const savePersistEnabled = (storage: KeyValueStorage, enabled: boolean): 
   }
 }
 
-/* ------------------------- snapshot and history ------------------------- */
+/* ------------------------------- revisions ------------------------------ */
 
 /**
- * Writes the snapshot. `false` when the storage refuses the write (quota
- * exceeded, private browsing, …): persistence failures must never break the
- * app — the caller decides how to surface them (the app's persistence switch).
+ * Names one stored state. MONOTONE: every write takes the next number, so a
+ * reader can tell — with one comparison, and without reading the document —
+ * whether the storage still holds the state it last saw.
  */
-export const save = (storage: KeyValueStorage, portfolio: Portfolio): boolean => {
-  try {
-    storage.setItem(STORAGE_KEY, JSON.stringify(portfolio))
-    return true
-  } catch {
-    return false
-  }
+export type Revision = number
+
+/**
+ * What the storage announces right now: a revision, `null` when the key is
+ * absent, `'unreadable'` when something IS there whose revision cannot be
+ * read. The three are kept apart because only the first two can ever be
+ * matched by a caller: writing over bytes nobody could read is the one thing
+ * the compare-and-swap exists to prevent.
+ */
+export type StoredRevision = Revision | null | 'unreadable'
+
+const isRevision = (value: unknown): value is Revision =>
+  typeof value === 'number' && Number.isInteger(value) && value > 0
+
+/**
+ * Reads the announced revision from the HEAD of the stored text. `format` and
+ * `revision` are written first, on purpose and as a contract with this guard:
+ * it runs before EVERY save, and no save should cost a full parse of the
+ * document to learn one number. A head this does not recognise is
+ * `'unreadable'` — never a licence to write.
+ */
+const REVISION_HEAD = /^\{"format":(\d+),"revision":(\d+),/
+
+/** What the storage holds, as a revision — the compare half of the swap. */
+export const storedRevision = (storage: KeyValueStorage): StoredRevision => {
+  const raw = storage.getItem(STATE_KEY)
+  if (raw === null) return null
+  const head = REVISION_HEAD.exec(raw)
+  if (head === null || Number(head[1]) !== STATE_FORMAT) return 'unreadable'
+  const revision = Number(head[2])
+  return isRevision(revision) ? revision : 'unreadable'
 }
 
-/** Why a stored snapshot was refused: the strict parse's exhaustive error
- * list, or one of the two pre-parse refusals (`tooLarge`, `badJson`). */
-export type SnapshotRefusal = Extract<ReadOutcome, { ok: false }>
+/* ------------------------- reading the envelope ------------------------- */
+
+/**
+ * Why a stored envelope was refused: the strict parse's exhaustive error list,
+ * or one of the pre-parse refusals — text too large, text that is not JSON,
+ * or an envelope this version does not know how to open.
+ */
+export type StateRefusal =
+  Extract<ReadOutcome, { ok: false }> | { readonly ok: false; readonly refusal: 'unknownFormat' }
 
 /**
  * What the storage holds, as a VERDICT — the three cases a startup must tell
- * apart, and the reason this function returns no fourth "just start empty" one:
+ * apart, and the reason there is no fourth "just start empty" one:
  *  - `absent` — nothing stored; a first run, or a cleared one;
- *  - `restored` — a snapshot that honors the contract, ready to run;
- *  - `unreadable` — a snapshot IS there and cannot be read: the caller gets
+ *  - `restored` — an envelope that honors the contract, with the revision it
+ *    carries: the caller writes against THAT revision from then on;
+ *  - `unreadable` — an envelope IS there and cannot be opened: the caller gets
  *    the stored bytes back (`raw`, offered to the user as-is) and the
  *    exhaustive `refusal`, and must NOT write anything over it until a person
  *    has decided (see the app's persistence control).
  */
-export type StoredSnapshot =
+export type StoredState =
   | { readonly state: 'absent' }
-  | { readonly state: 'restored'; readonly portfolio: Portfolio }
-  | { readonly state: 'unreadable'; readonly raw: string; readonly refusal: SnapshotRefusal }
-
-/**
- * Reads the stored snapshot through the very path an imported file takes
- * (`readPortfolioJson`: size cap, JSON, strict parse) — the snapshot and an
- * exported .json ARE the same document, so they answer to the same contract.
- */
-export const readSnapshot = (storage: KeyValueStorage): StoredSnapshot => {
-  const raw = storage.getItem(STORAGE_KEY)
-  if (raw === null) return { state: 'absent' }
-  const outcome = readPortfolioJson(raw)
-  return outcome.ok
-    ? { state: 'restored', portfolio: outcome.portfolio }
-    : { state: 'unreadable', raw, refusal: outcome }
-}
-
-/**
- * Version stamped into the stored history payload (`{ v, past, future }`).
- * Follows the data-contract version: events serialised under one schema are
- * NOT replayable under another (`invert` would corrupt the portfolio), so
- * `loadHistory` discards any payload whose stamp differs. The snapshot needs
- * no such stamp — it goes back through the total parse at startup.
- */
-export const HISTORY_VERSION = 3
-
-/**
- * `false` when the storage refuses the write — same contract as `save`.
- * The register already caps its in-memory `past` at `HISTORY_LIMIT`; the
- * slice here is the belt to that brace, so a hydrated oversize history can
- * never be written back whole. The quota safety net stays the `false` return.
- */
-export const saveHistory = (storage: KeyValueStorage, history: History): boolean => {
-  const payload = {
-    v: HISTORY_VERSION,
-    past: history.past.slice(-HISTORY_LIMIT),
-    future: history.future,
-  }
-  try {
-    storage.setItem(HISTORY_KEY, JSON.stringify(payload))
-    return true
-  } catch {
-    return false
-  }
-}
+  | {
+      readonly state: 'restored'
+      readonly revision: Revision
+      readonly portfolio: Portfolio
+      readonly history: History
+    }
+  | { readonly state: 'unreadable'; readonly raw: string; readonly refusal: StateRefusal }
 
 const isEventList = (x: unknown): x is readonly DomainEvent[] =>
   Array.isArray(x) &&
@@ -172,7 +190,7 @@ const isEventList = (x: unknown): x is readonly DomainEvent[] =>
  * `PortfolioReplaced` carries two WHOLE portfolios that `apply`/`invert` will
  * install verbatim, so both sides must still satisfy the data contract —
  * anyone can hand-edit localStorage. Replayed through the same strict parse an
- * imported file goes through; the other variants stay under the version stamp
+ * imported file goes through; the other variants stay under the format stamp
  * plus `apply`'s totality (they touch one aggregate at a time, never install
  * a whole portfolio).
  */
@@ -180,32 +198,115 @@ const isSoundEvent = (e: DomainEvent): boolean =>
   e.type !== 'PortfolioReplaced' || (parsePortfolio(e.before).ok && parsePortfolio(e.after).ok)
 
 /**
- * Stored history, or `null` when absent, corrupted, stamped with another
- * schema version or carrying an event that fails its variant guard — a broken
- * history must never keep the application from starting (same rule as the
- * snapshot), and events from another schema (or forged portfolios) must never
- * reach `apply`/`invert`.
+ * The undo/redo log an envelope carries, or `emptyHistory` when it is
+ * misshapen or carries an event that fails its variant guard. DROPPED IN
+ * SILENCE, and only it: the portfolio in the same envelope has just passed the
+ * strict parse and is perfectly good — losing undo steps is not losing the
+ * document, and refusing the whole envelope over them would cost the user far
+ * more than it protects.
  */
-export const loadHistory = (storage: KeyValueStorage): History | null => {
-  const raw = storage.getItem(HISTORY_KEY)
-  if (raw === null) return null
+const readHistory = (value: unknown): History => {
+  if (typeof value !== 'object' || value === null) return emptyHistory
+  const { past, future } = value as { past?: unknown; future?: unknown }
+  if (!isEventList(past) || !isEventList(future)) return emptyHistory
+  if (![...past, ...future].every(isSoundEvent)) return emptyHistory
+  return { past, future }
+}
+
+/**
+ * Reads the stored envelope: size cap, JSON, format stamp and revision, then
+ * the portfolio through the very path an imported file takes (`parsePortfolio`
+ * — same strict contract, same exhaustive report). The log rides along in the
+ * same bytes, so it can only ever describe the portfolio next to it.
+ */
+export const readStored = (storage: KeyValueStorage): StoredState => {
+  const raw = storage.getItem(STATE_KEY)
+  if (raw === null) return { state: 'absent' }
+  if (raw.length > IMPORT_MAX_CHARS) {
+    return { state: 'unreadable', raw, refusal: { ok: false, refusal: 'tooLarge' } }
+  }
+  let envelope: unknown
   try {
-    const parsed: unknown = JSON.parse(raw)
-    if (typeof parsed !== 'object' || parsed === null) return null
-    const { v, past, future } = parsed as { v?: unknown; past?: unknown; future?: unknown }
-    if (v !== HISTORY_VERSION) return null
-    if (!isEventList(past) || !isEventList(future)) return null
-    if (![...past, ...future].every(isSoundEvent)) return null
-    return { past, future }
+    envelope = JSON.parse(raw)
   } catch {
-    return null
+    return { state: 'unreadable', raw, refusal: { ok: false, refusal: 'badJson' } }
+  }
+  if (typeof envelope !== 'object' || envelope === null) {
+    return { state: 'unreadable', raw, refusal: { ok: false, refusal: 'unknownFormat' } }
+  }
+  const { format, revision, portfolio, history } = envelope as {
+    format?: unknown
+    revision?: unknown
+    portfolio?: unknown
+    history?: unknown
+  }
+  if (format !== STATE_FORMAT || !isRevision(revision)) {
+    return { state: 'unreadable', raw, refusal: { ok: false, refusal: 'unknownFormat' } }
+  }
+  const parsed = parsePortfolio(portfolio)
+  if (!parsed.ok) return { state: 'unreadable', raw, refusal: parsed }
+  return {
+    state: 'restored',
+    revision,
+    portfolio: parsed.portfolio,
+    history: readHistory(history),
   }
 }
 
-/** Erases the saved data (snapshot + history); the preference itself stays. */
+/* ------------------------- writing the envelope ------------------------- */
+
+/**
+ * What one save attempt did — three outcomes, and they are NOT
+ * interchangeable:
+ *  - `written` — the bytes are in, under the revision handed back: the caller
+ *    writes against THAT revision from now on;
+ *  - `conflict` — the storage no longer holds the revision the caller named.
+ *    Another document wrote in between; nothing was touched;
+ *  - `refused` — the storage itself said no (quota, private browsing). Nothing
+ *    was written, and the document in memory is the only copy left.
+ */
+export type WriteOutcome =
+  | { readonly outcome: 'written'; readonly revision: Revision }
+  | { readonly outcome: 'conflict' }
+  | { readonly outcome: 'refused' }
+
+/**
+ * The one write path. `expected` is the revision the caller believes is
+ * stored — `null` for "nothing was there". The stored revision is re-read
+ * first and must match EXACTLY: anything else, an unreadable envelope
+ * included, is a `conflict` and not one byte moves.
+ *
+ * The register already caps its in-memory `past` at `HISTORY_LIMIT`; the slice
+ * here is the belt to that brace, so a hydrated oversize log can never be
+ * written back whole.
+ */
+export const writeState = (
+  storage: KeyValueStorage,
+  expected: Revision | null,
+  portfolio: Portfolio,
+  history: History,
+): WriteOutcome => {
+  if (storedRevision(storage) !== expected) return { outcome: 'conflict' }
+  const revision = (expected ?? 0) + 1
+  // `format` and `revision` first: `storedRevision` reads them off the head of
+  // this very text without parsing the document that follows.
+  const envelope = {
+    format: STATE_FORMAT,
+    revision,
+    portfolio,
+    history: { past: history.past.slice(-HISTORY_LIMIT), future: history.future },
+  }
+  try {
+    storage.setItem(STATE_KEY, JSON.stringify(envelope))
+    return { outcome: 'written', revision }
+  } catch {
+    return { outcome: 'refused' }
+  }
+}
+
+/** Erases the saved document; the opt-out preference itself stays. */
 export const clearStored = (storage: KeyValueStorage): void => {
-  storage.removeItem(STORAGE_KEY)
-  storage.removeItem(HISTORY_KEY)
+  storage.removeItem(STATE_KEY)
 }
 
 /* -------------------------------- debounce ------------------------------- */

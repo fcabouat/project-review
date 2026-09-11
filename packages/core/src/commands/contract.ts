@@ -6,8 +6,8 @@
  * `decide` refuses exactly what `parsePortfolio` would refuse.
  *
  * Without it the in-memory model is more permissive than the serialised one: a
- * value the editor accepts, the next boot cannot re-read — and a snapshot that
- * cannot be re-read is data the application no longer owns.
+ * value the editor accepts, the next boot cannot re-read — and a stored
+ * document that cannot be re-read is data the application no longer owns.
  *
  * HOW IT STAYS EXHAUSTIVE. Nothing here re-lists fields one by one: a command
  * is validated by BUILDING the aggregate it would produce — through `apply`'s

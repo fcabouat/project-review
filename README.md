@@ -84,7 +84,7 @@ ever edited by hand.
   stay light in both schemes.
 - **Print-perfect A4** — the deck prints one page per slide through the
   browser's dialog; PDF is a print, not an export pipeline.
-- **Visual contract** — 69 Storybook stories covering every slide, widget and
+- **Visual contract** — 71 Storybook stories covering every slide, widget and
   screen, including a fully playable in-memory editor; the toolbar reads any
   of them in three slide themes, three palettes and both schemes.
 

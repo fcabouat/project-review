@@ -103,7 +103,7 @@
   </p>
 </section>
 
-<!-- Turning the save back ON found a readable snapshot already stored: the
+<!-- Turning the save back ON found a readable document already stored: the
      host wrote nothing and hands the choice over. Three answers, all
      reversible — restore (undoable), keep the open document, or step back. -->
 {#if persistence?.pendingRestore}

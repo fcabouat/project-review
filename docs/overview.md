@@ -34,7 +34,7 @@ mutate; adapters implement, never decide.
 - `commands/` — the use-cases (`Command` union) and their handlers (`decide`: intent → completed event).
 - `events/` — the `DomainEvent` union with `apply`/`invert`, plus the bounded event register.
 - `projections/` — pure read-models: the deck, the figures, the predicates. Nothing derived is ever stored.
-- `services/` — business services: strict parse, persistence policy (with its two injected interfaces), portfolio file, i18n.
+- `services/` — business services: strict parse, persistence policy (with its three injected interfaces), portfolio file, i18n.
 - `runtime/` — the editing runtime (`execute`/`undo`/`redo` over `{ past, present, future }`) — the one place `apply` is called.
 
 Lower layers never import upper ones; nothing inside the core imports the
@@ -82,24 +82,42 @@ test files.
 ## Persistence and import
 
 Storage is injected (`KeyValueStorage`), saving is a debounced opt-out
-preference, and the whole policy — keys, version stamp, caps — is core code
-tested on in-memory doubles. At startup the snapshot is replayed through the
-strict parse; anything refused falls back to an empty portfolio rather than
-blocking launch. A refused import replaces nothing; an accepted one either
-replaces the portfolio or merges a colleague's projects into it — both a
-single undoable event.
+preference, and the whole policy — the key, the format stamp, the caps — is
+core code tested on in-memory doubles.
+
+The saved document is ONE envelope under ONE key —
+`{ format, revision, portfolio, history }` — written in a single call: the
+undo/redo log travels in the same bytes as the portfolio, so it can never be
+replayed against a document it does not belong to.
+
+Reading it is a VERDICT, never a guess: `absent`, `restored` or `unreadable`.
+An `unreadable` one is never overwritten — the app opens the recovery screen
+instead of the editor, hands the stored bytes back verbatim, and writes
+nothing at all until a person decides.
+
+Writing it is a COMPARE-AND-SWAP on the revision: a second tab is told that
+the first one saved, and overwrites nothing; the two answers (take theirs,
+keep mine) are a person's, and nothing merges by itself. The save state is on
+screen at all times, and a write the browser refuses says so and offers a
+download on the spot — the open document is never lost for want of a save.
+
+A refused import replaces nothing; an accepted one either replaces the
+portfolio or merges a colleague's projects into it — both a single undoable
+event.
 
 ## What is guaranteed visually
 
 The Svelte components carry no unit tests by design: the component catalog
-(`bun run storybook`, 64 stories) is the visual contract for every slide,
-widget and screen, and a Playwright smoke run on the built deliverable
-(`bun run smoke`, after a build; CI runs it on every push) covers the wired
-app over both transports — `file://` and a static http server: load in both
-languages, hash navigation, the language and scheme menus, the derived
-slideshow, the standalone export re-opened, and an embedded-font round trip
-(a .woff2 picked in Settings, exported, served again from `file://`) — zero
-console errors tolerated anywhere.
+(`bun run storybook`, 71 stories) is the visual contract for every slide,
+widget and screen — the refused save and the two-tab conflict among them, since
+neither can be produced on demand out of a real browser storage — and a
+Playwright smoke run on the built deliverable (`bun run smoke`, after a build;
+CI runs it on every push) covers the wired app over both transports —
+`file://` and a static http server: load in both languages, hash navigation,
+the language and scheme menus, the derived slideshow, the standalone export
+re-opened, an embedded-font round trip (a .woff2 picked in Settings, exported,
+served again from `file://`), and TWO TABS on one storage proving no update is
+lost in silence — zero console errors tolerated anywhere.
 
 ## Going further
 

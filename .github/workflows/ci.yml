@@ -1,4 +1,6 @@
 name: CI
+# Actions pinned to a full commit SHA (tag in the comment): a tag is a mutable
+# pointer, and this workflow runs on every push and every pull request.
 on:
   push:
     branches: [main, develop]
@@ -8,8 +10,8 @@ jobs:
   ci:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
       - run: bun install --frozen-lockfile
       - run: bun run lint
       - run: bun run format:check
@@ -27,6 +29,14 @@ jobs:
         run: npx playwright install --with-deps chromium
       - if: github.event_name != 'pull_request'
         run: bun run smoke
+      # `docs:site` ASSEMBLES the site out of artifacts other scripts build; it
+      # generates none of them, and the two below are gitignored — so on a
+      # fresh checkout they must be built HERE, or the assembly fails and the
+      # a11y pass behind it is never reached.
+      - if: github.event_name != 'pull_request'
+        run: bun run docs:api
+      - if: github.event_name != 'pull_request'
+        run: bun run build-storybook
       - if: github.event_name != 'pull_request'
         run: bun run docs:site
       - if: github.event_name != 'pull_request'

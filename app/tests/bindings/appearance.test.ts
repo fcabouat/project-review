@@ -42,7 +42,7 @@ describe('createAppearance', () => {
   it('keeps the in-memory choice when the storage refuses the write', () => {
     const storage = createMemoryStorage()
     const control = createAppearance(storage)
-    storage.failing = true
+    storage.refuse = () => true
     control.setScheme('dark')
     expect(control.scheme).toBe('dark')
     expect(storage.getItem(SCHEME_KEY)).toBeNull()

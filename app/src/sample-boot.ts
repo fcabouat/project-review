@@ -8,7 +8,7 @@
  * boot does the importing.
  *
  * Three rules, all pinned by `tests/sample-boot.test.ts`:
- * - an existing base ALWAYS wins: the sample loads only when no snapshot is
+ * - an existing base ALWAYS wins: the sample loads only when nothing is
  *   stored (the persistence effect would otherwise save the sample over it);
  * - the set is picked in the CURRENT language and goes through the same
  *   strict parse as any import — a sample that violated the contract loads
@@ -18,15 +18,15 @@
  *   contract violation all boot the ordinary empty portfolio.
  *
  * The fetch happens BEFORE the app mounts (`main.ts` awaits it): reading
- * `location.search` and the stored snapshot stays with the callers.
+ * `location.search` and the stored document stays with the callers.
  */
 import type { Language } from '@project-review/core/model/theme'
 import type { Portfolio } from '@project-review/core/model/portfolio'
 import { parsePortfolio } from '@project-review/core/services/parse'
 
 /** `true` when the URL asks for the demo AND nothing is stored locally. */
-export const shouldBootSample = (search: string, storedSnapshot: string | null): boolean =>
-  new URLSearchParams(search).has('sample') && storedSnapshot === null
+export const shouldBootSample = (search: string, storedState: string | null): boolean =>
+  new URLSearchParams(search).has('sample') && storedState === null
 
 /** First-boot language: a browser announcing French gets fr, the rest en. */
 export const detectLanguage = (candidate: string): Language =>

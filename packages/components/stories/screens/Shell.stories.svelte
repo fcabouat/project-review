@@ -4,6 +4,7 @@
   import type { Route } from '../../src/screens/contracts'
   import { sample } from '../commons/story-data'
   import { createScreenStore } from './screen-store.svelte'
+  import { createPersistenceMock } from './persistence-mock.svelte'
 
   const { Story } = defineMeta({
     title: 'Screens/Shell',
@@ -29,22 +30,11 @@
     route = next
   }
 
-  /** Story-local mock of the app's persistence control — flips, saves nothing;
-   * with no storage behind it there is never a stored copy to arbitrate. */
-  let persistEnabled = $state(true)
-  const persistence = {
-    get enabled() {
-      return persistEnabled
-    },
-    lastError: null,
-    toggle: (next: boolean) => {
-      persistEnabled = next
-    },
-    pendingRestore: false,
-    restore: () => {},
-    keepOpen: () => {},
-    dismissRestore: () => {},
-  }
+  /** One mock per story: the save-state strip under the top bar is what each
+   * of the three below is actually about. */
+  const persistence = createPersistenceMock()
+  const refused = createPersistenceMock({ revision: 12, phase: 'error' })
+  const contended = createPersistenceMock({ revision: 12, phase: 'conflict' })
 
   /** Story-local mock of the app's appearance control: same contract, and it
    * stamps the `dark` class exactly as the app's wiring does (`system` reads
@@ -78,6 +68,49 @@
     {navigate}
     replaceRoute={navigate}
     {persistence}
+    {appearance}
+  />
+</Story>
+
+<!-- The write the storage refused. The strip is the ONLY thing standing
+     between the user and a silent loss at the next reload: it says what
+     happened and offers the one action that saves the work — download a
+     copy. Never a toast, never a line in a settings card. -->
+<Story name="Local save refused" asChild>
+  <Shell
+    portfolio={store.present}
+    past={store.past}
+    future={store.future}
+    canUndo={store.canUndo}
+    canRedo={store.canRedo}
+    dispatch={store.dispatch}
+    undo={store.undo}
+    redo={store.redo}
+    {route}
+    {navigate}
+    replaceRoute={navigate}
+    persistence={refused}
+    {appearance}
+  />
+</Story>
+
+<!-- Another tab saved over the copy this one was working from. Nothing was
+     overwritten; the two answers are the only honest ones, and clicking
+     either settles the strip back to « saved » here. -->
+<Story name="Conflict with another tab" asChild>
+  <Shell
+    portfolio={store.present}
+    past={store.past}
+    future={store.future}
+    canUndo={store.canUndo}
+    canRedo={store.canRedo}
+    dispatch={store.dispatch}
+    undo={store.undo}
+    redo={store.redo}
+    {route}
+    {navigate}
+    replaceRoute={navigate}
+    persistence={contended}
     {appearance}
   />
 </Story>

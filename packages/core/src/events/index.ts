@@ -61,7 +61,7 @@ export * from './invert'
  * and `invert` (invert.ts) — both pinned by a `never` sentinel —, `decide`
  * with its `Command` mirror (commands/, pinned too), and `eventLabel` in the
  * components' `editor/event-label.ts` (pinned too) — plus bumping
- * `HISTORY_VERSION` (services/persistence.ts) if the change breaks replay of
+ * `STATE_FORMAT` (services/persistence.ts) if the change breaks replay of
  * stored events.
  */
 export type DomainEvent =

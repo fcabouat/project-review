@@ -176,8 +176,19 @@ to serve from it (see **Font** above); opened from a file, it makes none at
 all.
 
 - **Local save (localStorage)** — on by default. The database and the
-  undo/redo history survive a page reload. Turning it off erases the stored
-  keys; the open database stays intact until the tab closes.
+  undo/redo history are saved TOGETHER, under a single key, so an undo can
+  never be replayed onto a document it does not belong to. Both survive a page
+  reload. Turning the save off erases the saved copy; the open database stays
+  intact until the tab closes.
+- **The save state, always on screen** — a line under the top bar says where
+  the document stands: saved in this browser, unsaved changes, or a problem.
+  If the browser refuses the write — storage full, private browsing, a
+  restricted profile — the line says so and offers **Download a copy** on the
+  spot. Your work is never lost for want of a save you were not told about.
+- **Two tabs of the app** — they share one browser storage. If another tab
+  saves while yours is open, yours says so at once and writes NOTHING over it:
+  you choose between loading the other tab's version (undoable) and keeping
+  your own. Nothing is ever merged behind your back.
 - **Purge the database** — empties categories, projects and free slides; the
   review and the settings are kept. Undoable.
 - **Reset the settings** — back to the default theme and display; language and

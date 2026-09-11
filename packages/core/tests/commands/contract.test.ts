@@ -185,7 +185,7 @@ describe('identity — the organization kit rules', () => {
 describe('theme — the font rules (the charset is a security line)', () => {
   refused([
     // The exact value of the reproduced data loss: accepted in memory,
-    // refused by the parse, snapshot unreadable on the next boot.
+    // refused by the parse, stored document unreadable on the next boot.
     [
       'font stays in the letters/digits/space/_/- charset (invalidFont)',
       { type: 'ChangeSetting', setting: 'font', after: 'Times New Roman!!' },

@@ -12,7 +12,7 @@
       docs: {
         description: {
           component:
-            "What the application shows INSTEAD of the editor when a snapshot is stored and the format refuses it. By the time this renders the automatic saves are already disarmed (the host's persistence control), so nothing can overwrite the data while the person reads: the screen exists to make the choice explicit and reversible-by-download. «Download the backup» hands back the stored bytes verbatim — nothing repaired, reformatted or truncated — and «Start empty» is the only path that abandons them. The report between the two is the strict parse's own, rendered exactly as the import dialog renders it: same verdict, same wording. The two stories are the two shapes a refusal takes — a contract report, and a pre-parse refusal (the text was not JSON at all).",
+            "What the application shows INSTEAD of the editor when a document is stored and the format refuses it. By the time this renders the automatic saves are already disarmed (the host's persistence control), so nothing can overwrite the data while the person reads: the screen exists to make the choice explicit and reversible-by-download. «Download the backup» hands back the stored bytes verbatim — nothing repaired, reformatted or truncated — and «Start empty» is the only path that abandons them. The report between the two is the strict parse's own, rendered exactly as the import dialog renders it: same verdict, same wording. The two stories are the two shapes a refusal takes — a contract report, and a pre-parse refusal (the text was not JSON at all).",
         },
       },
     },

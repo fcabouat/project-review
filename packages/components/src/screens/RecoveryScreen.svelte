@@ -1,7 +1,7 @@
 <script lang="ts">
   /**
    * Recovery screen — what the application shows INSTEAD of the editor when a
-   * snapshot is stored and could not be read back.
+   * document is stored and could not be read back.
    *
    * The rule it serves: data the app failed to read is never overwritten. The
    * automatic saves are already disarmed by the time this screen renders (the
@@ -20,19 +20,19 @@
    */
   import type { Language } from '@project-review/core/model/theme'
   import type { ParseError } from '@project-review/core/services/parse'
-  import type { SnapshotRefusal } from '@project-review/core/services/persistence'
-  import { UNREADABLE_SNAPSHOT_FILE_NAME } from '@project-review/core/services/portfolio-json'
+  import type { StateRefusal } from '@project-review/core/services/persistence'
+  import { UNREADABLE_STATE_FILE_NAME } from '@project-review/core/services/portfolio-json'
   import { te } from '../i18n'
   import { Button } from '../commons/ui/button'
 
   interface Props {
     readonly language: Language
-    /** Why the stored snapshot was refused — the parse's exhaustive error
-     * list, or one of the two pre-parse refusals. */
-    readonly refusal: SnapshotRefusal
+    /** Why the stored envelope was refused — the parse's exhaustive error
+     * list, or one of the pre-parse refusals. */
+    readonly refusal: StateRefusal
     /** The stored bytes, exactly as they sit in the storage. */
     readonly raw: string
-    /** The host's explicit-decision hook: abandon the snapshot and start over. */
+    /** The host's explicit-decision hook: abandon the stored bytes and start over. */
     readonly startEmpty: () => void
   }
 
@@ -50,7 +50,7 @@
     const url = URL.createObjectURL(new Blob([raw], { type: 'text/plain' }))
     const link = document.createElement('a')
     link.href = url
-    link.download = UNREADABLE_SNAPSHOT_FILE_NAME
+    link.download = UNREADABLE_STATE_FILE_NAME
     link.click()
     URL.revokeObjectURL(url)
   }

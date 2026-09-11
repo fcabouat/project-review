@@ -1,12 +1,14 @@
 /**
- * Pins the two port adapters (`src/local-storage.ts`, `src/scheduler.ts`):
- * `defaultStorage` is never a prerequisite, and `timeoutScheduler` drives the
- * core debounce on real `setTimeout` (under fake timers here).
+ * Pins the three port adapters (`src/local-storage.ts`, `src/scheduler.ts`):
+ * `defaultStorage` is never a prerequisite, `watchStored` narrows the
+ * browser's cross-tab signal to the one key that matters, and
+ * `timeoutScheduler` drives the core debounce on real `setTimeout` (under fake
+ * timers here).
  */
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { SAVE_DELAY_MS, debounce } from '@project-review/core/services/persistence'
-import { defaultStorage } from '../src/local-storage'
+import { SAVE_DELAY_MS, STATE_KEY, debounce } from '@project-review/core/services/persistence'
+import { defaultStorage, watchStored } from '../src/local-storage'
 import { timeoutScheduler } from '../src/scheduler'
 
 afterEach(() => {
@@ -28,6 +30,59 @@ describe('defaultStorage', () => {
       expect(defaultStorage()).toBe(stub)
     } finally {
       delete host.localStorage
+    }
+  })
+})
+
+describe('watchStored', () => {
+  /** A window stub that hands its `storage` listener back to the test — the
+   * node suite has none, and the adapter's whole job is what it does with the
+   * event it receives. */
+  const stubWindow = () => {
+    const listeners = new Set<(event: StorageEvent) => void>()
+    const stub = {
+      addEventListener: (_type: string, fn: (event: StorageEvent) => void) =>
+        void listeners.add(fn),
+      removeEventListener: (_type: string, fn: (event: StorageEvent) => void) =>
+        void listeners.delete(fn),
+    }
+    ;(globalThis as { window?: unknown }).window = stub
+    return {
+      listeners,
+      fire: (key: string | null) => {
+        for (const fn of listeners) fn({ key } as StorageEvent)
+      },
+      restore: () => {
+        delete (globalThis as { window?: unknown }).window
+      },
+    }
+  }
+
+  it('fires on the saved document, and on a storage cleared wholesale', () => {
+    const host = stubWindow()
+    let calls = 0
+    try {
+      const stop = watchStored(() => {
+        calls += 1
+      })
+      host.fire(STATE_KEY)
+      // `null` is how the browser announces a `clear()`: it concerns the
+      // document too, so the caller must hear about it.
+      host.fire(null)
+      expect(calls).toBe(2)
+
+      // Any other key is somebody else's business — the scheme preference,
+      // an unrelated app on the same origin.
+      host.fire('project-review/scheme')
+      host.fire('something-else')
+      expect(calls).toBe(2)
+
+      stop()
+      expect(host.listeners.size).toBe(0)
+      host.fire(STATE_KEY)
+      expect(calls).toBe(2)
+    } finally {
+      host.restore()
     }
   })
 })

@@ -10,7 +10,9 @@
  * so the screens keep a single import site.
  */
 
-export type { Dispatch } from '../contracts'
+export type { Dispatch, SavePhase, SaveState } from '../contracts'
+
+import type { SaveState } from '../contracts'
 
 /** One screen address. `sheet` carries the project id read from the hash. */
 export type Route =
@@ -22,32 +24,44 @@ export type Route =
   | { readonly name: 'sheet'; readonly id: string }
 
 /**
- * UI contract of the local-save switch, however the host wires it — including
- * the one question the switch cannot answer on its own.
+ * UI contract of the local save, however the host wires it — the switch, the
+ * live save state, and the two questions the switch cannot answer on its own.
  *
  * Turning the save back ON writes over whatever the storage holds, so the host
- * reads it first. When it finds a snapshot that is still READABLE — the save
+ * reads it first. When it finds a document that is still READABLE — the save
  * was off long enough for one to be sitting there — nothing is written and
  * {@link pendingRestore} goes true: the open document and the stored one are
  * two candidates, and choosing between them is a person's call, not a
  * switch's. The three answers are exhaustive and all reversible: restore the
  * stored copy (an undoable replacement), keep the open one (the stored copy is
  * replaced, deliberately), or step back and leave the save off.
+ *
+ * A `conflict` asks the same question at the other moment — a second tab wrote
+ * while this one was working — and offers the same two real answers,
+ * {@link takeStored} and {@link keepMine}. Nothing merges the two: a merge
+ * nobody asked for would be a guess presented as a fact.
  */
 export interface PersistenceControl {
   readonly enabled: boolean
-  /** Last write failure, `null` while writes land — cleared by the next success. */
-  readonly lastError: string | null
+  /**
+   * The live save state, or `undefined` when nothing is being saved at all —
+   * the switch is off, or the host has no storage to write to.
+   */
+  readonly save: SaveState | undefined
   readonly toggle: (enabled: boolean) => void
   /** `true` while the switch is waiting on that choice; the save stays off
    * and not one byte has been written. */
   readonly pendingRestore: boolean
-  /** Load the stored snapshot into the editor (undoable), then save. */
+  /** Load the stored document into the editor (undoable), then save. */
   readonly restore: () => void
   /** Keep the open document and let it replace the stored copy. */
   readonly keepOpen: () => void
   /** Step back: the stored copy is untouched and the save stays off. */
   readonly dismissRestore: () => void
+  /** Conflict, first answer: load what the other tab saved (undoable). */
+  readonly takeStored: () => void
+  /** Conflict, second answer: the open document wins and replaces it. */
+  readonly keepMine: () => void
 }
 
 /**
