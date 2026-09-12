@@ -1,0 +1,32 @@
+<script lang="ts">
+  import { RadioGroup as RadioGroupPrimitive } from 'bits-ui'
+  import Icon from '../../Icon.svelte'
+  import { cn, type WithoutChildrenOrChild } from '../utils.js'
+
+  let {
+    ref = $bindable(null),
+    class: className,
+    ...restProps
+  }: WithoutChildrenOrChild<RadioGroupPrimitive.ItemProps> = $props()
+</script>
+
+<RadioGroupPrimitive.Item
+  bind:ref
+  data-slot="radio-group-item"
+  class={cn(
+    'flex size-4 rounded-full border-input group-has-[:focus-visible]/field-label:ring-0 group-has-[:focus-visible]/field-label:not-data-checked:border-input focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 aria-invalid:aria-checked:border-primary dark:bg-input/30 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 data-checked:border-primary data-checked:bg-primary data-checked:text-primary-foreground group-has-[:focus-visible]/field-label:data-checked:border-primary dark:data-checked:bg-primary group/radio-group-item peer relative aspect-square shrink-0 border outline-none after:absolute after:-inset-x-3 after:-inset-y-2 disabled:cursor-not-allowed disabled:opacity-50',
+    className,
+  )}
+  {...restProps}
+>
+  {#snippet children({ checked })}
+    <div data-slot="radio-group-indicator" class="flex size-4 items-center justify-center">
+      {#if checked}
+        <span
+          class="text-primary-foreground absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+          ><Icon name="checkbox-blank-circle-fill" size="8px" /></span
+        >
+      {/if}
+    </div>
+  {/snippet}
+</RadioGroupPrimitive.Item>

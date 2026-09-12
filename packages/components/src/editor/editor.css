@@ -1,0 +1,59 @@
+/*
+ * Editor chrome — the residue utilities cannot express.
+ *
+ * The editing screens are built from the vendored primitives (commons/ui) and
+ * Tailwind utilities in the templates; colours resolve through the shadcn
+ * alias layer of `tokens.css`. What remains here is exactly two things:
+ *
+ *  1. the `.editor` ground — one shared root (background, ink, type scale)
+ *     for the shell and for every screen story, instead of restating it on
+ *     each mount point;
+ *  2. the range input — its WebKit/Gecko thumb pseudo-elements have no
+ *     utility form.
+ */
+.editor {
+  background: var(--bg-alt);
+  color: var(--txt);
+  font-size: 14.5px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Progress slider (project sheet): two-tone track painted from --rv/--rc,
+   thumb drawn per engine. */
+.editor input[type='range'] {
+  appearance: none;
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  outline: none;
+  background: linear-gradient(
+    to right,
+    var(--rc, #d97706) 0%,
+    var(--rc, #d97706) var(--rv, 0%),
+    var(--border2) var(--rv, 0%),
+    var(--border2) 100%
+  );
+}
+.editor input[type='range']::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 2px solid var(--accent);
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 25%);
+}
+.editor input[type='range']::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 2px solid var(--accent);
+  cursor: pointer;
+}
+.editor input[type='range']:focus-visible {
+  outline: 2px solid var(--accent-main);
+  outline-offset: 3px;
+}

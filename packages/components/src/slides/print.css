@@ -1,0 +1,221 @@
+/* ==========================================================================
+   A4 landscape recomposition of the slide theme.
+
+   This is NOT a homothetic reduction of the 16:9: the ratio goes from 1.778 to
+   1.414, so the title column drops to 434 px, the goal card follows it, the
+   typographic scale goes to ×0.95, and the height gained on row A is paid back
+   to the narrative row. The TEMPLATE side of that transposition lives in the
+   `print:` variants of the templates' utility classes; this sheet keeps the
+   page policy, the reaches into the atoms' interiors (cartouche, chips,
+   gauges, facts, timeline, text lines) and the rules whose selectors a class
+   attribute cannot express.
+
+   The printed page is 1122 × 793 px, ONE pixel under the screen
+   format (1123 × 794), otherwise Chrome slips a blank page between two slides.
+   ========================================================================== */
+
+@page {
+  size: A4 landscape;
+  margin: 0;
+}
+
+@media print {
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  html,
+  body {
+    background: #fff;
+    padding: 0;
+    margin: 0;
+  }
+
+  /* page policy: one slide, one page — and no shadow, no delineation
+     outline on paper (each A4 page would print framed) */
+  .slide.slide {
+    box-shadow: none;
+    outline: none;
+    margin: 0 !important;
+    break-inside: avoid;
+    break-after: page;
+    page-break-after: always;
+  }
+  .slide.slide:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  /* the body margin and the split gap must keep outranking the unlayered
+     body modifiers, as they always have (a print: variant could not) */
+  .slide .slide-body {
+    margin-top: 16px;
+  }
+  .slide .slide-body--split {
+    gap: 40px;
+  }
+
+  /* cartouche: same component, A4 scale (the extra `.slide` outranks the
+     atom's own scoped rule) */
+  .slide .ent b {
+    font-size: 12.5px;
+  }
+  .slide .ent i {
+    font-size: 11.5px;
+  }
+  .slide .ent u {
+    font-size: 10.5px;
+  }
+
+  /* ---------- primitives (kept rules follow their theme.css halves) ------ */
+  .slide .label {
+    font-size: 11.5px;
+  }
+  /* stage / health / priority chips (atoms): A4 metrics */
+  .slide .chip,
+  .slide .health.chip {
+    height: 23px;
+    padding: 0 9px;
+    font-size: 11.5px;
+  }
+  .slide .gauge-val {
+    font-size: 11.5px;
+  }
+
+  /* ---------- portfolio dashboard (atom reaches) -------------------------- */
+  .slide .stat {
+    height: 92px;
+    padding: 12px 13px;
+  }
+  .slide .stat b {
+    font-size: 28.5px;
+  }
+  .slide .stat span {
+    font-size: 11.5px;
+  }
+  .slide .category-row .cat-bar {
+    height: 30px;
+  }
+
+  /* ---------- recap (atom reaches) ---------------------------------------- */
+  .slide .table--recap .chip {
+    height: 20px;
+    font-size: 10.5px;
+    padding: 0 6px;
+    gap: 5px;
+  }
+  .slide .table--recap .health {
+    font-size: 11px;
+  }
+  .slide .table--recap .gauge {
+    gap: 7px;
+  }
+  .slide .table--recap .gauge .bar {
+    width: 50px;
+  }
+
+  /* ---------- project sheet (atom reaches) -------------------------------- */
+  /* the A4 timeline sits on the row gap alone, with no rule above it */
+  .slide .sheet-body > .block {
+    margin-top: 0;
+  }
+  /* the facts block: 310 px and not 338 — the A4 canvas is 28 px narrower */
+  .slide .row-a .facts {
+    width: 310px;
+  }
+  .slide .facts .fact {
+    padding: 0 11px;
+  }
+  .slide .facts .label {
+    font-size: 11.5px;
+  }
+  /* 13 px and not 14: in a 310 px block the three columns lose 9 px each */
+  .slide .facts .value {
+    font-size: 13px;
+  }
+  .slide .facts .budget {
+    padding: 6px 11px 0;
+  }
+  /* 10.5 px: at this width the longest budget (P-09, 49 characters) only fits
+     on 2 lines at that size — beyond it, the clamp would cut it */
+  .slide .facts .budget-text {
+    font-size: 10.5px;
+  }
+  .slide .narrative-card .ch {
+    font-size: 10.5px;
+  }
+  .slide .narrative-card .disc {
+    width: 24px;
+    height: 24px;
+  }
+  .slide .narrative-card .line.bullet {
+    font-size: 11.5px;
+    padding: 2px 0 2px 12px;
+  }
+  .slide .narrative-card .line.bullet::before {
+    top: 8.5px;
+  }
+  .slide .row-c .risks {
+    padding: 9px 13px;
+  }
+  .slide .row-c .risks .label,
+  .slide .row-c .decision .label {
+    font-size: 10.5px;
+  }
+  .slide .row-c .risks p {
+    font-size: 11.5px;
+  }
+
+  /* timeline — a little taller than in 16:9, the A4 has the room */
+  .slide .tl {
+    height: 76px;
+    padding-top: 0;
+    border-top: 0;
+  }
+  .slide .tl.tl--alt {
+    height: 78px;
+  }
+  .slide .tl-axis {
+    top: 38px;
+    height: 1px;
+  }
+  .slide .tl-cursor {
+    top: 26px;
+    width: 1.5px;
+    margin-left: -0.75px;
+  }
+  .slide .tl-dot {
+    top: 33px;
+    width: 11px;
+    height: 11px;
+    margin-left: -5.5px;
+    border-width: 1.5px;
+  }
+  .slide .tl-lab {
+    font-size: 11.5px;
+    font-weight: 600;
+    top: 9px;
+  }
+  .slide .tl-date {
+    font-size: 10px;
+    top: 49px;
+  }
+  .slide .tl--alt .tl-pt.up .tl-lab {
+    top: 0;
+  }
+  .slide .tl--alt .tl-pt.up .tl-date {
+    top: 15px;
+  }
+  .slide .tl--alt .tl-pt.dn .tl-lab {
+    top: 47px;
+  }
+  .slide .tl--alt .tl-pt.dn .tl-date {
+    top: 62px;
+  }
+
+  /* ---------- free slide (text-line atom reach) --------------------------- */
+  .slide .freeform-card .line.bullet {
+    font-size: 16px;
+    margin-bottom: 16px;
+  }
+}

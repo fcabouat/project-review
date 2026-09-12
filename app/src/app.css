@@ -1,0 +1,12 @@
+@import 'tailwindcss';
+/* The chrome tokens live with the widgets that read them (single source);
+   the app only layers the page-level concerns below on top. */
+@import '@project-review/components/tokens.css';
+/* Utility candidates live in the component package, outside this app's
+   automatic scan root: register the package source tree explicitly. */
+@source '../../packages/components/src';
+
+/* No house font is declared here. A family deployed beside the app gets its
+   @font-face rules at runtime, from the name the portfolio carries
+   (infrastructure's `applyDeployedFont`) — the mechanism is generic, so this
+   stylesheet names no family at all. */
