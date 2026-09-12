@@ -750,6 +750,62 @@ async function main() {
     const sampleSource = JSON.parse(
       await readFile(join(ROOT, 'dist/sample-portfolio.fr.json'), 'utf8'),
     )
+    // A site locale overrides the browser only on first boot. Importing French
+    // content into an English document adopts its labels, not its identity.
+    const languageCtx = await browser.newContext({ locale: 'en-US' })
+    const lp = await languageCtx.newPage()
+    await lp.goto(`${HTTP_APP}?sample&lang=fr`)
+    await lp.getByRole('button', { name: 'Importer…' }).waitFor()
+    check(
+      (await lp.getAttribute('html', 'lang')) === 'fr',
+      'demo: explicit French beats browser English',
+    )
+    await lp.waitForTimeout(1200)
+    await lp.goto(`${HTTP_APP}?sample&lang=en`)
+    await lp.getByRole('button', { name: 'Importer…' }).waitFor()
+    check(
+      (await lp.getAttribute('html', 'lang')) === 'fr',
+      'demo: URL language never replaces saved data',
+    )
+    await languageCtx.close()
+
+    const importCtx = await browser.newContext({ locale: 'en-US' })
+    const ip = await importCtx.newPage()
+    await ip.goto(HTTP_APP)
+    await ip.getByRole('button', { name: 'Import…' }).click()
+    await ip.getByRole('textbox', { name: 'JSON to import' }).fill(JSON.stringify(sampleSource))
+    await ip.getByRole('button', { name: /Replace the portfolio/ }).click()
+    await ip.getByRole('button', { name: 'Importer…' }).waitFor()
+    check(
+      (await ip.getAttribute('html', 'lang')) === 'fr',
+      'import: French content adopts French labels',
+    )
+    await ip.waitForTimeout(1200)
+    const importedSettings = await ip.evaluate(
+      () => JSON.parse(localStorage.getItem('project-review/state')).portfolio.settings,
+    )
+    check(
+      importedSettings.identity.org !== sampleSource.settings.identity.org,
+      'import: the current identity is preserved',
+    )
+    await ip.getByRole('button', { name: /Générer le diaporama/ }).click()
+    await ip.waitForSelector('.reveal.ready')
+    const importedSlideText = (await ip.locator('.slide').allTextContents()).join(' ')
+    check(
+      importedSlideText.includes('Réalisé depuis la dernière revue') &&
+        !importedSlideText.includes('Done since last review'),
+      'import: generated deck uses French, not English, completed-work labels',
+    )
+    await ip.mouse.move(640, 4)
+    await ip.getByRole('button', { name: '✕ Fermer' }).click()
+    await ip.getByRole('button', { name: 'Annuler', exact: true }).click()
+    await ip.getByRole('button', { name: 'Import…', exact: true }).waitFor()
+    check(
+      (await ip.getAttribute('html', 'lang')) === 'en',
+      'import: undo restores the original English language too',
+    )
+    await importCtx.close()
+
     const importedJson = JSON.stringify({
       ...sampleSource,
       review: { ...sampleSource.review, title: IMPORTED_TITLE },

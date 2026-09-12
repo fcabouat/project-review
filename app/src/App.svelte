@@ -82,7 +82,10 @@
    * the portfolio), and `<html lang>` follows the setting reactively below.
    */
   function initialLanguage(): Language {
-    return detectLanguage(typeof navigator !== 'undefined' ? navigator.language : '')
+    return detectLanguage(
+      typeof navigator !== 'undefined' ? navigator.language : '',
+      typeof location !== 'undefined' ? location.search : '',
+    )
   }
 
   /** Local date (not UTC): the pre-filled review date is what the user sees on the wall. */

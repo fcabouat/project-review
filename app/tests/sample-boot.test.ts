@@ -38,6 +38,11 @@ describe('shouldBootSample — the demo never overwrites an existing base', () =
 })
 
 describe('detectLanguage — the first-boot pick', () => {
+  it('honors explicit site languages, but rejects unsupported URL values', () => {
+    expect(detectLanguage('en-US', '?sample&lang=fr')).toBe('fr')
+    expect(detectLanguage('fr-FR', '?sample&lang=en')).toBe('en')
+    expect(detectLanguage('fr-FR', '?lang=de')).toBe('fr')
+  })
   it('reads any fr-* locale as French, everything else as English', () => {
     expect(detectLanguage('fr')).toBe('fr')
     expect(detectLanguage('fr-FR')).toBe('fr')
@@ -106,6 +111,11 @@ describe('fetchSample — the neighbour file, strictly parsed, silently refused'
     const portfolio = await fetchSample('en', BASE)
     expect(portfolio?.projects).toHaveLength(20)
     expect(portfolio?.settings.language).toBe('en')
+  })
+
+  it('refuses a sample served under the wrong language name', async () => {
+    stubFetch(sampleFr)
+    await expect(fetchSample('en', BASE)).resolves.toBeUndefined()
   })
 
   it('never even fetches from file:// — the console must stay clean', async () => {
