@@ -4,7 +4,7 @@ name: CodeQL
 # Actions pinned to a full commit SHA (tag in the comment), like the other
 # workflows: a tag is a mutable pointer.
 on:
-  push: { branches: [main, develop] }
+  workflow_call:
   schedule: [{ cron: '0 4 1 * *' }]
 jobs:
   analyze:

@@ -115,32 +115,52 @@ License interpretation remains a manual review, not a scanner guarantee.
 
 ### Maintainer release
 
-From a clean `develop`, with the intended version committed in all five
-`package.json` files:
+Use the existing clone: no bundles, local release driver or force-push.
+Changesets manages the four private packages as one fixed-version group.
+`app/package.json` supplies the application version; the workspace root is
+not a versioned product. Nothing is published to npm.
 
 ```sh
-# Once: install GitHub CLI, then authenticate in the browser.
-gh auth login --hostname github.com --git-protocol https --scopes workflow
-
-pnpm release --dry-run   # local plan, no network or writes
-pnpm release
+pnpm changeset          # describe a change and choose patch/minor/major
+pnpm changeset status   # inspect the pending version plan
 ```
 
-The command targets `fcabouat/project-review`. It pushes an isolated candidate
-branch, opens the necessary PRs, prints their URLs and waits for you to choose
-**Merge pull request** (not Squash/Rebase). It waits for the exact merged
-commit's CI and CodeQL, requires a successful Pages deployment on `main`, then
-creates the annotated tag and GitHub release. A final PR synchronizes `main`
-back to `develop`; local branches and the tag are fast-forwarded/fetched, and
-the candidate branch is removed. Existing PRs, tags and releases are reused
-when resuming the same version. Release downloads remain on the project site.
+Commit the generated `.changeset/*.md` with the change and push your working
+branch normally, then merge its PR into `develop`. Documentation-only changes
+need no changeset. Do not bump versions by hand.
 
-No force push, automatic merge or protection bypass. On failure or interruption,
-fix the reported issue and run the command again from the same clean `develop`.
-Each wait is bounded to 45 minutes. Do not edit or switch the local checkout
-while it runs. Closed/modified PRs, changed remote content and conflicting
-versions stop the command instead of guessing. GitHub authentication and any
-required approvals remain yours; never paste credentials into source files.
+After successful CI on `develop`, Changesets opens or updates **prepare next
+release**, containing versions and changelogs. On bot-created PRs, click
+**Approve workflows to run** when GitHub requests it, then wait for green checks.
+Merge the version PR when ready; automation
+then proposes **develop → main**. Merge that PR with **Create a merge commit**.
+Successful main verification, CodeQL (public repositories) and Pages deployment
+publish one immutable `vX.Y.Z` tag and GitHub release, then propose **main →
+develop** for you to merge the same way. No npm publish or automatic merge.
+Use classic merges between the two long-lived branches, never squash/rebase.
+Fetch/pull normally afterward; workflows do not modify your local checkout.
+
+The already prepared **0.1.1** starts directly with the develop → main PR:
+its versions and initial application changelog are already present. Subsequent
+versions use Changesets. GitHub release notes come from `app/CHANGELOG.md`;
+downloads and generated example decks remain on the project site.
+
+One-time GitHub setup:
+
+- Keep `develop` as the default branch; require PRs and `verify` on both
+  branches, allow merge commits, and keep force-push disabled.
+- Enable Pages from Actions, `PAGES_ENABLED=true`, and allow `main` in the
+  `github-pages` environment. Without successful deployment, no release is made.
+- Allow Actions to create PRs in **Settings → Actions → General**. The workflow
+  never approves or merges them. [Changesets Action](https://github.com/changesets/action).
+
+No personal access token or npm credentials are needed. The built-in
+`GITHUB_TOKEN` opens PRs; GitHub asks a maintainer to approve their CI runs.
+[GitHub workflow trigger rules](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow).
+
+On failure, correct the reported issue and rerun **Verify and publish** on the
+current `develop` or `main`. Existing PRs/releases are reused; tags are never
+replaced. An existing draft or conflicting tag requires manual review.
 
 ### Optional Bun workflow
 
