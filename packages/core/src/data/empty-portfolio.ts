@@ -4,7 +4,7 @@
  * the model layer says what a portfolio is, this file says which one you
  * start with.
  *
- * The identity is deliberately blank: Déjà Vu Ltd. lives ONLY in the sample
+ * The identity is deliberately blank: Projay Inc. lives ONLY in the sample
  * sets — a real user types their own organization on first launch (the
  * Review and Settings screens open ready to fill). `language` localizes the
  * default title and is stored as the deck language.

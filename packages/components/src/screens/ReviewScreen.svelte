@@ -16,7 +16,6 @@
   import { nextFreeSlideId } from '@project-review/core/values/ids'
   import type { FreeSlide } from '@project-review/core/model/free-slide'
   import { isoDate } from '@project-review/core/values/date'
-  import { TEXT_CAPACITY } from '@project-review/core/model/budget'
   import { te } from '../i18n'
   import FieldText from '../editor/FieldText.svelte'
   import FreeSlideCard from '../editor/FreeSlideCard.svelte'
@@ -120,7 +119,7 @@
         label={te('editor.field.title', language)}
         value={review.title}
         commit={(v) => change('title', v)}
-        max={TEXT_CAPACITY.reviewTitle}
+        capacity="reviewTitle"
       />
       <FieldText
         {language}

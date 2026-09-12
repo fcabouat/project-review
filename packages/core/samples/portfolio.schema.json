@@ -148,7 +148,7 @@
               "type": "string",
               "pattern": "^data:image\\/",
               "maxLength": 400000,
-              "description": "Logo inlined as a data URI (SVG/PNG/JPEG/WebP); absent → bundled Déjà Vu logo"
+              "description": "Logo inlined as a data URI (SVG/PNG/JPEG/WebP); absent → no logo is drawn"
             }
           }
         },

@@ -19,7 +19,7 @@ describe('normalize', () => {
   it('folds accents onto their base letter', () => {
     expect(normalize('réseau')).toBe('reseau')
     expect(normalize('À cadrer')).toBe('a cadrer')
-    expect(normalize('Déjà Vu')).toBe('deja vu')
+    expect(normalize('Téléphonie Unifiée')).toBe('telephonie unifiee')
     expect(normalize('KOVAČ')).toBe('kovac')
   })
 

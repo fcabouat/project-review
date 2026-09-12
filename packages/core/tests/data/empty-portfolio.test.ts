@@ -1,6 +1,6 @@
 /**
  * Pins `emptyPortfolio` (`src/data/empty-portfolio.ts`) — the first-launch
- * fallback: theme pre-filled, identity BLANK (Déjà Vu Ltd. lives only in the
+ * fallback: theme pre-filled, identity BLANK (Projay Inc. lives only in the
  * sample sets), zero content, and the two duties it must honor (a derivable
  * deck, an unchanged strict-parse round trip).
  */

@@ -26,7 +26,7 @@ The app starts empty: no project, and a blank identity — on first launch,
 enter your organisation (name, department, contact, logo) in **Settings**.
 The review date is set to today.
 
-To see a full example, import the Déjà Vu Ltd. sample set: 20 projects in
+To see a full example, import the Projay Inc. sample set: 20 projects in
 8 categories. The app itself carries no content — sample portfolios come with
 the app (`sample-portfolio.en.json` next to the downloaded file) and with the
 project site; import one through **Import…** like any portfolio file. The

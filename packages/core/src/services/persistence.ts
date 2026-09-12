@@ -206,35 +206,62 @@ export type StateStamp = string
 
 /**
  * What the storage announces right now: a stamp, `null` when the key is
- * absent, `'unreadable'` when something IS there whose head cannot be read.
- * The three are kept apart because only the first two can ever be matched by a
- * caller: writing over bytes nobody could read is the one thing the guard
- * exists to prevent.
+ * absent, `'unreadable'` when something IS there that is not an envelope this
+ * version can open. The three are kept apart because only the first two can
+ * ever be matched by a caller: writing over bytes nobody could read is the one
+ * thing the guard exists to prevent.
  */
 export type StoredStamp = StateStamp | null | 'unreadable'
 
-/** The monotone number the envelope carries — written first, read off the
- * head, and never on its own the answer to "is this still my document?". */
+/** The monotone number the envelope carries — written first so the head
+ * usually answers it, and never on its own the answer to "is this still my
+ * document?". */
 type Revision = number
 
 const isRevision = (value: unknown): value is Revision =>
   typeof value === 'number' && Number.isInteger(value) && value > 0
 
 /**
- * Reads the announced revision from the HEAD of the stored text. `format` and
- * `revision` are written first, on purpose and as a contract with this guard:
- * it runs before EVERY save, and no save should cost a full PARSE of the
- * document — the whole object graph allocated to learn one number.
+ * The head of the texts this module writes: `format` and `revision` come
+ * first, on purpose and as a contract with the guard below, which runs before
+ * EVERY save and must not allocate the whole object graph of a
+ * hundred-kilobyte document to learn one integer.
  */
 const REVISION_HEAD = /^\{"format":(\d+),"revision":(\d+),/
 
-/** The revision the stored TEXT announces, or `undefined` for a head this
- * version does not recognise — never a licence to write. */
+/** The revision an envelope announces when the whole text is read. */
+const revisionByParse = (raw: string): Revision | undefined => {
+  // Same order as `readStored`: the length is what keeps a mispasted archive
+  // away from `JSON.parse` in the first place.
+  if (raw.length > MAX_CHARS) return undefined
+  let envelope: unknown
+  try {
+    envelope = JSON.parse(raw)
+  } catch {
+    return undefined
+  }
+  if (typeof envelope !== 'object' || envelope === null) return undefined
+  const { format, revision } = envelope as { format?: unknown; revision?: unknown }
+  return format === STATE_FORMAT && isRevision(revision) ? revision : undefined
+}
+
+/**
+ * The revision the stored TEXT announces, or `undefined` when the text is not
+ * an envelope this version can open — which is the ONLY thing that answer ever
+ * means. {@link REVISION_HEAD} is an optimisation, not a criterion: key order
+ * is free in JSON, so a document another tool wrote or a person edited by hand
+ * can be perfectly valid and still not start with those two keys. An
+ * unrecognised head therefore falls back to reading the whole text, which is
+ * rare by construction — every text this module writes takes the fast path.
+ */
 const revisionOf = (raw: string): Revision | undefined => {
   const head = REVISION_HEAD.exec(raw)
-  if (head === null || Number(head[1]) !== STATE_FORMAT) return undefined
+  if (head === null) return revisionByParse(raw)
+  // The head WAS recognised: it names the format and the revision outright,
+  // and reading the same two values again through the parse cannot change
+  // them. An envelope stamped for another build is refused here.
   const revision = Number(head[2])
-  return isRevision(revision) ? revision : undefined
+  return Number(head[1]) === STATE_FORMAT && isRevision(revision) ? revision : undefined
 }
 
 /**
@@ -253,12 +280,15 @@ const digestOf = (text: string): string => {
   return (hash >>> 0).toString(36)
 }
 
+/** The stamp of a text whose revision is already established. */
+const stampWith = (revision: Revision, raw: string): StateStamp =>
+  `${revision}.${raw.length}.${digestOf(raw)}`
+
 /** The stamp of one stored text. */
 const stampOf = (raw: string | null): StoredStamp => {
   if (raw === null) return null
   const revision = revisionOf(raw)
-  if (revision === undefined) return 'unreadable'
-  return `${revision}.${raw.length}.${digestOf(raw)}`
+  return revision === undefined ? 'unreadable' : stampWith(revision, raw)
 }
 
 /** What the storage holds, as a stamp — the COMPARE half of the guarded
@@ -337,20 +367,15 @@ export const readStored = (storage: KeyValueStorage | null): StoredState => {
     portfolio?: unknown
     history?: unknown
   }
-  // The parsed head and the READ head must agree. They can disagree — an
-  // envelope whose keys arrived in another order parses fine and is invisible
-  // to the head regex — and a caller holding a stamp the guard can never match
-  // would be refused every write it ever tried. Better said now, on the
-  // recovery screen, than as a save that silently stops working.
-  const stamp = stampOf(raw)
-  if (
-    format !== STATE_FORMAT ||
-    !isRevision(revision) ||
-    stamp === 'unreadable' ||
-    stamp === null
-  ) {
+  if (format !== STATE_FORMAT || !isRevision(revision)) {
     return { state: 'unreadable', raw, refusal: { ok: false, refusal: 'unknownFormat' } }
   }
+  // The stamp is named by the revision THIS read established. Nothing is
+  // bought by looking at the same bytes a second time, more shallowly: the
+  // text is already parsed here. The guard reaches the same number on its own
+  // side — by the head where it can, by the whole text where it cannot — so
+  // the stamp handed out here is the one the next write will compare against.
+  const stamp = stampWith(revision, raw)
   const parsed = parsePortfolio(portfolio)
   if (!parsed.ok) return { state: 'unreadable', raw, refusal: parsed }
   return {
@@ -409,7 +434,7 @@ export const writeState = (
   if (!read.ok) return { outcome: 'refused' }
   if (stampOf(read.value) !== expected) return { outcome: 'conflict' }
   // The number comes from the bytes just compared, never from the caller: the
-  // stamp is opaque, and the head is where the count has always lived.
+  // stamp is opaque, and the envelope is where the count lives.
   const revision = (read.value === null ? 0 : (revisionOf(read.value) ?? 0)) + 1
   // `format` and `revision` first: `storedStamp` reads them off the head of
   // this very text without parsing the document that follows.

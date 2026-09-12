@@ -11,11 +11,12 @@
    * An empty string commits as `undefined`: the model has no "empty text", it
    * has an absent field (see `withField` in the store).
    *
-   * A TEXT PAST ITS FRAME IS SAID TOO, AND NEVER REFUSED. `max` is the
-   * VISUAL-CAPACITY budget (core's `model/budget.ts`): what the slide's frame
-   * was measured to hold, not what the file format allows. Over it, the
-   * counter turns AND a line says what happens — the slide will clip the
-   * text — because a coloured number is not a message. The value is still
+   * A TEXT PAST ITS FRAME IS SAID TOO, AND NEVER REFUSED. The caller names the
+   * FRAME (`capacity`), not a number, and the verdict comes from the core's
+   * `overCapacity` — the VISUAL-CAPACITY budget of `model/budget.ts`: what the
+   * slide's frame was measured to hold, not what the file format allows. Over
+   * it, the counter turns AND a line says what happens — the slide will clip
+   * the text — because a coloured number is not a message. The value is still
    * committed: refusing a paste would lose the user's words, which is the
    * worse failure of the two.
    *
@@ -29,6 +30,8 @@
   import { untrack } from 'svelte'
   import { te } from '../i18n'
   import type { Language } from '@project-review/core/model/theme'
+  import type { CapacityField } from '@project-review/core/model/budget'
+  import { TEXT_CAPACITY, overCapacity } from '@project-review/core/model/budget'
   import { Input } from '../commons/ui/input'
   import { Textarea } from '../commons/ui/textarea'
 
@@ -41,14 +44,17 @@
     /** Set by the caller when it REFUSED the last commit: the rule, in the
      * reader's language. Shown under the field; the typed text stays. */
     readonly error?: string
-    /** Character budget of the FRAME the value is drawn in (measured — see
-     * core's `TEXT_CAPACITY`). A counter and a warning, never a block. */
-    readonly max?: number
-    /** Line budget (`risks`, narrative lists) — counted instead of characters. */
+    /** The FRAME the whole value is drawn in — the core names it, measures it
+     * and judges it (`TEXT_CAPACITY`, `overCapacity`). A counter and a
+     * warning, never a block. */
+    readonly capacity?: CapacityField
+    /** Line budget (`risks`, narrative lists) — counted instead of characters.
+     * A number, not a frame: the capacity ladder measures CHARACTERS, and no
+     * line count was ever measured for the core to state. */
     readonly maxLines?: number
-    /** Per-LINE character budget, where each line is drawn in its own frame
-     * (one narrative bullet). Counted alongside {@link maxLines}. */
-    readonly maxLineChars?: number
+    /** The frame ONE LINE is drawn in, where each line gets its own (a
+     * narrative bullet). Judged per line, alongside {@link maxLines}. */
+    readonly lineCapacity?: CapacityField
     readonly rows?: number
     readonly placeholder?: string
     readonly readonly?: boolean
@@ -63,9 +69,9 @@
     language,
     hint,
     error,
-    max,
+    capacity,
     maxLines,
-    maxLineChars,
+    lineCapacity,
     rows,
     placeholder,
     readonly = false,
@@ -87,12 +93,13 @@
 
   const lines = $derived(draft === '' ? [] : draft.split('\n'))
   const lineCount = $derived(lines.length)
-  /** The longest line, when each line has a frame of its own. */
-  const longestLine = $derived(lines.reduce((n, l) => Math.max(n, l.length), 0))
+  /** What the frame holds, for the counter to show. The verdict below is the
+   * core's, not a second reading of this number. */
+  const max = $derived(capacity === undefined ? undefined : TEXT_CAPACITY[capacity])
   const over = $derived(
-    (max !== undefined && draft.length > max) ||
+    (capacity !== undefined && overCapacity(capacity, draft)) ||
       (maxLines !== undefined && lineCount > maxLines) ||
-      (maxLineChars !== undefined && longestLine > maxLineChars),
+      (lineCapacity !== undefined && lines.some((l) => overCapacity(lineCapacity, l))),
   )
 
   function onblur(): void {

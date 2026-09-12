@@ -16,6 +16,11 @@ jobs:
       - run: bun run lint
       - run: bun run format:check
       - run: bun run check
+      # The README lists `bun run knip` among the checks this project runs; a
+      # check nothing executes is a claim, not a control. It costs seconds and
+      # it catches what the type checker cannot: a file, an export or a
+      # dependency nobody reaches any more.
+      - run: bun run knip
       # Coverage, not just the suite: the thresholds in vitest.config.ts (lines
       # at 100 % on every package) only apply when coverage is MEASURED — run
       # without it they gate nothing, and the README's claim would rest on a

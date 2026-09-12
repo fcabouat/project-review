@@ -6,7 +6,6 @@
   import type { Language } from '@project-review/core/model/theme'
   import type { NarrativeList, ProjectScalarField } from '@project-review/core/events'
   import { te } from '../../i18n'
-  import { TEXT_CAPACITY } from '@project-review/core/model/budget'
   import FieldText from '../../editor/FieldText.svelte'
   import type { Dispatch } from '../contracts'
 
@@ -44,7 +43,7 @@
           value={project[list].join('\n')}
           rows={4}
           maxLines={5}
-          maxLineChars={TEXT_CAPACITY.narrativeLine}
+          lineCapacity="narrativeLine"
           hint={te('editor.hint.bullets', language)}
           commit={(v) => setList(list, v)}
         />

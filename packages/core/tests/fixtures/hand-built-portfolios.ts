@@ -45,13 +45,13 @@ export const testPortfolio = (): Portfolio => ({
   },
   settings: {
     language: 'fr',
-    // The fictional Déjà Vu identity — same publisher as the sample sets.
+    // The fictional Projay identity — same publisher as the sample sets.
     identity: {
-      org: 'Déjà Vu Ltd.',
+      org: 'Projay Inc.',
       unit: 'DSI',
-      orgLong: 'Déjà Vu Ltd.',
+      orgLong: 'Projay Inc.',
       unitLong: 'Direction des Systèmes d’Information',
-      contact: 'dsi@dejavu.example',
+      contact: 'dsi@projay.example',
     },
     theme: { style: 'institutional', palette: 'tailwind', font: 'Inter' },
     show: { healthDashboard: true, recap: true, archives: true, decisions: true },

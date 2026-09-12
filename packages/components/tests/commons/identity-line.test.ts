@@ -8,14 +8,14 @@ import { identityLine } from '../../src/commons/identity-line'
 
 describe('identityLine', () => {
   it('joins the filled parts with the separator', () => {
-    expect(identityLine(' · ', 'Déjà Vu Ltd.', 'DSI')).toBe('Déjà Vu Ltd. · DSI')
+    expect(identityLine(' · ', 'Projay Inc.', 'DSI')).toBe('Projay Inc. · DSI')
   })
 
   it('drops empty, blank and absent parts — no orphan separator', () => {
     // If this breaks, the blank first-launch identity shows « · » alone in
     // the cartouche and an em-dash alone under the title slide.
     expect(identityLine(' · ', '', 'DSI')).toBe('DSI')
-    expect(identityLine(' — ', 'Déjà Vu Ltd.', '  ')).toBe('Déjà Vu Ltd.')
+    expect(identityLine(' — ', 'Projay Inc.', '  ')).toBe('Projay Inc.')
     expect(identityLine(' · ', undefined, 'DSI')).toBe('DSI')
   })
 

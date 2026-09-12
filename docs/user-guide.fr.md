@@ -29,7 +29,7 @@ L'application démarre vide : aucun projet, et une identité vierge — au
 premier lancement, renseignez votre organisation (nom, service, contact,
 logo) dans **Paramètres**. La date de revue est celle du jour.
 
-Pour voir un exemple complet, importez le jeu Déjà Vu Ltd. : 20 projets
+Pour voir un exemple complet, importez le jeu Projay Inc. : 20 projets
 dans 8 catégories. L'application elle-même ne transporte aucun contenu — des
 portefeuilles d'exemple accompagnent l'app (`sample-portfolio.fr.json` à côté
 du fichier téléchargé) et le site du projet ; importez-en un par

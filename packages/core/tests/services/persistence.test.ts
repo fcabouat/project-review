@@ -286,17 +286,46 @@ describe('storedStamp — the compare half of the guard', () => {
     const storage = createMemoryStorage()
     for (const raw of [
       '{ this is not JSON',
-      '{"revision":3,"format":1,"portfolio":{}}', // right keys, wrong order
+      '[1,2,3]',
       JSON.stringify({ format: STATE_FORMAT + 1, revision: 1, portfolio: {} }),
       JSON.stringify({ format: STATE_FORMAT, revision: 0, portfolio: {} }),
+      JSON.stringify({ revision: 3, portfolio: {} }), // no format at all
     ]) {
       storage.setItem(STATE_KEY, raw)
       expect(storedStamp(storage)).toBe('unreadable')
-      // …and a head the guard cannot read is not restorable either: a caller
-      // holding a stamp nothing can match would be refused every write it
-      // ever attempted, which is worse than being told now.
+      // …and an envelope the guard cannot open is not restorable either: a
+      // caller holding a stamp nothing can match would be refused every write
+      // it ever attempted, which is worse than being told now.
       expect(readStored(storage).state).toBe('unreadable')
     }
+  })
+
+  it('reads an envelope whose keys arrived in another order, head shortcut or not', () => {
+    // Key order is free in JSON. A document another tool wrote, or a person
+    // edited by hand, is a VALID document that simply does not start with
+    // `format` — and « I could not read it quickly » is not a verdict on it.
+    // Were it one, a healthy file would land its owner on the recovery screen.
+    const storage = createMemoryStorage()
+    const raw = JSON.stringify({
+      savedBy: 'a spreadsheet, one afternoon',
+      revision: 7,
+      format: STATE_FORMAT,
+      history: emptyHistory,
+      portfolio: testPortfolio(),
+    })
+    storage.setItem(STATE_KEY, raw)
+
+    const back = readStored(storage)
+    if (back.state !== 'restored') throw new Error(`expected a restored state, got ${back.state}`)
+    expect(back.portfolio).toEqual(testPortfolio())
+    // The guard names the same bytes the same way the read did — otherwise the
+    // caller holds a stamp nothing can match and every save is a `conflict`.
+    expect(storedStamp(storage)).toBe(back.stamp)
+
+    // And the number it read is the one the envelope announces: the next write
+    // continues the count instead of restarting it.
+    written(writeState(storage, back.stamp, otherPortfolio(), emptyHistory))
+    expect(revisionInStorage(storage)).toBe(8)
   })
 })
 
