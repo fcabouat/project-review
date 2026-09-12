@@ -1,7 +1,7 @@
 {
   "name": "@project-review/core",
   "private": true,
-  "version": "0.1.1",
+  "version": "0.1.0",
   "description": "Embeddable core: pure domain (model, values, data, projections), the edit pipeline (commands, decide, events, apply, invert, bounded history), the business services (strict parse, persistence policy, i18n) and the abstract runtime (editing loop). No Svelte, no DOM, no runtime dependency.",
   "license": "MIT",
   "type": "module",

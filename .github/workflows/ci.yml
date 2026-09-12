@@ -2,8 +2,9 @@ name: Verify and publish
 # Read-only validation; browser/site checks run on pushes and manual runs.
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, 'release/**', 'hotfix/**']
   pull_request:
+    types: [opened, synchronize, reopened, edited]
   workflow_dispatch:
 permissions: { contents: read }
 jobs:
@@ -14,10 +15,19 @@ jobs:
 
   verify:
     runs-on: ubuntu-latest
+    permissions: { contents: read, pull-requests: read }
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.0.0
         with:
+          fetch-depth: 0
           persist-credentials: false
+      - name: Enforce Gitflow PR destinations and release provenance
+        id: gitflow
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        with:
+          script: |
+            const {checkGitflow} = await import(`${process.env.GITHUB_WORKSPACE}/scripts/gitflow.mjs`);
+            await checkGitflow({github, context, core});
       - uses: pnpm/action-setup@9fd676a19091d4595eefd76e4bd31c97133911f1 # v4.2.0
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
@@ -27,7 +37,11 @@ jobs:
       - run: pnpm run lint
       - run: pnpm run format:check
       - run: pnpm run check
-      - run: pnpm changeset status
+      - name: Require a Changesets decision on feature PRs
+        if: steps.gitflow.outputs.changeset-required == 'true'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: pnpm changeset status --since "$BASE_SHA"
       - run: pnpm run knip
       - run: pnpm run test:coverage
       - run: pnpm run build

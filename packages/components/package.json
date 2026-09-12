@@ -1,7 +1,7 @@
 {
   "name": "@project-review/components",
   "private": true,
-  "version": "0.1.1",
+  "version": "0.1.0",
   "description": "Svelte component library: slide templates, editor widgets and dialogs, slideshow host, and the editor's interface catalog (i18n). Depends only on @project-review/core.",
   "license": "MIT",
   "type": "module",

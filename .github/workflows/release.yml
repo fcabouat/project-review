@@ -22,44 +22,60 @@ jobs:
           node-version: '24.19.0'
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Ignore a superseded develop run
-        id: freshness
+      - name: Compute the release with Changesets
+        run: pnpm changeset status --output "$RUNNER_TEMP/changeset-plan.json"
+      - name: Read the version computed by Changesets
+        id: plan
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync, appendFileSync} from 'node:fs';
+          const plan = JSON.parse(readFileSync(`${process.env.RUNNER_TEMP}/changeset-plan.json`, 'utf8'));
+          const versions = [...new Set(plan.releases.filter(p => p.type !== 'none').map(p => p.newVersion))];
+          if (versions.length > 1 || (versions.length && !/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(versions[0]))) throw new Error('Expected one stable Changesets version');
+          appendFileSync(process.env.GITHUB_OUTPUT, `version=${versions[0] ?? ''}\n`);
+          JS
+      - name: Freeze active release branches instead of updating them from develop
+        if: steps.plan.outputs.version != ''
+        id: candidate
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
-        with:
-          script: |
-            const tip = await github.rest.git.getRef({...context.repo, ref: 'heads/develop'});
-            return tip.data.object.sha === context.sha;
-      - uses: changesets/action@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
-        if: steps.freshness.outputs.result == 'true'
-        id: changesets
-        with:
-          version-script: pnpm version-packages
-          commit-message: 'chore: version packages'
-          pr-title: 'chore: prepare next release'
-          create-github-releases: false
-          push-git-tags: false
-      - name: Propose develop to main once the version is prepared
-        if: steps.changesets.outputs.has-changesets == 'false'
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        env:
+          VERSION: ${{ steps.plan.outputs.version }}
         with:
           script: |
             const repo = context.repo;
             const tip = await github.rest.git.getRef({...repo, ref: 'heads/develop'});
             if (tip.data.object.sha !== context.sha) return core.notice('Superseded develop run.');
-            const file = await github.rest.repos.getContent({...repo, path: 'app/package.json', ref: context.sha});
-            const {version} = JSON.parse(Buffer.from(file.data.content, 'base64').toString());
-            if (!/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(version)) throw new Error('Invalid release version');
+            const version = process.env.VERSION;
+            const branch = `release/${version}`;
+            const open = await github.paginate(github.rest.pulls.list, {...repo, state: 'open', per_page: 100});
+            const active = open.find(p => p.head.repo?.full_name === `${repo.owner}/${repo.repo}` && /^(release|hotfix)\//.test(p.head.ref));
+            if (active) return core.notice(`Finish the active delivery first: ${active.html_url}`);
             try {
               await github.rest.git.getRef({...repo, ref: `tags/v${version}`});
-              return core.notice(`v${version} already tagged. Add a changeset for the next release.`);
+              throw new Error(`v${version} already exists: merge the published delivery back into develop first.`);
             } catch (error) { if (error.status !== 404) throw error; }
-            const comparison = await github.rest.repos.compareCommitsWithBasehead({...repo, basehead: 'main...develop'});
-            if (!comparison.data.ahead_by) return;
-            const prs = await github.rest.pulls.list({...repo, state: 'open', base: 'main', head: `${repo.owner}:develop`});
-            if (prs.data.length) return core.notice(prs.data[0].html_url);
-            const pr = await github.rest.pulls.create({...repo, base: 'main', head: 'develop',
-              title: `release: v${version}`, body: 'Review the changelog and green checks, then **Create a merge commit**. Successful main CI, CodeQL and Pages will publish the release. Do not squash/rebase the long-lived branches.'});
-            core.notice(pr.data.html_url);
+            try {
+              await github.rest.git.getRef({...repo, ref: `heads/${branch}`});
+              throw new Error(`${branch} already exists without an open PR. Review it and open its PR to main; it will not be overwritten.`);
+            } catch (error) { if (error.status !== 404) throw error; }
+            core.setOutput('create', 'true');
+      - name: Cut the release from the verified develop commit
+        if: steps.candidate.outputs.create == 'true'
+        env:
+          VERSION: ${{ steps.plan.outputs.version }}
+          GH_TOKEN: ${{ github.token }}
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        run: |
+          git switch -c "release/$VERSION"
+          pnpm changeset version
+          git add .changeset app/package.json app/CHANGELOG.md packages/*/package.json packages/*/CHANGELOG.md pnpm-lock.yaml
+          git commit -m "chore: prepare release $VERSION with Changesets"
+          git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin "HEAD:refs/heads/release/$VERSION"
+          gh pr create --base main --head "release/$VERSION" --title "release: v$VERSION" \
+            --body 'Frozen from develop; versions and changelogs generated by Changesets. Approve the workflows if requested. Stabilize this release branch, then use **Create a merge commit**. After publication, merge its backport PR to develop before deleting the release branch.'
 
   publish:
     if: github.ref == 'refs/heads/main'
@@ -69,12 +85,20 @@ jobs:
       # API-only: no checkout, package installation or repository code execution
       # in the job that can create tags and releases.
       - name: Publish the validated main commit (never replace a tag)
+        id: published
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           script: |
             const repo = context.repo;
             const tip = await github.rest.git.getRef({...repo, ref: 'heads/main'});
             if (tip.data.object.sha !== context.sha) throw new Error('main has moved; let its newer CI publish.');
+            const prs = await github.rest.repos.listPullRequestsAssociatedWithCommit({...repo, commit_sha: context.sha});
+            const pr = prs.data.find(p => p.merged_at && p.merge_commit_sha === context.sha && p.base.ref === 'main' &&
+              p.head.repo?.full_name === `${repo.owner}/${repo.repo}` && /^(release|hotfix)\//.test(p.head.ref));
+            const commit = await github.rest.repos.getCommit({...repo, ref: context.sha});
+            if (!pr || commit.data.parents.length !== 2 || commit.data.parents[1].sha !== pr.head.sha) {
+              throw new Error('Only a classic merge from a delivery PR may publish.');
+            }
             const read = async path => {
               const file = await github.rest.repos.getContent({...repo, path, ref: context.sha});
               return Buffer.from(file.data.content, 'base64').toString();
@@ -84,6 +108,9 @@ jobs:
             const version = manifests[0].version;
             if (!/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(version) ||
                 manifests.some(p => p.version !== version || p.private !== true)) throw new Error('Inconsistent private package versions');
+            if (![`release/${version}`, `hotfix/${version}`].includes(pr.head.ref)) throw new Error('Branch/version mismatch');
+            core.setOutput('branch', pr.head.ref);
+            core.setOutput('head', pr.head.sha);
             const changesets = await github.rest.repos.getContent({...repo, path: '.changeset', ref: context.sha});
             if (changesets.data.some(f => f.name.endsWith('.md') && f.name !== 'README.md')) throw new Error('Unconsumed changesets on main');
             const notes = (await read('app/CHANGELOG.md')).split(`\n## ${version}\n`)[1]?.split('\n## ')[0]?.trim();
@@ -108,15 +135,29 @@ jobs:
             const release = await github.rest.repos.createRelease({...repo, tag_name: tag,
               target_commitish: context.sha, name: tag, body: notes, draft: false, prerelease: false});
             core.notice(release.data.html_url);
-      - name: Propose main back to develop
+      - name: Merge the published delivery branch back into develop
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        env:
+          DELIVERY_BRANCH: ${{ steps.published.outputs.branch }}
+          DELIVERY_HEAD: ${{ steps.published.outputs.head }}
         with:
           script: |
             const repo = context.repo;
-            const comparison = await github.rest.repos.compareCommitsWithBasehead({...repo, basehead: 'develop...main'});
+            const branch = process.env.DELIVERY_BRANCH;
+            const sha = process.env.DELIVERY_HEAD;
+            const comparison = await github.rest.repos.compareCommitsWithBasehead({...repo, basehead: `develop...${sha}`});
             if (!comparison.data.ahead_by) return;
-            const prs = await github.rest.pulls.list({...repo, state: 'open', base: 'develop', head: `${repo.owner}:main`});
+            // GitHub may auto-delete the head after the main merge. Restore only
+            // that exact published commit for the second Gitflow merge.
+            try {
+              const ref = await github.rest.git.getRef({...repo, ref: `heads/${branch}`});
+              if (ref.data.object.sha !== sha) throw new Error('Delivery branch changed after publication; review it before backporting.');
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              await github.rest.git.createRef({...repo, ref: `refs/heads/${branch}`, sha});
+            }
+            const prs = await github.rest.pulls.list({...repo, state: 'open', base: 'develop', head: `${repo.owner}:${branch}`});
             if (prs.data.length) return core.notice(prs.data[0].html_url);
-            const pr = await github.rest.pulls.create({...repo, base: 'develop', head: 'main',
-              title: 'chore: sync main into develop', body: 'Complete the Gitflow release with **Create a merge commit**. No force-push or branch-protection bypass is needed.'});
+            const pr = await github.rest.pulls.create({...repo, base: 'develop', head: branch,
+              title: `chore: merge ${branch} back into develop`, body: 'Published on main. Complete Gitflow with **Create a merge commit**, then delete this delivery branch. This brings the versions, changelogs and stabilization fixes back to develop.'});
             core.notice(pr.data.html_url);

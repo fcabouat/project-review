@@ -115,52 +115,72 @@ License interpretation remains a manual review, not a scanner guarantee.
 
 ### Maintainer release
 
-Use the existing clone: no bundles, local release driver or force-push.
-Changesets manages the four private packages as one fixed-version group.
-`app/package.json` supplies the application version; the workspace root is
-not a versioned product. Nothing is published to npm.
+Use the existing clone and Gitflow: _*feature/* → develop → release/X.Y.Z →
+main_*, then merge **that release branch → develop** before deleting it.
+No direct develop → main promotion, bundles or local release driver.
+Changesets computes the versions and changelogs for the four private packages
+as one fixed-version group. GitHub CI enforces the branch routes; Changesets
+does not implement Gitflow itself. Nothing is published to npm.
 
 ```sh
-pnpm changeset          # describe a change and choose patch/minor/major
-pnpm changeset status   # inspect the pending version plan
+pnpm changeset          # on feature/*: describe the change and select its bump
+pnpm changeset --empty  # explicit no-release decision when appropriate
+pnpm changeset status  # inspect the pending version plan
 ```
 
-Commit the generated `.changeset/*.md` with the change and push your working
-branch normally, then merge its PR into `develop`. Documentation-only changes
-need no changeset. Do not bump versions by hand.
+Commit the generated `.changeset/*.md` with the change and push your feature
+branch normally, then merge its PR into `develop`. The required `verify` check
+runs `pnpm changeset status --since <base>`: package changes without a changeset
+fail. Empty changesets are valid for non-release changes. Package versions
+must remain unchanged on feature PRs. Dependabot PRs may target `develop`
+without a changeset; they ship with the next planned release.
 
-After successful CI on `develop`, Changesets opens or updates **prepare next
-release**, containing versions and changelogs. On bot-created PRs, click
-**Approve workflows to run** when GitHub requests it, then wait for green checks.
-Merge the version PR when ready; automation
-then proposes **develop → main**. Merge that PR with **Create a merge commit**.
-Successful main verification, CodeQL (public repositories) and Pages deployment
-publish one immutable `vX.Y.Z` tag and GitHub release, then propose **main →
-develop** for you to merge the same way. No npm publish or automatic merge.
-Use classic merges between the two long-lived branches, never squash/rebase.
-Fetch/pull normally afterward; workflows do not modify your local checkout.
+After successful develop CI, automation reads the plan from `pnpm changeset
+status`, cuts `release/X.Y.Z` from that verified commit, and runs **`pnpm
+changeset version` on the release branch**. It commits the generated versions
+and changelogs and opens its PR to `main`. One delivery at a time: the release
+branch is frozen, never refreshed or force-pushed from later develop commits.
+Stabilization fixes belong on that branch (or feature PRs targeting it), keeping
+its version and updating its changelog. No pending changesets may reach main.
 
-The already prepared **0.1.1** starts directly with the develop → main PR:
-its versions and initial application changelog are already present. Subsequent
-versions use Changesets. GitHub release notes come from `app/CHANGELOG.md`;
-downloads and generated example decks remain on the project site.
+On bot-created PRs, click **Approve workflows to run** when requested. Once
+checks are green, use **Create a merge commit**. Main CI verifies delivery-PR
+provenance before deployment; CI, CodeQL and Pages must succeed before creating
+the immutable `vX.Y.Z` tag and GitHub release. A second PR brings the published
+release branch back into `develop`; merge it the same way, then delete the
+branch. If GitHub auto-deleted it after the first merge, automation restores
+only the exact published head for this second PR. Fetch/pull normally afterward.
+
+The first pending changeset produces **0.1.1 from 0.1.0** through this same path;
+there is no bootstrap exemption. `app/package.json` supplies the product version
+and `app/CHANGELOG.md` the release notes. The workspace root has no version.
+Downloads and generated example decks remain on the project site.
+
+For an urgent hotfix, start `hotfix/X.Y.Z` from `main`, add the fix and a patch
+changeset, run `pnpm changeset version`, and commit its generated files there.
+Open its PR to `main`; the same validation, publication and backport apply.
+If a release is already open, reconcile the hotfix with that release before
+shipping it (including any version collision); automation never guesses a merge.
 
 One-time GitHub setup:
 
-- Keep `develop` as the default branch; require PRs and `verify` on both
-  branches, allow merge commits, and keep force-push disabled.
+- Keep `develop` as default; require PRs and the `verify` check on `main` and
+  `develop`, with no bypass or force-push. Allow **merge commits**, disable
+  **squash** and **rebase** merging, and do not require linear history.
 - Enable Pages from Actions, `PAGES_ENABLED=true`, and allow `main` in the
   `github-pages` environment. Without successful deployment, no release is made.
 - Allow Actions to create PRs in **Settings → Actions → General**. The workflow
-  never approves or merges them. [Changesets Action](https://github.com/changesets/action).
+  never approves or merges them. [Changesets CLI](https://changesets.dev/guide/cli).
 
 No personal access token or npm credentials are needed. The built-in
 `GITHUB_TOKEN` opens PRs; GitHub asks a maintainer to approve their CI runs.
 [GitHub workflow trigger rules](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow).
 
-On failure, correct the reported issue and rerun **Verify and publish** on the
-current `develop` or `main`. Existing PRs/releases are reused; tags are never
-replaced. An existing draft or conflicting tag requires manual review.
+On failure, correct the issue and rerun **Verify and publish**. Active delivery
+PRs stop new release cuts. An orphan release branch is never overwritten: inspect
+it and open its PR manually. Existing tags/releases remain unchanged. These
+checks require the protections above to be blocking; YAML alone cannot prevent
+an administrator from bypassing GitHub protections.
 
 ### Optional Bun workflow
 
