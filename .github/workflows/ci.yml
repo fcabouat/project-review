@@ -7,6 +7,11 @@ on:
   workflow_dispatch:
 permissions: { contents: read }
 jobs:
+  codeql:
+    if: github.event_name != 'pull_request' && github.event.repository.private == false
+    permissions: { contents: read, security-events: write }
+    uses: ./.github/workflows/codeql.yml
+
   verify:
     runs-on: ubuntu-latest
     steps:
@@ -22,6 +27,7 @@ jobs:
       - run: pnpm run lint
       - run: pnpm run format:check
       - run: pnpm run check
+      - run: pnpm changeset status
       - run: pnpm run knip
       - run: pnpm run test:coverage
       - run: pnpm run build
@@ -97,3 +103,15 @@ jobs:
       - id: deploy
         if: steps.freshness.outputs.stale != 'true'
         uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
+
+  release:
+    needs: [verify, codeql, deploy]
+    # A skipped Pages job on develop is normal; main must actually deploy.
+    if: >-
+      always() && !cancelled() && github.event_name != 'pull_request' &&
+      needs.verify.result == 'success' &&
+      (needs.codeql.result == 'success' || github.event.repository.private == true) &&
+      (github.ref == 'refs/heads/develop' ||
+       (github.ref == 'refs/heads/main' && needs.deploy.result == 'success'))
+    permissions: { contents: write, pull-requests: write }
+    uses: ./.github/workflows/release.yml
