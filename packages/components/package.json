@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@project-review/core": "workspace:*",
-    "bits-ui": "2.19.1",
+    "bits-ui": "2.19.2",
     "clsx": "^2.1.1",
     "remixicon": "^4.9.1",
     "reveal.js": "^6.0.1",
