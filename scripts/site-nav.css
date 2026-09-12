@@ -1,0 +1,95 @@
+/* Normal document flow leaves TypeDoc's sticky search toolbar independent. */
+.pr-site-header {
+  color: #212121;
+  background: #fff;
+  border-bottom: 1px solid #cfd8dc;
+  font:
+    14px/1.5 system-ui,
+    sans-serif;
+}
+.pr-site-header * {
+  box-sizing: border-box;
+}
+.pr-site-bar {
+  max-width: 1130px;
+  min-height: 64px;
+  margin: 0 auto;
+  padding: 12px 24px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 24px;
+}
+.pr-site-header a {
+  color: #455a64;
+  font-weight: 600;
+  text-decoration: none;
+}
+.pr-site-header a:hover {
+  color: #303f9f;
+  text-decoration: underline;
+}
+.pr-site-header a:focus-visible {
+  outline: 2px solid #303f9f;
+  outline-offset: 4px;
+}
+.pr-site-header .pr-site-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-right: auto;
+  color: #212121;
+  font-size: 17px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.pr-site-brand svg {
+  flex-shrink: 0;
+}
+.pr-site-links,
+.pr-site-languages {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 18px;
+}
+.pr-site-languages {
+  gap: 4px;
+}
+.pr-site-languages > * {
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+.pr-site-links [aria-current],
+.pr-site-languages [aria-current] {
+  color: #303f9f;
+  font-weight: 700;
+}
+.pr-site-links [aria-current] {
+  text-decoration: underline;
+  text-underline-offset: 5px;
+}
+.pr-site-languages [aria-current] {
+  background: #eef0fa;
+  border-color: #303f9f;
+}
+.pr-site-languages [aria-disabled] {
+  color: #66727a;
+  background: #f5f5f5;
+}
+@media (max-width: 640px) {
+  .pr-site-bar {
+    padding: 12px 16px;
+    gap: 12px;
+  }
+  .pr-site-links {
+    order: 1;
+    flex-basis: 100%;
+  }
+}
+@media print {
+  .pr-site-header {
+    display: none;
+  }
+}

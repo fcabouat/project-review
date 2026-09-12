@@ -1,0 +1,4 @@
+/* Same ground as the app: Tailwind's preflight plus the chrome tokens
+   (tokens.css is the single source — app.css imports the very same file). */
+@import 'tailwindcss';
+@import '../src/tokens.css';
