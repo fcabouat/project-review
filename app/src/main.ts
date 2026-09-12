@@ -29,7 +29,7 @@ import { detectLanguage, fetchSample, shouldBootSample } from './sample-boot'
 // no one caught.
 const storage = defaultStorage()
 const sampleBoot = shouldBootSample(location.search, storage && storedStamp(storage))
-  ? await fetchSample(detectLanguage(navigator.language))
+  ? await fetchSample(detectLanguage(navigator.language, location.search))
   : undefined
 
 const app = mount(App, {

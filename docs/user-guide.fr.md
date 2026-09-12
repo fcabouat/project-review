@@ -159,10 +159,14 @@ pointe l'endroit fautif du fichier (`projects[2].stage`, par exemple) pour le
 corriger et recoller ; rien n'est importé tant que le fichier n'est pas
 valide.
 
-En mode remplacement, la case **Conserver mes réglages et mon identité**
-(cochée par défaut) rend l'import « contenu seul » : projets, catégories,
-revue et slides libres sont remplacés, thème, logo, langue et affichage sont
-conservés. Décochez-la pour prendre le fichier entier.
+En mode remplacement, **Conserver mon identité et ma présentation** est coché
+par défaut : projets, catégories, revue et slides libres sont remplacés,
+identité, thème, logo et affichage sont conservés. La langue du fichier est
+adoptée pour que les libellés du diaporama correspondent à son contenu.
+Décochez la case pour prendre le fichier entier. Changer manuellement la langue
+modifie l'interface et les libellés des slides, jamais vos textes.
+Les liens de démonstration choisissent la langue du site au premier démarrage
+uniquement : un portefeuille déjà enregistré reste toujours prioritaire.
 
 ## Travailler à plusieurs
 

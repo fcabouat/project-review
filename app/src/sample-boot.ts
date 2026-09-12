@@ -36,9 +36,15 @@ import { readPortfolioJson } from '@project-review/core/services/parse'
 export const shouldBootSample = (search: string, stored: StoredStamp): boolean =>
   new URLSearchParams(search).has('sample') && stored === null
 
-/** First-boot language: a browser announcing French gets fr, the rest en. */
-export const detectLanguage = (candidate: string): Language =>
-  candidate.toLowerCase().startsWith('fr') ? 'fr' : 'en'
+/** First boot honors a localized site link; existing portfolios still win. */
+export const detectLanguage = (candidate: string, search = ''): Language => {
+  const requested = new URLSearchParams(search).get('lang')
+  return requested === 'fr' || requested === 'en'
+    ? requested
+    : candidate.toLowerCase().startsWith('fr')
+      ? 'fr'
+      : 'en'
+}
 
 /** The sample file served NEXT TO the app — one per language. */
 export const sampleFileName = (language: Language): string => `sample-portfolio.${language}.json`
@@ -101,7 +107,9 @@ export const fetchSample = async (
     const text = await boundedText(response, MAX_IMPORT_BYTES)
     if (text === undefined) return undefined
     const parsed = readPortfolioJson(text)
-    return parsed.ok ? parsed.portfolio : undefined
+    return parsed.ok && parsed.portfolio.settings.language === language
+      ? parsed.portfolio
+      : undefined
   } catch {
     return undefined
   }

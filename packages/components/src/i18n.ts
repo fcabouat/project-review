@@ -884,8 +884,8 @@ export const EDITOR_CATALOG = {
     en: 'The purge and the reset live in Settings → Data',
   },
   'editor.io.keepSettings': {
-    fr: `Conserver mes réglages et mon identité (thème, logo, langue, affichage)`,
-    en: 'Keep my settings and identity (theme, logo, language, display)',
+    fr: `Conserver mon identité et ma présentation (thème, logo, affichage) ; utiliser la langue du fichier`,
+    en: 'Keep my identity and presentation (theme, logo, display); use the file’s language',
   },
   'editor.io.close': { fr: 'Fermer', en: 'Close' },
   'editor.io.replace': {

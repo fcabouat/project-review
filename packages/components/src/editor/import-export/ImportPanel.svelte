@@ -39,7 +39,8 @@
   /**
    * Checked by default: the import replaces the CONTENT (review,
    * categories, projects, free slides) and keeps the local settings — identity,
-   * theme, logo, language, display. Unchecked = take the whole file.
+   * theme, logo, display. The imported language follows the imported content.
+   * Unchecked = take the whole file.
    */
   let keepSettings = $state(true)
   /** Import mode — 'replace' is the historic path and the default. */
@@ -93,7 +94,10 @@
     return {
       type: 'ReplacePortfolio',
       portfolio: keepSettings
-        ? { ...result.portfolio, settings: portfolio.settings }
+        ? {
+            ...result.portfolio,
+            settings: { ...portfolio.settings, language: result.portfolio.settings.language },
+          }
         : result.portfolio,
     }
   })

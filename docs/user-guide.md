@@ -146,10 +146,13 @@ line points at the faulty place in the file (`projects[2].stage`, for
 instance) so you can fix the file and paste it again; nothing is imported
 until the file is valid.
 
-In replace mode, the **Keep my settings and identity** checkbox (checked by
-default) makes the import content-only: projects, categories, review and free
-slides are replaced, while theme, logo, language and display settings are
-kept. Untick it to take the whole file.
+In replace mode, **Keep my identity and presentation** is checked by default:
+projects, categories, review and free slides are replaced, while identity,
+theme, logo and display settings are kept. The file's language is adopted so
+generated slide labels match its content. Untick it to take the whole file.
+Changing the language manually changes interface and slide labels, never your
+written content. Demo links select the site's language only on first use;
+an already saved portfolio always takes precedence.
 
 ## Working together
 
