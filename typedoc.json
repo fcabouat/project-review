@@ -1,0 +1,10 @@
+{
+  "entryPoints": ["packages/core/src"],
+  "entryPointStrategy": "expand",
+  "exclude": ["**/*.test.ts", "**/tests/**"],
+  "out": "docs/api",
+  "tsconfig": "packages/core/tsconfig.json",
+  "name": "@project-review/core — API",
+  "readme": "none",
+  "excludeInternal": true
+}

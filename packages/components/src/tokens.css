@@ -1,0 +1,203 @@
+/* Theme tokens — the visual contract of the package.
+   The 12 generic category colors are resolved by palettes.css
+   ([data-palette] blocks): here, only the structural chrome and the semantic
+   scales. The package's widgets read these variables; the app (app.css) and
+   the package's Storybook import this file — a single source. */
+@import './palettes.css';
+/* Build-time companions of the vendored primitives (commons/ui): the
+   data-state variants and the enter/leave animation utilities their class
+   lists reference. Both are dev-only CSS inputs, resolved by the Tailwind
+   pipeline that already processes this file. */
+@import 'shadcn-svelte/tailwind.css';
+@import 'tw-animate-css';
+
+/* Class-gated dark scheme hook: the vendored primitives carry `dark:` classes,
+   active whenever the app stamps `dark` on <html> (Settings ▸ Appearance —
+   a READER preference, stored app-side, never a domain event). */
+@custom-variant dark (&:is(.dark *));
+
+/* The shadcn palette is an ALIAS LAYER over the tokens below: the vendored
+   primitives speak `bg-primary` / `border-input` / `ring-ring`, and every one
+   of those names resolves to a chrome token of this file — the skeleton is
+   neutral, the theme is ours. `inline` makes the utilities reference our
+   custom properties directly, so a runtime token override keeps working. */
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--txt);
+  --color-popover: var(--bg);
+  --color-popover-foreground: var(--txt);
+  --color-primary: var(--accent);
+  --color-primary-foreground: var(--accent-contrast);
+  --color-secondary: var(--bg-alt);
+  --color-secondary-foreground: var(--txt2);
+  --color-muted: var(--bg-alt);
+  --color-muted-foreground: var(--muted);
+  --color-accent: var(--accent-975);
+  --color-accent-foreground: var(--accent);
+  --color-destructive: var(--err);
+  --color-border: var(--border2);
+  --color-input: var(--border);
+  --color-ring: var(--accent-main);
+}
+:root {
+  color-scheme: light;
+  /* structure (Tailwind family by default; the accent may be overridden per flavor) */
+  --accent: #312e81;
+  /* ink over an --accent ground (primary buttons) — flips with the scheme */
+  --accent-contrast: #ffffff;
+  --txt: #111827;
+  --txt2: #374151;
+  /* AA-checked on BOTH grounds: 4.79:1 on --bg-alt, 5.27:1 on --bg (the
+     historic #6b7280 sat at 4.39:1 on --bg-alt — under AA; since the v0.5
+     ink pass the slides share this value through the .slide pin below). */
+  --muted: #616d7c;
+  --border: #d1d5db;
+  --border2: #e5e7eb;
+  --bg: #ffffff;
+  --bg-alt: #f3f4f6;
+  --accent-975: #eef2ff;
+  --accent-925: #e0e7ff;
+  --accent-main: #6366f1;
+
+  /* health scale — every txt/bg pair holds AA on its own ground.
+     --err doubles as the editor's destructive ink: 5.45:1 on the destructive
+     button tint, 5.91:1 on --err-bg (the historic #dc2626 sat at 4.1–4.4:1;
+     since the v0.5 ink pass the slides share this value through the pin). */
+  --ok: #15803d;
+  --ok-bg: #dcfce7;
+  --vig-txt: #92400e;
+  --vig-dot: #d97706;
+  --vig-bg: #fffbeb;
+  --warn: #c2410c;
+  --warn-bg: #fff7ed;
+  --err: #b91c1c;
+  --err-bg: #fef2f2;
+  /* 4.65:1 on --ne-bg (the not-assessed chip is text on that ground; the
+     historic #6b7280 sat at 3.83:1 — since the v0.5 ink pass the slides
+     share this value through the pin). */
+  --ne: #5c6774;
+  --ne-bg: #e5e7eb;
+  /* the two plain-grey chips (to-scope, closed) — themable, unlike the
+     historic literals, so the dark scheme can restate them */
+  --chip-plain-bg: #eeeeee;
+  --chip-plain-txt: #666666;
+
+  /* progress ramp */
+  --av-0: #dc2626;
+  --av-1: #ea580c;
+  --av-34: #d97706;
+  --av-67: #4d7c0f;
+  --av-100: #15803d;
+  --av-na: #cccccc;
+
+  /* Single source: theme.css declares the --font default, applyFont()
+     overrides it inline from settings.theme.font. */
+  font-family: var(--font, 'Inter', 'Segoe UI', system-ui, sans-serif);
+  color: var(--txt);
+  background: var(--bg-alt);
+}
+
+/* Chips always carry a currentColor hairline so they stay readable on any ground. */
+
+/* Motion is a preference (WCAG 2.3.3): under prefers-reduced-motion every
+   transition and animation collapses to a frame — the state change stays, the
+   movement goes. Near-zero rather than zero so transition/animation END events
+   keep firing for any code that awaits them. The reveal.js slide transition is
+   handled at boot (SlideshowHost and the standalone export both pass
+   `transition: none` under this preference — reveal animates via inline
+   transforms this rule cannot reach). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  html {
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Editor dark scheme — the reader preference (Settings ▸ Appearance) stamps
+   `dark` on <html>. Only the STRUCTURAL chrome flips; the health scale and the
+   progress ramp keep their light-mode pairs (chips and gauges carry their own
+   grounds, readable on either scheme), and --accent-main — the identity —
+   survives untouched. The standalone slideshow export strips every `.dark`
+   rule (infrastructure/dom-export): the exported deck has no editor, hence no
+   scheme to follow. */
+.dark {
+  color-scheme: dark;
+  --accent: #a5b4fc;
+  --accent-contrast: #1e1b4b;
+  --txt: #eceef4;
+  --txt2: #c3c7d3;
+  --muted: #99a1b3;
+  --border: #414459;
+  --border2: #30323f;
+  --bg: #1e1f2b;
+  --bg-alt: #16161f;
+  --accent-975: #272a4a;
+  --accent-925: #32356b;
+
+  /* health scale, re-paired for dark grounds — every txt/bg pair ≥ 5:1 */
+  --ok: #4ade80;
+  --ok-bg: #12341f;
+  --vig-txt: #fbbf24;
+  --vig-dot: #f59e0b;
+  --vig-bg: #3c2b12;
+  --warn: #fb923c;
+  --warn-bg: #3b2416;
+  --err: #f87171;
+  --err-bg: #421c22;
+  --ne: #9ca3af;
+  --ne-bg: #2a2c35;
+  --chip-plain-bg: #2e3039;
+  --chip-plain-txt: #a7adbb;
+}
+
+/* Slides are an ARTIFACT: light in both schemes, and byte-stable against any
+   future editor-side token tuning. The pin restates the slides' values on the
+   slide root (it wins over `.dark` and over :root by proximity — custom
+   properties resolve on the closest ancestor), so a slide previewed inside
+   the dark editor, the slideshow and `?print` all render identically. Since
+   the v0.5 AA ink pass, --muted, --err and --ne carry the SAME values as the
+   editor tokens above (the historic slide inks #6b7280/#dc2626 sat under the
+   4.5:1 text threshold on the tinted slide grounds); the pin still restates
+   them so the artifact stays immune to `.dark` and to any future editor-side
+   tuning. */
+.slide {
+  color-scheme: light;
+  --accent: #312e81;
+  --accent-contrast: #ffffff;
+  --txt: #111827;
+  --txt2: #374151;
+  --muted: #616d7c;
+  --border: #d1d5db;
+  --border2: #e5e7eb;
+  --bg: #ffffff;
+  --bg-alt: #f3f4f6;
+  --accent-975: #eef2ff;
+  --accent-925: #e0e7ff;
+
+  --ok: #15803d;
+  --ok-bg: #dcfce7;
+  --vig-txt: #92400e;
+  --vig-dot: #d97706;
+  --vig-bg: #fffbeb;
+  --warn: #c2410c;
+  --warn-bg: #fff7ed;
+  --err: #b91c1c;
+  --err-bg: #fef2f2;
+  --ne: #5c6774;
+  --ne-bg: #e5e7eb;
+  --chip-plain-bg: #eeeeee;
+  --chip-plain-txt: #666666;
+
+  --av-0: #dc2626;
+  --av-1: #ea580c;
+  --av-34: #d97706;
+  --av-67: #4d7c0f;
+  --av-100: #15803d;
+  --av-na: #cccccc;
+}
