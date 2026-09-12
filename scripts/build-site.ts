@@ -83,6 +83,7 @@ cpSync('dist/sample-portfolio.fr.json', join(OUT, 'demo', 'sample-portfolio.fr.j
 // `docs:notices` writes it into dist/, and the site serves the app from
 // demo/, so it travels along.
 cpSync('dist/THIRD-PARTY-LICENSES.txt', join(OUT, 'demo', 'THIRD-PARTY-LICENSES.txt'))
+cpSync('dist/examples', join(OUT, 'examples'), { recursive: true })
 cpSync('docs/api', join(OUT, 'api'), { recursive: true })
 // Decorate the generated copy only. TypeDoc retains its search, menu and anchors.
 function decorateApi(dir: string) {

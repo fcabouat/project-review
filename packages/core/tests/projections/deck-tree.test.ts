@@ -18,6 +18,12 @@ describe.each(SAMPLE_SETS)('deckTree — %s data set', (_name, p) => {
   const groups = deckTree(p)
   const flat = deck(p)
 
+  it('linear navigation preserves every slide and page number without vertical stacks', () => {
+    const linear = deckTree({ ...p, settings: { ...p.settings, navigation: 'linear' } })
+    expect(linear).toEqual(flat.map((slide) => ({ kind: 'single', slide })))
+    expect(deckTree({ ...p, settings: { ...p.settings, navigation: 'sections' } })).toEqual(groups)
+  })
+
   it('invariant: concatenated groups are deck(p), same references, same order', () => {
     // Reference identity over ONE flat deck (deck() builds fresh objects on
     // every call, so identity is only observable through `groupDeck`)…

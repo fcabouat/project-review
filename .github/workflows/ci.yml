@@ -34,6 +34,8 @@ jobs:
       - if: github.event_name != 'pull_request'
         run: pnpm run build-storybook
       - if: github.event_name != 'pull_request'
+        run: pnpm run docs:examples
+      - if: github.event_name != 'pull_request'
         run: pnpm run docs:site
       - if: github.event_name != 'pull_request'
         run: pnpm run a11y

@@ -32,7 +32,10 @@ export type DeckGroup =
  * drawer.
  */
 export function deckTree(p: Portfolio): readonly DeckGroup[] {
-  return groupDeck(deck(p))
+  const flat = deck(p)
+  return p.settings.navigation === 'linear'
+    ? flat.map((slide) => ({ kind: 'single', slide }))
+    : groupDeck(flat)
 }
 
 /**

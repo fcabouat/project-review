@@ -174,6 +174,13 @@ export const EDITOR_CATALOG = {
   'editor.field.id': { fr: 'ID', en: 'ID' },
 
   'editor.setting.language': { fr: 'Langue', en: 'Language' },
+  'editor.setting.navigation': { fr: 'Navigation du diaporama', en: 'Slideshow navigation' },
+  'editor.navigation.sections': { fr: 'Par sections', en: 'By section' },
+  'editor.navigation.linear': { fr: 'Linéaire', en: 'Linear' },
+  'editor.navigation.hint': {
+    fr: 'Par sections : ← → entre sections, ↑ ↓ à l’intérieur. Linéaire : ← → parcourt toutes les slides. Ce choix est conservé dans l’export HTML.',
+    en: 'By section: ← → between sections, ↑ ↓ within them. Linear: ← → visits every slide. The HTML export keeps this choice.',
+  },
   'editor.setting.palette': { fr: 'Palette', en: 'Palette' },
   'editor.setting.font': { fr: 'Police', en: 'Font' },
   /* History wording of the `fontFaces` setting (the value side is
@@ -279,7 +286,7 @@ export const EDITOR_CATALOG = {
 
   /* -------------------------- settings screen ---------------------------- */
   'editor.settings.appearance': { fr: 'Apparence', en: 'Appearance' },
-  'editor.settings.aggregates': { fr: "Slides d'agrégat", en: 'Aggregate slides' },
+  'editor.settings.aggregates': { fr: 'Diaporama', en: 'Slideshow' },
   'editor.settings.categories': { fr: 'Catégories', en: 'Categories' },
   'editor.settings.freeSlides': { fr: 'Slides libres', en: 'Free slides' },
   'editor.settings.color': { fr: 'Couleur', en: 'Colour' },

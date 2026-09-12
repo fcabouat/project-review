@@ -6,6 +6,23 @@ import { test } from 'node:test'
 
 const root = resolve('_site')
 const read = (path) => readFileSync(join(root, path), 'utf8')
+
+test('both landing pages link ready-to-watch decks and thumbnails in their own language', () => {
+  for (const [lang, path] of [
+    ['en', 'index.html'],
+    ['fr', 'fr.html'],
+  ]) {
+    const html = read(path)
+    assert.ok(html.includes(`?sample&amp;lang=${lang}`))
+    for (const style of ['flat', 'institutional', 'modern']) {
+      const file = `examples/${lang}-${style}.html`
+      assert.ok(html.includes(`href="${file}"`))
+      assert.match(read(file), new RegExp(`<html\\b[^>]*\\blang="${lang}"`))
+      assert.ok(existsSync(join(root, `examples/${lang}-${style}.png`)))
+    }
+  }
+  assert.ok(existsSync(join(root, 'examples/THIRD-PARTY-LICENSES.txt')))
+})
 function htmlFiles(dir) {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const file = join(dir, entry.name)

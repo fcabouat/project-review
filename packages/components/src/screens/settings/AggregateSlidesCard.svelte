@@ -1,8 +1,10 @@
 <script lang="ts">
-  /** Aggregate-slides card: visibility switches for the aggregate slides and the recap row count. */
+  /** Slideshow settings: navigation, aggregate visibility and recap row count. */
   import type { Portfolio } from '@project-review/core/model/portfolio'
+  import { NAVIGATION_MODES, type NavigationMode } from '@project-review/core/model/theme'
   import { te } from '../../i18n'
   import FieldSwitch from '../../editor/FieldSwitch.svelte'
+  import FieldSegmented from '../../editor/FieldSegmented.svelte'
   import { Button } from '../../commons/ui/button'
   import type { Dispatch } from '../contracts'
 
@@ -31,12 +33,26 @@
     if (after < 6 || after > 16) return
     dispatch({ type: 'ChangeSetting', setting: 'recapRows', after })
   }
+
+  function setNavigation(after: NavigationMode): void {
+    dispatch({ type: 'ChangeSetting', setting: 'navigation', after })
+  }
 </script>
 
 <section class="bg-background border-border rounded-lg border p-4">
   <h2 class="text-primary mb-3 text-xs font-bold tracking-[0.06em] uppercase">
     {te('editor.settings.aggregates', language)}
   </h2>
+  <FieldSegmented
+    label={te('editor.setting.navigation', language)}
+    options={NAVIGATION_MODES.map((value) => ({
+      value,
+      label: te(`editor.navigation.${value}`, language),
+    }))}
+    value={settings.navigation ?? 'sections'}
+    commit={setNavigation}
+    hint={te('editor.navigation.hint', language)}
+  />
   <FieldSwitch
     label={te('editor.setting.healthDashboard', language)}
     checked={settings.show.healthDashboard}

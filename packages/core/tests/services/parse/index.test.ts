@@ -32,6 +32,25 @@ function faults(r: ParseResult): readonly string[] {
 }
 
 describe('acceptance — a contract-valid file parses whole', () => {
+  it('navigation is optional in v3 and both file gates agree on its closed values', () => {
+    const validate = new Ajv({ strict: false }).compile(schema)
+    for (const navigation of [undefined, 'sections', 'linear', 'diagonal', null, 1]) {
+      const source = JSON.parse(
+        JSON.stringify({ ...rawFr, settings: { ...rawFr.settings, navigation } }),
+      )
+      const accepted =
+        navigation === undefined || navigation === 'sections' || navigation === 'linear'
+      const parsed = parsePortfolio(source)
+      expect(parsed.ok).toBe(accepted)
+      expect(validate(source)).toBe(accepted)
+      if (parsed.ok) {
+        expect(parsed.portfolio.settings.navigation).toBe(navigation)
+        expect(Object.hasOwn(parsed.portfolio.settings, 'navigation')).toBe(
+          navigation !== undefined,
+        )
+      }
+    }
+  })
   it('accepts the minimal valid portfolio and derives a deck', () => {
     const r = parsePortfolio(rawPortfolio())
     expect(r.ok).toBe(true)

@@ -1,7 +1,7 @@
 {
   "name": "project-review-workspace",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Workspace: pure domain core, Svelte component library, and the single-page app that derives a full project-review slideshow from one portfolio file.",
   "license": "MIT",
   "author": "François Cabouat",
@@ -35,6 +35,7 @@
     "deps:check": "pnpm outdated",
     "docs:api": "typedoc",
     "docs:notices": "node scripts/build-notices.ts",
+    "docs:examples": "node scripts/build-examples.mjs",
     "docs:site": "node scripts/build-site.ts && node --test scripts/site-nav.test.mjs"
   },
   "devDependencies": {

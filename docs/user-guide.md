@@ -93,7 +93,7 @@ tab, also the A/A/N shortcuts in the project list):
 - **Always** — sheet shown no matter what.
 - **Never** — the project only appears in the recap.
 
-**Settings > Aggregate slides** switches the health dashboard, the recap, the
+**Settings > Slideshow** switches the health dashboard, the recap, the
 archives and the decisions slides on or off.
 
 Archive and decision tables paginate automatically. The overdue summary shows
@@ -103,10 +103,17 @@ Excessively repeated bold markers render literally; the underlying text is prese
 
 ## Slideshow
 
-Click **Generate the slideshow ▸** in the top bar. Navigation works in
-drawers: left and right arrows move between sections, the down arrow opens a
-category and steps through its sheets. **Esc** opens the overview; a click
-zooms back in.
+Click **Generate the slideshow ▸** in the top bar. In **Settings > Slideshow**,
+choose **By section** (the default): left/right move between sections and
+up/down traverse their slides; or **Linear**: left/right visit every slide in
+order, with no vertical stacks. The choice is saved in the portfolio and kept
+in the standalone HTML export. Printing and page numbering are unchanged.
+**Esc** opens the overview; a click zooms back in.
+
+<img src="images/en-navigation.png" width="420" alt="Slideshow settings with By section and Linear navigation choices">
+
+Older v3 portfolios keep section navigation. Files saved with the new
+`settings.navigation` option require v0.1.1 or later to reopen in the editor.
 
 <img src="images/en-slide.png" width="720" alt="A project sheet slide in the flat style">
 

@@ -37,7 +37,7 @@ import type { Decision, Milestone, Project } from './project'
 import { HEALTH_LEVELS, PRIORITIES, SHEET_MODES, STAGES } from './project'
 import { MAX_ROWS, withinMemoryBudget } from './budget'
 import type { CustomPalette, EmbeddedFontFace } from './theme'
-import { FONT_FACE_STYLES, LANGUAGES, PALETTES, THEME_STYLES } from './theme'
+import { FONT_FACE_STYLES, LANGUAGES, NAVIGATION_MODES, PALETTES, THEME_STYLES } from './theme'
 import { isoDate } from '../values/date'
 import { isIdText, isCategoryReference } from '../values/ids'
 import {
@@ -108,7 +108,7 @@ export const REVIEW_KEYS = {
 
 export const SETTINGS_KEYS = {
   required: ['identity', 'show', 'recapRows'],
-  optional: ['language', 'theme'],
+  optional: ['language', 'theme', 'navigation'],
 } as const
 
 export const IDENTITY_KEYS = {
@@ -432,6 +432,7 @@ export const validReview = (r: Review): boolean =>
 export const validSettings = (s: Settings): boolean =>
   ownKeysOnly(s, SETTINGS_KEYS) &&
   oneOf(s.language, LANGUAGES) &&
+  absentOr(s.navigation, (value) => oneOf(value, NAVIGATION_MODES)) &&
   validIdentity(s.identity) &&
   ownKeysOnly(s.theme, THEME_KEYS) &&
   oneOf(s.theme.style, THEME_STYLES) &&

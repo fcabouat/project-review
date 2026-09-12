@@ -19,6 +19,10 @@ export type PaletteFamily = 'tailwind' | 'material' | 'uniform'
 /** Layout family: 'flat' (the default), 'institutional' or 'modern'. */
 export type ThemeStyle = 'flat' | 'institutional' | 'modern'
 
+/** Slideshow traversal: horizontal sections with vertical children, or all horizontal. */
+export type NavigationMode = 'sections' | 'linear'
+export const NAVIGATION_MODES: readonly NavigationMode[] = ['sections', 'linear']
+
 /**
  * A palette the PORTFOLIO carries (`settings.theme.customPalette`) instead of
  * choosing among the built-in families — an organization brings its own twelve

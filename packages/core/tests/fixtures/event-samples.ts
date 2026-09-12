@@ -136,6 +136,7 @@ const NEW_SETTINGS = {
   archives: false,
   decisions: false,
   recapRows: 6,
+  navigation: 'linear',
 } as const satisfies SettingValues
 
 /*

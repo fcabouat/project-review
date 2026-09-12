@@ -50,6 +50,8 @@ function formatValue(field: string, value: unknown, language: Language): string 
       return label(`editor.palette.${String(value)}`)
     case 'style':
       return label(`editor.style.${String(value)}`)
+    case 'navigation':
+      return label(`editor.navigation.${String(value)}`)
     case 'logo':
       // A data URI would flood the history: name the change, never the bytes.
       return te('editor.value.image', language)

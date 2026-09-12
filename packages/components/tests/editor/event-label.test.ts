@@ -17,6 +17,16 @@ import { progressOf } from '@project-review/core/values/progress'
 const NBSP = ' '
 
 describe('eventLabel — composed wording (no catalog entry for the pair)', () => {
+  it('names both navigation modes in the history language', () => {
+    const event: DomainEvent = {
+      type: 'SettingChanged',
+      setting: 'navigation',
+      before: 'sections',
+      after: 'linear',
+    }
+    expect(eventLabel(event, 'fr')).toContain('Par sections ▸ Linéaire')
+    expect(eventLabel(event, 'en')).toContain('By section ▸ Linear')
+  })
   const healthChange: DomainEvent = {
     type: 'ProjectFieldChanged',
     id: 'P-04',
