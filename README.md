@@ -113,6 +113,35 @@ component catalog; `pnpm run audit` checks dependency advisories.
 `node scripts/build-notices.ts --check` checks their contents and installed versions.
 License interpretation remains a manual review, not a scanner guarantee.
 
+### Maintainer release
+
+From a clean `develop`, with the intended version committed in all five
+`package.json` files:
+
+```sh
+# Once: install GitHub CLI, then authenticate in the browser.
+gh auth login --hostname github.com --git-protocol https --scopes workflow
+
+pnpm release --dry-run   # local plan, no network or writes
+pnpm release
+```
+
+The command targets `fcabouat/project-review`. It pushes an isolated candidate
+branch, opens the necessary PRs, prints their URLs and waits for you to choose
+**Merge pull request** (not Squash/Rebase). It waits for the exact merged
+commit's CI and CodeQL, requires a successful Pages deployment on `main`, then
+creates the annotated tag and GitHub release. A final PR synchronizes `main`
+back to `develop`; local branches and the tag are fast-forwarded/fetched, and
+the candidate branch is removed. Existing PRs, tags and releases are reused
+when resuming the same version. Release downloads remain on the project site.
+
+No force push, automatic merge or protection bypass. On failure or interruption,
+fix the reported issue and run the command again from the same clean `develop`.
+Each wait is bounded to 45 minutes. Do not edit or switch the local checkout
+while it runs. Closed/modified PRs, changed remote content and conflicting
+versions stop the command instead of guessing. GitHub authentication and any
+required approvals remain yours; never paste credentials into source files.
+
 ### Optional Bun workflow
 
 pnpm is authoritative: commit only `pnpm-lock.yaml`, and use pnpm for dependency
