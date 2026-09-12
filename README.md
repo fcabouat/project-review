@@ -11,6 +11,8 @@ the editor; the entire monthly deck (dashboards, recap table, project sheets,
 decisions, archives) is derived from it and regenerated on demand. No slide is
 ever edited by hand.
 
+<!-- This picture, and the fourteen of `docs/images/`, are remade by one
+     command: `node scripts/stage-doc-images.mjs` — see that script's header. -->
 <img src="docs/images/en-slide.png" width="720" alt="A derived project sheet slide in the flat style">
 
 ## Contents

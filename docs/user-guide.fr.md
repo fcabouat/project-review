@@ -37,6 +37,9 @@ du fichier téléchargé) et le site du projet ; importez-en un par
 entrée d'historique — Ctrl+Z l'annule. La démo en ligne prend le raccourci :
 son adresse `?sample` démarre directement sur le même jeu.
 
+<!-- Toutes les captures de ce guide sont refaites par une seule commande,
+     jamais à la main : `node scripts/stage-doc-images.mjs` — voir l'en-tête
+     de ce script. -->
 <img src="images/fr-review.png" width="720" alt="Vue Revue : titre, sous-titre, dates et slides libres">
 
 Ensuite :
@@ -308,8 +311,8 @@ C'est ainsi qu'une organisation transmet ses couleurs à ses collègues : un
 
 ### Police embarquée
 
-<!-- Mise en scène de cette capture (palette + deux fontes + logo) :
-     `node scripts/stage-doc-images.mjs` — voir l'en-tête de ce script. -->
+<!-- La mise en scène de celle-ci — palette + deux fontes + logo, le seul
+     écran qu'aucun jeu d'exemple ne produit — vit dans ce même script. -->
 <img src="images/fr-embedded-font.png" width="720" alt="La carte Apparence, moitié identité du portefeuille : la liste des palettes menée par les douze couleurs du portefeuille, le champ Police avec son statut vivant « Police embarquée dans le portefeuille », les deux fontes embarquées avec leur graisse et leur taille, les deux sélecteurs, le logo, et l’unique ligne de licence qui couvre les trois">
 
 La zone **Police embarquée** de la même carte embarque des fichiers `.woff2`

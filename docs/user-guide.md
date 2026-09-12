@@ -33,6 +33,8 @@ project site; import one through **Import…** like any portfolio file. The
 import is a single history entry — Ctrl+Z undoes it. The online demo takes
 the shortcut: its `?sample` address boots straight into the same set.
 
+<!-- Every picture in this guide is remade by one command, never by hand:
+     `node scripts/stage-doc-images.mjs` — see that script's header. -->
 <img src="images/en-review.png" width="720" alt="Review view: title, subtitle, dates and free slides">
 
 From there:
@@ -284,8 +286,8 @@ That is how an organization hands its own colours to its colleagues: one
 
 ### Embedded font
 
-<!-- Staging behind this capture (palette + two embedded faces + logo):
-     `node scripts/stage-doc-images.mjs` — see that script's header. -->
+<!-- The staging behind this one — palette + two embedded faces + logo, the
+     only screen no sample set produces — lives in that same script. -->
 <img src="images/en-embedded-font.png" width="720" alt="The Appearance card, portfolio-identity half: the palette list headed by the portfolio’s own twelve colours, the font field with its live «Font embedded in the portfolio» status, the two embedded faces with their weight and size, the two pickers, the logo, and the single license line covering the three">
 
 The **Embedded font** zone of the same card embeds `.woff2` files — picked
