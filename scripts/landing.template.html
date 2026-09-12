@@ -235,6 +235,14 @@
         line-height: 1.55;
         color: var(--ink2);
       }
+      .example-card img {
+        width: 100%;
+        height: auto;
+        border: 1px solid var(--rule);
+      }
+      .example-card a {
+        display: block;
+      }
 
       .steps {
         display: grid;
@@ -411,7 +419,9 @@
             <h1>%H1%</h1>
             <p class="sub">%HERO_SUB%</p>
             <div class="cta">
-              <a class="btn btn-solid" href="demo/project-review.html?sample&amp;lang=%LANG%">%CTA_TRY%</a>
+              <a class="btn btn-solid" href="demo/project-review.html?sample&amp;lang=%LANG%"
+                >%CTA_TRY%</a
+              >
               <a
                 class="btn btn-ghost"
                 href="demo/project-review.html"
@@ -444,6 +454,56 @@
           <div><b>%P4B%</b><span>%P4S%</span></div>
         </div>
       </div>
+
+      <section id="examples">
+        <div class="wrap">
+          <div class="sec-kicker">%EXAMPLES_KICKER%</div>
+          <h2>%EXAMPLES_TITLE%</h2>
+          <p class="lede">%EXAMPLES_LEDE%</p>
+          <div class="grid3">
+            <article class="card example-card">
+              <a href="examples/%LANG%-flat.html">
+                <img
+                  src="examples/%LANG%-flat.png"
+                  width="1280"
+                  height="720"
+                  loading="lazy"
+                  alt=""
+                />
+                <h3>%EXAMPLE_FLAT% →</h3>
+              </a>
+              <p>%EXAMPLE_MATERIAL%</p>
+            </article>
+            <article class="card example-card">
+              <a href="examples/%LANG%-institutional.html">
+                <img
+                  src="examples/%LANG%-institutional.png"
+                  width="1280"
+                  height="720"
+                  loading="lazy"
+                  alt=""
+                />
+                <h3>%EXAMPLE_INSTITUTIONAL% →</h3>
+              </a>
+              <p>%EXAMPLE_UNIFORM%</p>
+            </article>
+            <article class="card example-card">
+              <a href="examples/%LANG%-modern.html">
+                <img
+                  src="examples/%LANG%-modern.png"
+                  width="1280"
+                  height="720"
+                  loading="lazy"
+                  alt=""
+                />
+                <h3>%EXAMPLE_MODERN% →</h3>
+              </a>
+              <p>%EXAMPLE_TAILWIND%</p>
+            </article>
+          </div>
+          <p><a href="examples/THIRD-PARTY-LICENSES.txt">%THIRD_PARTY_LICENSES%</a></p>
+        </div>
+      </section>
 
       <section>
         <div class="wrap">
@@ -543,7 +603,9 @@
           <h2>%F_H2%</h2>
           <p class="lede">%F_LEDE%</p>
           <div class="cta" style="justify-content: center">
-            <a class="btn btn-solid" href="demo/project-review.html?sample&amp;lang=%LANG%">%F_TRY%</a>
+            <a class="btn btn-solid" href="demo/project-review.html?sample&amp;lang=%LANG%"
+              >%F_TRY%</a
+            >
             <a class="btn btn-ghost" href="https://github.com/fcabouat/project-review">%F_STAR%</a>
           </div>
         </div>

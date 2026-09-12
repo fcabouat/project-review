@@ -64,7 +64,7 @@ import {
   validProject,
   validReview,
 } from '../model/contract'
-import { LANGUAGES, PALETTES, THEME_STYLES } from '../model/theme'
+import { LANGUAGES, NAVIGATION_MODES, PALETTES, THEME_STYLES } from '../model/theme'
 import { isFontFamily } from '../values/font'
 import { isRecapRows } from '../values/recap-rows'
 import { withField } from '../events/collections'
@@ -79,6 +79,8 @@ const validSetting = (c: ChangeSetting): boolean => {
   switch (c.setting) {
     case 'language':
       return oneOf(c.after, LANGUAGES)
+    case 'navigation':
+      return c.after === undefined || oneOf(c.after, NAVIGATION_MODES)
     case 'style':
       return oneOf(c.after, THEME_STYLES)
     case 'palette':

@@ -1,6 +1,6 @@
 /**
  * axe checks built editor/site surfaces in light/dark and nine print combinations.
- * Requires build → docs:api → build-storybook → docs:site.
+ * Requires build → docs:api → build-storybook → docs:examples → docs:site.
  * Serious/critical findings fail; moderate/minor findings are reported.
  */
 

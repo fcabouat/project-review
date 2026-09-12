@@ -14,7 +14,13 @@ import type { Color } from '../../model/category'
 import { COLORS } from '../../model/category'
 import type { Settings } from '../../model/portfolio'
 import type { CustomPalette, EmbeddedFontFace } from '../../model/theme'
-import { FONT_FACE_STYLES, LANGUAGES, PALETTES, THEME_STYLES } from '../../model/theme'
+import {
+  FONT_FACE_STYLES,
+  LANGUAGES,
+  NAVIGATION_MODES,
+  PALETTES,
+  THEME_STYLES,
+} from '../../model/theme'
 import {
   FONT_FACE_MAX_CHARS,
   FONT_FACES_TOTAL_MAX_CHARS,
@@ -223,6 +229,16 @@ export function parseSettings(x: unknown, errors: Errors): Settings {
 
   return {
     language: enumVal(o['language'], LANGUAGES, at('settings', 'language'), errors) ?? 'fr',
+    ...(o['navigation'] === undefined
+      ? {}
+      : {
+          navigation: enumVal(
+            o['navigation'],
+            NAVIGATION_MODES,
+            at('settings', 'navigation'),
+            errors,
+          ),
+        }),
     identity: {
       org: str(rawIdentity['org'], at(identityPath, 'org'), errors) ?? '',
       unit: str(rawIdentity['unit'], at(identityPath, 'unit'), errors) ?? '',

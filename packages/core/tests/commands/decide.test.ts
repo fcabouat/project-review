@@ -49,6 +49,21 @@ describe('decide — completion, one entry per command variant', () => {
     expect(e).toBeDefined()
     expect(settingValue(apply(p, e!).settings, 'recapRows')).toBe(8)
   })
+
+  it('navigation can return to the absent legacy default', () => {
+    const event = decide(p, { type: 'ChangeSetting', setting: 'navigation', after: 'linear' })!
+    const linear = apply(p, event)
+    expect(settingValue(linear.settings, 'navigation')).toBe('linear')
+    expect(
+      decide(linear, { type: 'ChangeSetting', setting: 'navigation', after: 'linear' }),
+    ).toBeUndefined()
+    const reset = decide(linear, {
+      type: 'ChangeSetting',
+      setting: 'navigation',
+      after: undefined,
+    })!
+    expect(apply(linear, reset)).toStrictEqual(p)
+  })
 })
 
 describe('decide — inapplicable command → undefined', () => {

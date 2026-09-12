@@ -102,7 +102,7 @@ Qu'un projet ait ou non une fiche se règle par son option **Slide de détail**
 - **Toujours** — fiche affichée quoi qu'il arrive.
 - **Jamais** — le projet n'apparaît que dans le récapitulatif.
 
-**Paramètres > Slides d'agrégat** active ou coupe le dashboard de santé, le
+**Paramètres > Diaporama** active ou coupe le dashboard de santé, le
 récapitulatif, les archives et les slides de décisions.
 
 Les tableaux d'archives et de décisions sont paginés automatiquement. Le résumé
@@ -113,10 +113,19 @@ répétés s'affichent littéralement ; le texte d'origine reste conservé.
 
 ## Diaporama
 
-Cliquez **Générer le diaporama ▸** dans la barre du haut. La navigation
-fonctionne à tiroirs : les flèches gauche et droite passent d'une section à
-l'autre, la flèche bas ouvre une catégorie et parcourt ses fiches. **Échap**
-ouvre la vue d'ensemble ; un clic rezoome.
+Cliquez **Générer le diaporama ▸** dans la barre du haut. Dans **Paramètres >
+Diaporama**, choisissez **Par sections** (par défaut) : gauche/droite passe
+d'une section à l'autre et haut/bas parcourt ses slides ; ou **Linéaire** :
+gauche/droite parcourt toutes les slides dans l'ordre, sans pile verticale.
+Ce choix est enregistré dans le portefeuille et conservé dans l'export HTML
+autonome. L'impression et la numérotation des pages restent identiques.
+**Échap** ouvre la vue d'ensemble ; un clic rezoome.
+
+<img src="images/fr-navigation.png" width="420" alt="Paramètres du diaporama : navigation Par sections ou Linéaire">
+
+Les anciens portefeuilles v3 gardent la navigation par sections. Les fichiers
+enregistrés avec la nouvelle option `settings.navigation` nécessitent
+la v0.1.1 ou une version ultérieure pour être rouverts dans l'éditeur.
 
 <img src="images/fr-slide.png" width="720" alt="Une fiche projet du diaporama, style flat">
 

@@ -420,6 +420,10 @@ describe('theme — the portfolio palette rules', () => {
 describe('settings — the display rules', () => {
   refused([
     [
+      'navigation is a closed choice',
+      { type: 'ChangeSetting', setting: 'navigation', after: forged('diagonal') },
+    ],
+    [
       'recapRows stays in the printable band, low end (invalidRecapRows)',
       { type: 'ChangeSetting', setting: 'recapRows', after: 5 },
     ],

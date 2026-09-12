@@ -1,18 +1,19 @@
 /**
- * THE FOURTEEN PICTURES OF `docs/images/`, AND THE CAPTURE THAT REMAKES THEM.
+ * THE GUIDE PICTURES OF `docs/images/`, AND THE CAPTURE THAT REMAKES THEM.
  *
- * The two guides and the README show fourteen screenshots — seven surfaces,
+ * The two guides and the README show sixteen screenshots — eight surfaces,
  * English and French. Twelve of them used to be taken by hand, one window at a
  * time, and went stale twice without anyone noticing: nothing in the
  * repository said what they were supposed to show, so nothing could tell that
  * they no longer showed it. This script is that missing statement. ONE entry
- * point, fourteen files, every framing decided here rather than by whoever
+ * point, sixteen files, every framing decided here rather than by whoever
  * happened to hold the mouse:
  *
  *   {en,fr}-review.png         #/review on the sample set
  *   {en,fr}-projects.png       #/projects — the portfolio grouped by category
  *   {en,fr}-sheet.png          #/sheet/P-01 — the Frame & status tab
  *   {en,fr}-settings.png       #/settings — identity, appearance, categories
+ *   {en,fr}-navigation.png     #/settings — the slideshow settings card
  *   {en,fr}-import-merge.png   the import dialog, merge mode, counted preview
  *   {en,fr}-slide.png          the slideshow, opened on the P-01 sheet slide
  *   {en,fr}-embedded-font.png  Appearance ▸ Portfolio identity, all three
@@ -23,7 +24,7 @@
  *   pnpm run build
  *   node scripts/stage-doc-images.mjs [outDir] [face.woff2]
  *
- * `outDir` defaults to `docs/images` — the fourteen committed files — so a
+ * `outDir` defaults to `docs/images` — the committed files — so a
  * rerun replaces them; pass a scratch directory to look first. `face.woff2`
  * overrides the embedded type (below); the default needs no argument.
  *
@@ -31,7 +32,7 @@
  * a check that fails on a font hint. What is versioned here is the ability to
  * REMAKE the pictures deliberately, when the interface they document changes.
  *
- * THE PROTOCOL, identical for the fourteen: viewport 1280 × 860 at scale 1,
+ * THE PROTOCOL: viewport 1280 × 860 at scale 1,
  * light reader scheme (the OS preference — the app stays on « System », which
  * is what the Appearance card must be seen saying), one browser context per
  * language, and the BUILT deliverable served over http so it reaches its
@@ -41,7 +42,7 @@
  *
  * 1. THE SAMPLE SET, booted through `?sample` — the deliverable fetches
  *    `dist/sample-portfolio.{en,fr}.json` next door and imports it through the
- *    ordinary parse. Twelve of the fourteen pictures are that set, untouched:
+ *    ordinary parse. All but the two embedded-font pictures use that set, untouched:
  *    the identity, the logo and the twenty projects they show are the ones
  *    that ship, so a change to the sample file reaches the pictures on the
  *    next run and cannot silently part ways with them.
@@ -53,7 +54,7 @@
  *    logo. No sample set carries the palette or the faces and no story stages
  *    the three together, so this staging is the only place the screen exists.
  *    The logo is READ FROM THE SAMPLE FILE rather than invented here — one
- *    mark for the fourteen pictures, and one file to change when it changes.
+ *    mark for all the pictures, and one file to change when it changes.
  *
  * THE TYPE THE STAGING EMBEDS. `Atelier` is this repository's fictional family
  * — the guides and the contract tests use that name for « a family this build
@@ -208,10 +209,10 @@ async function slideshowOnSheet(page, language) {
 }
 
 /**
- * The six pictures of the shipped sample set, in one context. `?sample` boots
+ * The seven pictures of the shipped sample set, in one context. `?sample` boots
  * it the way the online demo does: the deliverable fetches its neighbour file
  * and imports it through the ordinary parse — nothing is seeded by hand here,
- * so these six can only ever show what the sample file actually holds.
+ * so these pictures can only ever show what the sample file actually holds.
  */
 async function samplePictures(browser, base, language, sample) {
   const context = await browser.newContext({
@@ -251,6 +252,14 @@ async function samplePictures(browser, base, language, sample) {
 
   await open('#/settings')
   await shoot(page, `${language}-settings`)
+  const navigation = page
+    .getByRole('heading', {
+      name: language === 'fr' ? 'Diaporama' : 'Slideshow',
+      exact: true,
+    })
+    .locator('..')
+  await navigation.screenshot({ path: join(OUT, `${language}-navigation.png`) })
+  written.push(`${language}-navigation.png — slideshow settings card`)
 
   await open('#/review')
   await importMerge(page, language, sample)
@@ -287,7 +296,7 @@ const HOUSE_COLORS = {
  * its theme and nothing else touched. Building a bare portfolio instead would
  * put an empty right-hand column in a documentation picture — and would give
  * the identity and the logo a second home, which is how the mark went stale in
- * the first place. The sample file stays the one source for all fourteen.
+ * the first place. The sample file stays the one source for all pictures.
  */
 const staging = (language, sample, faces) => ({
   ...sample,

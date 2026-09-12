@@ -12,6 +12,8 @@ const applySetting = (s: Settings, e: SettingChanged): Settings => {
   switch (e.setting) {
     case 'language':
       return { ...s, language: e.after }
+    case 'navigation':
+      return withField(s, 'navigation', e.after)
     case 'style':
       return { ...s, theme: { ...s.theme, style: e.after } }
     case 'palette':

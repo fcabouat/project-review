@@ -126,6 +126,10 @@
           "enum": ["fr", "en"],
           "default": "fr"
         },
+        "navigation": {
+          "enum": ["sections", "linear"],
+          "description": "Absent means sections (horizontal groups with vertical slides); linear puts every slide horizontally."
+        },
         "identity": {
           "type": "object",
           "additionalProperties": false,

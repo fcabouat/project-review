@@ -14,7 +14,7 @@ carry your own narrative.
 
 ## Try it
 
-- [Live demo](https://fcabouat.github.io/project-review/demo/project-review.html?sample)
+- [Live demo](https://fcabouat.github.io/project-review/demo/project-review.html?sample&lang=en)
   — a 20-project sample, in French or English.
 - [Download the HTML file](https://fcabouat.github.io/project-review/demo/project-review.html)
   — save and double-click. Approximately 1.7 MB, fonts and runtime included.
@@ -25,6 +25,22 @@ The app starts empty. Sample portfolios are separate
 [English](https://fcabouat.github.io/project-review/demo/sample-portfolio.en.json)
 and [French](https://fcabouat.github.io/project-review/demo/sample-portfolio.fr.json)
 files; import them like any other portfolio.
+
+### Watch example slides
+
+Ready-to-view, read-only decks — the same 20 projects in three themes, with
+34 slides each. No editor setup: use ← → to browse, Esc for the overview.
+
+| Theme / palette         | English                                                                           | Français                                                                         |
+| ----------------------- | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Flat / Material         | [Watch](https://fcabouat.github.io/project-review/examples/en-flat.html)          | [Voir](https://fcabouat.github.io/project-review/examples/fr-flat.html)          |
+| Institutional / Uniform | [Watch](https://fcabouat.github.io/project-review/examples/en-institutional.html) | [Voir](https://fcabouat.github.io/project-review/examples/fr-institutional.html) |
+| Modern / Tailwind       | [Watch](https://fcabouat.github.io/project-review/examples/en-modern.html)        | [Voir](https://fcabouat.github.io/project-review/examples/fr-modern.html)        |
+
+Save an HTML deck to view it offline. Keep the accompanying
+[third-party licenses](https://fcabouat.github.io/project-review/examples/THIRD-PARTY-LICENSES.txt)
+when redistributing it. These examples use linear navigation; the editor also
+offers horizontal sections with vertical slides, saved with the portfolio.
 
 ## Features and limits
 
@@ -86,6 +102,7 @@ For the complete documentation/accessibility pass, build in this order:
 ```sh
 pnpm run docs:api
 pnpm run build-storybook
+pnpm run docs:examples
 pnpm run docs:site
 pnpm run a11y
 ```

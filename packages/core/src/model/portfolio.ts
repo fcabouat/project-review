@@ -12,7 +12,14 @@ import type { IsoDate } from '../values/date'
 import type { Category } from './category'
 import type { FreeSlide } from './free-slide'
 import type { Project } from './project'
-import type { CustomPalette, EmbeddedFontFace, Language, PaletteFamily, ThemeStyle } from './theme'
+import type {
+  CustomPalette,
+  EmbeddedFontFace,
+  Language,
+  NavigationMode,
+  PaletteFamily,
+  ThemeStyle,
+} from './theme'
 
 /**
  * Who publishes the review — the organization block. Lives on the SETTINGS side
@@ -40,10 +47,13 @@ export interface Review {
 /**
  * Everything on the SETTINGS side of the content/settings boundary:
  * how the deck looks and which aggregate slides it shows, never what it says.
- * This is the block a content-only import can preserve ("keep my settings").
+ * A content-only import preserves this block except the language, which
+ * follows the incoming content so its generated labels stay consistent.
  */
 export interface Settings {
   readonly language: Language
+  /** Absent in older v3 files: sections, preserving their original navigation. */
+  readonly navigation?: NavigationMode
   readonly identity: Identity
   /** Runtime presentation choices: layout family, color family and font family (a family this build carries, one deployed beside the app, or one embedded below; system fallback stack in every case). Three of them can be CARRIED BY THE FILE rather than chosen from what the build offers — the inline logo (`identity.logo`), the embedded font faces and the custom palette: absent means "nothing carried" (the meaningful default, so an export without them stays byte-identical). `customPalette`, when present, takes precedence over `palette`. */
   readonly theme: {

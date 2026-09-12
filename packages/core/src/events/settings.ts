@@ -26,6 +26,7 @@ const _identityCovered: CoversExactly<(typeof IDENTITY_FIELDS)[number], Identity
 /** Flattened settings — the closed write path of `SettingChanged`. */
 export type SettingValues = Settings['show'] & {
   readonly language: Settings['language']
+  readonly navigation: Settings['navigation']
   readonly style: Settings['theme']['style']
   readonly palette: Settings['theme']['palette']
   readonly font: Settings['theme']['font']
@@ -44,6 +45,7 @@ export type SettingKey = keyof SettingValues
  * compile-time coverage pin as `REVIEW_FIELDS` (review.ts). */
 export const SETTING_KEYS = [
   'language',
+  'navigation',
   'style',
   'palette',
   'font',
@@ -63,6 +65,7 @@ const _settingsCovered: CoversExactly<(typeof SETTING_KEYS)[number], SettingKey>
 export const settingValue = <K extends SettingKey>(s: Settings, key: K): SettingValues[K] => {
   const flat: SettingValues = {
     language: s.language,
+    navigation: s.navigation,
     style: s.theme.style,
     palette: s.theme.palette,
     font: s.theme.font,
