@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "portfolio.schema.json",
   "title": "Portfolio — project review",
-  "description": "Schema of the portfolio file (editor export \"project-review-{reviewDate}.json\", sample sets \"sample-portfolio.{fr,en}.json\"). It states the SAME closed contract the application's strict import enforces (core parse/): required keys, no unknown key, closed enumerations, bounded numbers. Four checks only the parse can express: dates must be CALENDAR-valid (the pattern here just fixes the shape), ids must be unique per collection, the embedded font faces together must stay under 2 000 000 data-URI characters (~1.5 MB of binary), and categories, projects and free slides TOGETHER must not exceed 2000 entities (the per-array maxItems below states the weaker bound this schema can express). The same 2000 bounds every NESTED collection — a project’s decisions, its milestones, each of its three narrative lists, a free slide’s blocks and the lines of one block: one memory-safety budget, stated once in the core (model/budget.ts) and restated here for outside tooling.",
+  "description": "Schema of the portfolio file (editor export \"project-review-{reviewDate}.json\", sample sets \"sample-portfolio.{fr,en}.json\"). It states the SAME closed contract the application's strict import enforces (core parse/): required keys, no unknown key, closed enumerations, bounded numbers. Five checks only the parse can express: dates must be CALENDAR-valid (the pattern here just fixes the shape), ids must be unique per collection, an embedded face's \"min max\" weight pair must ASCEND (the pattern states the 400-800 range, not the order), the embedded font faces together must stay under 2 000 000 data-URI characters (~1.5 MB of binary), and categories, projects and free slides TOGETHER must not exceed 2000 entities (the per-array maxItems below states the weaker bound this schema can express). The same 2000 bounds every NESTED collection — a project’s decisions, its milestones, each of its three narrative lists, a free slide’s blocks and the lines of one block: one memory-safety budget, stated once in the core (model/budget.ts) and restated here for outside tooling.",
   "type": "object",
   "additionalProperties": false,
   "required": ["version", "review", "settings", "categories", "projects", "freeSlides"],
@@ -183,9 +183,9 @@
                   },
                   "weight": {
                     "type": "string",
-                    "pattern": "^\\d{3}( \\d{3})?$",
+                    "pattern": "^(?:[4-7][0-9]{2}|800)(?: (?:[4-7][0-9]{2}|800))?$",
                     "default": "400",
-                    "description": "One integer in 400–800, or an ascending \"min max\" pair"
+                    "description": "One integer in 400–800, or an ascending \"min max\" pair. The RANGE is stated by the pattern; only the parse can state that a pair ascends."
                   },
                   "style": {
                     "enum": ["normal", "italic"],

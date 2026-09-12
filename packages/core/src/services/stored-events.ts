@@ -58,6 +58,7 @@ import {
   validProject,
   validReview,
   validSettings,
+  withinRows,
 } from '../model/contract'
 import type { DomainEvent, SettingChanged } from '../events'
 import { IDENTITY_FIELDS, NARRATIVE_LISTS, PROJECT_SCALAR_FIELDS, REVIEW_FIELDS } from '../events'
@@ -296,28 +297,34 @@ const soundVariant = (o: Record<string, unknown>, type: DomainEvent['type']): bo
         soundProjectSides(o, o['field'] as never)
       )
 
+    // THE THREE LIST VARIANTS, AND THE BOUND THEY USED TO MISS. Each side is a
+    // whole collection the event installs verbatim, so the row ceiling
+    // (`withinRows`, the memory-safety budget) is as much a part of the
+    // contract as the shape of one element — `validProject` states it for the
+    // same three lists when a project is judged whole, and the parse states it
+    // on the way in. Stated only per element, a stored event could hand a
+    // project a million rows: under the entity count, over the byte cap, and
+    // discovered at the next reload.
     case 'ProjectListChanged':
       return (
         keys(o, ['type', 'id', 'list', ...SIDES]) &&
         isId(o['id']) &&
         oneOf(o['list'], NARRATIVE_LISTS) &&
-        SIDES.every((s) => isTextList(o[s]))
+        SIDES.every((s) => withinRows(o[s]) && isTextList(o[s]))
       )
 
     case 'ProjectMilestonesChanged':
       return (
         keys(o, ['type', 'id', ...SIDES]) &&
         isId(o['id']) &&
-        SIDES.every(
-          (s) => Array.isArray(o[s]) && (o[s] as unknown[]).every(validMilestone as never),
-        )
+        SIDES.every((s) => withinRows(o[s]) && (o[s] as unknown[]).every(validMilestone as never))
       )
 
     case 'ProjectDecisionsChanged':
       return (
         keys(o, ['type', 'id', ...SIDES]) &&
         isId(o['id']) &&
-        SIDES.every((s) => Array.isArray(o[s]) && (o[s] as unknown[]).every(validDecision as never))
+        SIDES.every((s) => withinRows(o[s]) && (o[s] as unknown[]).every(validDecision as never))
       )
 
     case 'FreeSlideCreated':

@@ -8,8 +8,16 @@
    * effect re-syncs the draft whenever the store's value moves under us (undo,
    * redo, import) — that is the whole reason the draft cannot simply be `bind:`.
    *
-   * An empty string commits as `undefined`: the model has no "empty text", it
-   * has an absent field (see `withField` in the store).
+   * CLEARING A FIELD COMMITS WHAT THAT FIELD'S MODEL CALLS "cleared", and the
+   * two are not the same. Most fields are OPTIONAL: the model has no "empty
+   * text" for them, it has an absent field, so an empty box commits
+   * `undefined` and `withField` drops the key. A handful are REQUIRED —
+   * `review.title`, `identity.org`, `identity.unit` — and their model type is
+   * `string`: the contract accepts `''` (the parse reads it through `str`, a
+   * blank start ships `org: ''`), and it is the ABSENCE it refuses. Committing
+   * `undefined` there produced a command the gate refused in silence: the box
+   * looked empty, the model still held the old value, and nothing said so.
+   * {@link Props.required} is which of the two this field is.
    *
    * A TEXT PAST ITS FRAME IS SAID TOO, AND NEVER REFUSED. The caller names the
    * FRAME (`capacity`), not a number, and the verdict comes from the core's
@@ -44,13 +52,26 @@
     /** Set by the caller when it REFUSED the last commit: the rule, in the
      * reader's language. Shown under the field; the typed text stays. */
     readonly error?: string
+    /**
+     * `true` when the MODEL has no absent state for this field — its type is
+     * `string`, not `string | undefined`. Emptying the box then commits the
+     * empty string, which the contract accepts, instead of the absence it
+     * refuses. The default is the optional field, which is most of them.
+     */
+    readonly required?: boolean
     /** The FRAME the whole value is drawn in — the core names it, measures it
      * and judges it (`TEXT_CAPACITY`, `overCapacity`). A counter and a
      * warning, never a block. */
     readonly capacity?: CapacityField
-    /** Line budget (`risks`, narrative lists) — counted instead of characters.
+    /**
+     * Line budget (`risks`, narrative lists) — counted instead of characters.
      * A number, not a frame: the capacity ladder measures CHARACTERS, and no
-     * line count was ever measured for the core to state. */
+     * line count was ever measured for the core to state. It is therefore
+     * EDITORIAL ADVICE, and the caller is where it is justified — see
+     * `NarrativeTab`, the only caller, which names both of its numbers and
+     * says what they are. Like every other budget here it is SAID and never
+     * refused.
+     */
     readonly maxLines?: number
     /** The frame ONE LINE is drawn in, where each line gets its own (a
      * narrative bullet). Judged per line, alongside {@link maxLines}. */
@@ -69,6 +90,7 @@
     language,
     hint,
     error,
+    required = false,
     capacity,
     maxLines,
     lineCapacity,
@@ -103,7 +125,9 @@
   )
 
   function onblur(): void {
-    const next = draft === '' ? undefined : draft
+    // `required` decides what "cleared" MEANS for this field — the empty
+    // string where the model has no absence, the absence everywhere else.
+    const next = draft === '' && !required ? undefined : draft
     if (next !== value) commit(next)
   }
 

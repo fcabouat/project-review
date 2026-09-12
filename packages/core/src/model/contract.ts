@@ -35,7 +35,7 @@ import type { Anchor, FreeSlide } from './free-slide'
 import type { Identity, Portfolio, Review, Settings } from './portfolio'
 import type { Decision, Milestone, Project } from './project'
 import { HEALTH_LEVELS, PRIORITIES, SHEET_MODES, STAGES } from './project'
-import { MAX_ROWS } from './budget'
+import { MAX_ROWS, withinMemoryBudget } from './budget'
 import type { CustomPalette, EmbeddedFontFace } from './theme'
 import { FONT_FACE_STYLES, LANGUAGES, PALETTES, THEME_STYLES } from './theme'
 import { isoDate } from '../values/date'
@@ -50,6 +50,179 @@ import { isLogo } from '../values/logo'
 import { isHexColor } from '../values/palette'
 import { progressOf } from '../values/progress'
 import { isRecapRows } from '../values/recap-rows'
+
+/* ------------------------------- key sets -------------------------------- */
+
+/**
+ * THE EXACT KEY SET OF ONE AGGREGATE — required keys, then the ones merely
+ * allowed. Stated HERE and read by BOTH sides: the strict parse hands them to
+ * `checkKeys` on the way in, {@link ownKeysOnly} applies them to an object
+ * already in memory. Before this, only the parse knew them, and a runtime
+ * object carrying a key the contract does not own passed every runtime
+ * validator, was accepted as a command, was stored — and was refused by the
+ * parse at the next boot, on the recovery screen.
+ *
+ * The `satisfies` clauses below pin each set to the MODEL's own keys, so a
+ * field added to an aggregate cannot silently stay out of one of the two
+ * lists: TypeScript refuses a name no such field carries, and the parse and
+ * the memory mirror move together by construction.
+ */
+export interface KeySet {
+  readonly required: readonly string[]
+  readonly optional: readonly string[]
+}
+
+/** Every key the aggregate owns — the union the checks below police. */
+const owned = (set: KeySet): readonly string[] => [...set.required, ...set.optional]
+
+/**
+ * `true` when `x` is a plain object carrying NO key beyond the ones `set`
+ * owns. A key whose value is `undefined` is an ABSENT key and passes whatever
+ * its name: `JSON.stringify` drops it, so the serialised form the parse would
+ * read does not carry it either — the two sides must agree about that too.
+ *
+ * REQUIRED PRESENCE IS NOT CHECKED HERE, and deliberately: every required key
+ * already carries a value rule below (`isText`, `isDate`, `oneOf`, a boolean),
+ * and a rule that refuses `undefined` is the same refusal said once instead of
+ * twice.
+ */
+export const ownKeysOnly = (x: unknown, set: KeySet): boolean => {
+  if (!isRecord(x)) return false
+  const known = owned(set)
+  for (const key of Object.keys(x)) {
+    if (x[key] !== undefined && !known.includes(key)) return false
+  }
+  return true
+}
+
+export const PORTFOLIO_KEYS = {
+  required: ['version', 'review', 'settings', 'categories', 'projects', 'freeSlides'],
+  optional: [],
+} as const satisfies { required: readonly (keyof Portfolio)[]; optional: readonly never[] }
+
+export const REVIEW_KEYS = {
+  required: ['title', 'reviewDate'],
+  optional: ['subtitle', 'previousReviewDate'],
+} as const satisfies { required: readonly (keyof Review)[]; optional: readonly (keyof Review)[] }
+
+export const SETTINGS_KEYS = {
+  required: ['identity', 'show', 'recapRows'],
+  optional: ['language', 'theme'],
+} as const satisfies {
+  required: readonly (keyof Settings)[]
+  optional: readonly (keyof Settings)[]
+}
+
+export const IDENTITY_KEYS = {
+  required: ['org', 'unit'],
+  optional: ['orgLong', 'unitLong', 'contact', 'logo'],
+} as const satisfies {
+  required: readonly (keyof Identity)[]
+  optional: readonly (keyof Identity)[]
+}
+
+export const THEME_KEYS = {
+  required: [],
+  optional: ['style', 'palette', 'font', 'fontFaces', 'customPalette'],
+} as const satisfies {
+  required: readonly never[]
+  optional: readonly (keyof Settings['theme'])[]
+}
+
+export const SHOW_KEYS = {
+  required: ['healthDashboard', 'recap', 'archives', 'decisions'],
+  optional: [],
+} as const satisfies {
+  required: readonly (keyof Settings['show'])[]
+  optional: readonly never[]
+}
+
+export const FONT_FACE_KEYS = {
+  required: ['family', 'dataUri'],
+  optional: ['weight', 'style'],
+} as const satisfies {
+  required: readonly (keyof EmbeddedFontFace)[]
+  optional: readonly (keyof EmbeddedFontFace)[]
+}
+
+export const CUSTOM_PALETTE_KEYS = {
+  required: ['colors'],
+  optional: ['label'],
+} as const satisfies {
+  required: readonly (keyof CustomPalette)[]
+  optional: readonly (keyof CustomPalette)[]
+}
+
+export const CATEGORY_KEYS = {
+  required: ['id', 'name', 'color'],
+  optional: [],
+} as const satisfies { required: readonly (keyof Category)[]; optional: readonly never[] }
+
+export const PROJECT_KEYS = {
+  required: [
+    'id',
+    'name',
+    'categoryId',
+    'stage',
+    'onHold',
+    'goal',
+    'done',
+    'ongoing',
+    'next',
+    'decisions',
+    'milestones',
+    'sheet',
+  ],
+  optional: [
+    'priority',
+    'health',
+    'progress',
+    'lead',
+    'sponsor',
+    'scope',
+    'budget',
+    'start',
+    'targetEnd',
+    'actualEnd',
+    'risks',
+    'updatedOn',
+    'author',
+  ],
+} as const satisfies { required: readonly (keyof Project)[]; optional: readonly (keyof Project)[] }
+
+export const DECISION_KEYS = {
+  required: ['question'],
+  optional: ['decider', 'taken'],
+} as const satisfies {
+  required: readonly (keyof Decision)[]
+  optional: readonly (keyof Decision)[]
+}
+
+/** The settled outcome — both halves or neither (see {@link validDecision}). */
+export const OUTCOME_KEYS = {
+  required: ['text', 'when'],
+  optional: [],
+} as const satisfies {
+  required: readonly (keyof NonNullable<Decision['taken']>)[]
+  optional: readonly never[]
+}
+
+export const MILESTONE_KEYS = {
+  required: ['label', 'date', 'done'],
+  optional: ['display'],
+} as const satisfies {
+  required: readonly (keyof Milestone)[]
+  optional: readonly (keyof Milestone)[]
+}
+
+export const FREE_SLIDE_KEYS = {
+  required: ['id', 'anchor', 'title', 'blocks'],
+  optional: [],
+} as const satisfies { required: readonly (keyof FreeSlide)[]; optional: readonly never[] }
+
+/** An anchor carries its `categoryId` only where it means something. */
+export const ANCHOR_KEYS: KeySet = { required: ['type'], optional: [] }
+export const ANCHOR_CATEGORY_KEYS: KeySet = { required: ['type', 'categoryId'], optional: [] }
 
 /* --------------------------- shared vocabulary --------------------------- */
 
@@ -91,26 +264,31 @@ export const uniqueIds = (items: readonly { readonly id: string }[]): boolean =>
 /* ---------------------------- the aggregates ----------------------------- */
 
 export const validDecision = (d: Decision): boolean =>
-  isText(d?.question) &&
+  ownKeysOnly(d, DECISION_KEYS) &&
+  isText(d.question) &&
   absentOr(d.decider, isText) &&
   // All or nothing: the parse refuses a half-settled outcome rather than
   // invent one, so an outcome carries BOTH a text and a real date.
   absentOr(
     d.taken,
     (v) =>
-      typeof v === 'object' &&
-      v !== null &&
+      ownKeysOnly(v, OUTCOME_KEYS) &&
       isText((v as Decision['taken'])?.text) &&
       isDate((v as Decision['taken'])?.when),
   )
 
 export const validMilestone = (m: Milestone): boolean =>
-  isText(m?.label) && isDate(m.date) && absentOr(m.display, isText) && typeof m.done === 'boolean'
+  ownKeysOnly(m, MILESTONE_KEYS) &&
+  isText(m.label) &&
+  isDate(m.date) &&
+  absentOr(m.display, isText) &&
+  typeof m.done === 'boolean'
 
 /** One project, judged exactly as `parseProjects` judges its serialised twin.
  * `categoryId` may be `''` — the sanctioned unassigned reference. */
 export const validProject = (p: Project): boolean =>
-  isId(p?.id) &&
+  ownKeysOnly(p, PROJECT_KEYS) &&
+  isId(p.id) &&
   isText(p.name) &&
   isText(p.categoryId) &&
   absentOr(p.priority, (v) => oneOf(v, PRIORITIES)) &&
@@ -143,18 +321,19 @@ export const validProject = (p: Project): boolean =>
 
 /** One category — id non-empty, name a string, color one of the twelve. */
 export const validCategory = (c: Category): boolean =>
-  isId(c?.id) && isText(c.name) && oneOf(c.color, COLORS)
+  ownKeysOnly(c, CATEGORY_KEYS) && isId(c.id) && isText(c.name) && oneOf(c.color, COLORS)
 
 /** An anchor a deck can place: a `beforeCategory` pointing at a category that
  * no longer exists is fine (the deck degrades it), an EMPTY reference is not. */
 export const validAnchor = (a: Anchor): boolean =>
-  a?.type === 'opening' ||
-  a?.type === 'closing' ||
-  (a?.type === 'beforeCategory' && isId(a.categoryId))
+  a?.type === 'beforeCategory'
+    ? ownKeysOnly(a, ANCHOR_CATEGORY_KEYS) && isId(a.categoryId)
+    : ownKeysOnly(a, ANCHOR_KEYS) && (a?.type === 'opening' || a?.type === 'closing')
 
 /** One free slide — id non-empty, structural anchor, and at least one block. */
 export const validFreeSlide = (s: FreeSlide): boolean =>
-  isId(s?.id) &&
+  ownKeysOnly(s, FREE_SLIDE_KEYS) &&
+  isId(s.id) &&
   validAnchor(s.anchor) &&
   isText(s.title) &&
   withinRows(s.blocks) &&
@@ -168,7 +347,8 @@ export const validFontFaces = (faces: readonly EmbeddedFontFace[] | undefined): 
   if (!Array.isArray(faces) || faces.length === 0) return false
   const sound = faces.every(
     (f) =>
-      isText(f?.family) &&
+      ownKeysOnly(f, FONT_FACE_KEYS) &&
+      isText(f.family) &&
       isFontFamily(f.family) &&
       isText(f.weight) &&
       isFontWeight(f.weight) &&
@@ -186,7 +366,7 @@ export const validFontFaces = (faces: readonly EmbeddedFontFace[] | undefined): 
  * the domain, no more and no less, each an exact `#rrggbb`. */
 export const validCustomPalette = (palette: CustomPalette | undefined): boolean => {
   if (palette === undefined) return true
-  if (typeof palette !== 'object' || palette === null) return false
+  if (!ownKeysOnly(palette, CUSTOM_PALETTE_KEYS)) return false
   if (!absentOr(palette.label, isText)) return false
   const colors: unknown = palette.colors
   if (!isRecord(colors)) return false
@@ -197,7 +377,8 @@ export const validCustomPalette = (palette: CustomPalette | undefined): boolean 
 }
 
 export const validIdentity = (i: Identity): boolean =>
-  isText(i?.org) &&
+  ownKeysOnly(i, IDENTITY_KEYS) &&
+  isText(i.org) &&
   isText(i.unit) &&
   absentOr(i.orgLong, isText) &&
   absentOr(i.unitLong, isText) &&
@@ -205,21 +386,25 @@ export const validIdentity = (i: Identity): boolean =>
   absentOr(i.logo, (v) => isText(v) && isLogo(v))
 
 export const validReview = (r: Review): boolean =>
-  isText(r?.title) &&
+  ownKeysOnly(r, REVIEW_KEYS) &&
+  isText(r.title) &&
   absentOr(r.subtitle, isText) &&
   isDate(r.reviewDate) &&
   absentOr(r.previousReviewDate, isDate)
 
 export const validSettings = (s: Settings): boolean =>
-  oneOf(s?.language, LANGUAGES) &&
+  ownKeysOnly(s, SETTINGS_KEYS) &&
+  oneOf(s.language, LANGUAGES) &&
   validIdentity(s.identity) &&
-  oneOf(s.theme?.style, THEME_STYLES) &&
+  ownKeysOnly(s.theme, THEME_KEYS) &&
+  oneOf(s.theme.style, THEME_STYLES) &&
   oneOf(s.theme.palette, PALETTES) &&
   isText(s.theme.font) &&
   isFontFamily(s.theme.font) &&
   validFontFaces(s.theme.fontFaces) &&
   validCustomPalette(s.theme.customPalette) &&
-  typeof s.show?.healthDashboard === 'boolean' &&
+  ownKeysOnly(s.show, SHOW_KEYS) &&
+  typeof s.show.healthDashboard === 'boolean' &&
   typeof s.show.recap === 'boolean' &&
   typeof s.show.archives === 'boolean' &&
   typeof s.show.decisions === 'boolean' &&
@@ -233,7 +418,8 @@ export const validSettings = (s: Settings): boolean =>
  * against, whoever built it.
  */
 export const validPortfolio = (p: Portfolio): boolean =>
-  p?.version === 3 &&
+  ownKeysOnly(p, PORTFOLIO_KEYS) &&
+  p.version === 3 &&
   validReview(p.review) &&
   validSettings(p.settings) &&
   Array.isArray(p.categories) &&
@@ -244,4 +430,11 @@ export const validPortfolio = (p: Portfolio): boolean =>
   uniqueIds(p.projects) &&
   Array.isArray(p.freeSlides) &&
   p.freeSlides.every(validFreeSlide) &&
-  uniqueIds(p.freeSlides)
+  uniqueIds(p.freeSlides) &&
+  // THE SIZE AND THE COUNT, WHICH NO PER-AGGREGATE RULE CAN SEE. The parse
+  // refuses a file past the entity ceiling before it walks one element, and
+  // past the character ceiling before it parses one byte; a whole portfolio
+  // handed over in memory must meet the same two, or it is a document the
+  // very next read of the file it becomes would refuse. Cheapest first, the
+  // serialisation last — the order `withinMemoryBudget` already states.
+  withinMemoryBudget(p)

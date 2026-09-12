@@ -12,6 +12,16 @@
  *    parse/), the command gate (commands/contract.ts) and the published schema
  *    (samples/portfolio.schema.json) all state THIS budget and no other.
  *
+ *    IMPORTABLE IS NOT SAVABLE, AND THE TWO ARE NAMED APART. The file ceiling
+ *    ({@link MAX_CHARS}, ~10 M characters) says what the FORMAT accepts; the
+ *    browser's storage takes about half of that, measured
+ *    ({@link MAX_STORED_CHARS}). One figure for both promised what it could
+ *    not keep — a portfolio could honour the format and never fit in the
+ *    storage, and only the quota's refusal ever said so. The file ceiling now
+ *    governs what comes IN (parse, schema, command gate) and the storage
+ *    ceiling governs what goes to DISK (services/persistence.ts), which is the
+ *    one place the difference can be stated rather than discovered.
+ *
  * 2. THE VISUAL-CAPACITY BUDGET — what FITS in the frames the deck draws. It
  *    is not a refusal and must not become one: a pasted paragraph that no
  *    longer fits a box is still the user's text, and losing it would be the
@@ -43,8 +53,50 @@ export const SERIALIZED_INDENT = 2
  * magnitude above any real portfolio (the samples weigh ~50 kB, an inline logo
  * caps at `LOGO_MAX_CHARS`), and low enough that a mispasted archive never
  * reaches `JSON.parse` — the length check costs nothing and runs FIRST.
+ *
+ * THIS IS THE FILE CEILING — what the FORMAT accepts, which the strict parse,
+ * the command gate and the published schema all state. It is NOT what the
+ * browser will keep: see {@link MAX_STORED_CHARS}.
  */
 export const MAX_CHARS = 10_000_000
+
+/**
+ * Ceiling of the stored ENVELOPE, in characters: ~4 M. A different question
+ * from {@link MAX_CHARS}, and the reason the two are now named apart —
+ * IMPORTABLE and SAVABLE are not the same size.
+ *
+ * WHERE THE FIGURE COMES FROM — measured on the browser, not chosen. Chromium
+ * takes a 5 200 000-character value under this origin and refuses 5 300 000:
+ * the quota is one `localStorage` budget shared by every key, counted in
+ * UTF-16 units, and it is the WHOLE store that it bounds, not one value. So
+ * the ceiling here is set a clear margin under the measured refusal — room for
+ * the preference key, the reader's colour scheme, and whatever a future key
+ * adds — rather than at the last size that happened to fit.
+ *
+ * WHAT IT CHANGES, SAID PLAINLY. A document between this ceiling and
+ * {@link MAX_CHARS} is a legal portfolio: it imports, it edits, it exports, it
+ * prints. What it does not do is fit in this browser, and {@link MAX_CHARS}
+ * alone promised that it would — a portfolio could honour the format and never
+ * be savable, and found out only when the quota threw. It is now refused HERE,
+ * deterministically, and the save strip says the storage refused with the one
+ * offer that still keeps the work: download a copy.
+ */
+export const MAX_STORED_CHARS = 4_000_000
+
+/**
+ * Ceiling on the DECLARED SIZE of an imported file, in bytes — the gate that
+ * runs before a single byte is read.
+ *
+ * It is exact rather than prudent, and the arithmetic is the whole point:
+ * {@link MAX_CHARS} counts UTF-16 code units, and no code unit costs more than
+ * three bytes in UTF-8 (the three-byte range is the widest; a surrogate pair
+ * is two units for four bytes, which is two bytes per unit). A file declaring
+ * more than three bytes per allowed unit therefore CANNOT be a text this
+ * format accepts, whatever it contains — so refusing it unread refuses nothing
+ * legal, and the reader never allocates the several hundred megabytes a
+ * `file.text()` on a mispasted archive used to cost.
+ */
+export const MAX_IMPORT_BYTES = MAX_CHARS * 3
 
 /**
  * Ceiling on the NUMBER of entities a portfolio may carry — projects,

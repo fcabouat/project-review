@@ -822,3 +822,182 @@ describe('the first edit after a write is saved, on every path that writes', () 
     expect(wiring.control.save).toStrictEqual({ revision: 0, phase: 'saved' })
   })
 })
+
+/**
+ * THE THREE MISLEADING CONFIRMATIONS. A browser storage fails PARTIALLY: one
+ * key is refused, one value will not be given up, and everything around it
+ * answers normally. Every case below used to end with the interface stating
+ * something the browser had not done — the switch reading ON over a preference
+ * that stayed 'off', « saving disabled » over a copy still in there, and the
+ * recovery screen closing over bytes it had not erased.
+ */
+describe('a partial storage failure is never confirmed as a success', () => {
+  it('the switch does not turn ON when the preference itself was refused', () => {
+    const storage = createMemoryStorage()
+    storage.setItem(PREF_KEY, 'off')
+    storage.refuse = (key) => key === PREF_KEY
+    const store = createStore(testPortfolio())
+    const wiring = createPersistenceControl(store, storage, false, timeoutScheduler)
+
+    wiring.control.toggle(true)
+
+    // The switch stays where the storage left it, and the strip says why —
+    // the alternative is an editor that saves all session and comes up empty
+    // at the next boot, next to the very document it declined to read.
+    expect(wiring.control.enabled).toBe(false)
+    expect(storage.getItem(PREF_KEY)).toBe('off')
+    expect(storage.getItem(STATE_KEY)).toBeNull()
+    expect(wiring.control.save).toStrictEqual({ revision: 0, phase: 'error' })
+  })
+
+  it('« saving off » is not announced while the preference is still on', () => {
+    const storage = createMemoryStorage()
+    const store = createStore(testPortfolio())
+    const wiring = createPersistenceControl(store, storage, true, timeoutScheduler)
+    wiring.control.toggle(true)
+    storage.refuse = (key) => key === PREF_KEY
+
+    wiring.control.toggle(false)
+
+    expect(wiring.control.enabled).toBe(true)
+    expect(storage.getItem(PREF_KEY)).toBe('on')
+    // Nothing was erased either: the reversible half is attempted first for
+    // exactly this reason.
+    expect(stored(storage)).toEqual(testPortfolio())
+    expect(wiring.control.save?.phase).toBe('error')
+  })
+
+  it('a refused erasure puts the preference back, and the switch with it', () => {
+    const storage = createMemoryStorage()
+    const store = createStore(testPortfolio())
+    const wiring = createPersistenceControl(store, storage, true, timeoutScheduler)
+    wiring.control.toggle(true)
+    storage.refuseRemoval = (key) => (key === STATE_KEY ? 'throw' : false)
+
+    wiring.control.toggle(false)
+
+    expect(wiring.control.enabled).toBe(true)
+    expect(storage.getItem(PREF_KEY)).toBe('on')
+    expect(stored(storage)).toEqual(testPortfolio())
+    expect(wiring.control.save?.phase).toBe('error')
+  })
+
+  it('a storage that says yes and keeps the value is the same refusal', () => {
+    // The nastier shape: `removeItem` returns as if it had obeyed. Only the
+    // read-back tells it apart from a success.
+    const storage = createMemoryStorage()
+    const store = createStore(testPortfolio())
+    const wiring = createPersistenceControl(store, storage, true, timeoutScheduler)
+    wiring.control.toggle(true)
+    storage.refuseRemoval = (key) => (key === STATE_KEY ? 'keep' : false)
+
+    wiring.control.toggle(false)
+
+    expect(wiring.control.enabled).toBe(true)
+    expect(stored(storage)).toEqual(testPortfolio())
+    expect(wiring.control.save?.phase).toBe('error')
+  })
+
+  it('a successful toggle(off) leaves no stale verdict keeping the strip up', () => {
+    const storage = createMemoryStorage()
+    const store = createStore(testPortfolio())
+    const wiring = createPersistenceControl(store, storage, true, timeoutScheduler)
+    wiring.control.toggle(true)
+    storage.refuseRemoval = (key) => (key === STATE_KEY ? 'keep' : false)
+    wiring.control.toggle(false)
+    expect(wiring.control.save?.phase).toBe('error')
+
+    storage.refuseRemoval = () => false
+    wiring.control.toggle(false)
+
+    expect(wiring.control.enabled).toBe(false)
+    expect(storage.getItem(STATE_KEY)).toBeNull()
+    expect(wiring.control.save).toBeUndefined()
+  })
+})
+
+/**
+ * THE PRIVACY ACTION THAT FAILED IN SILENCE. « Start empty » is the one path
+ * that abandons a stored document, and it used to leave the recovery screen
+ * whatever the storage did with the removal.
+ */
+describe('discard() only takes effect once the erasure is confirmed', () => {
+  const CORRUPT_STATE = '{"format":1,"revision":2,"portfolio":{"version":1}}'
+
+  const blockedOn = (refusal: 'throw' | 'keep') => {
+    const storage = createMemoryStorage()
+    storage.setItem(STATE_KEY, CORRUPT_STATE)
+    const found = readStored(storage)
+    storage.refuseRemoval = (key) => (key === STATE_KEY ? refusal : false)
+    const store = createStore(testPortfolio())
+    const wiring = createPersistenceControl(store, storage, true, timeoutScheduler, found)
+    return { storage, store, wiring }
+  }
+
+  it('a storage that throws on removal keeps the screen up and says so', () => {
+    const { storage, wiring } = blockedOn('throw')
+
+    wiring.discard()
+
+    expect(wiring.blocked).toBe(true)
+    expect(wiring.discardRefused).toBe(true)
+    expect(storage.getItem(STATE_KEY)).toBe(CORRUPT_STATE)
+  })
+
+  it('a storage that keeps the value is the same refusal, and writes nothing', () => {
+    const { storage, store, wiring } = blockedOn('keep')
+
+    wiring.discard()
+    wiring.scheduleSave(store.present, emptyHistory)
+    vi.advanceTimersByTime(SAVE_DELAY_MS * 10)
+    wiring.flush()
+
+    expect(wiring.blocked).toBe(true)
+    expect(wiring.discardRefused).toBe(true)
+    expect(storage.getItem(STATE_KEY)).toBe(CORRUPT_STATE)
+  })
+
+  it('and it clears as soon as a later attempt succeeds', () => {
+    const { storage, wiring } = blockedOn('throw')
+    wiring.discard()
+    expect(wiring.discardRefused).toBe(true)
+
+    storage.refuseRemoval = () => false
+    wiring.discard()
+
+    expect(wiring.blocked).toBe(false)
+    expect(wiring.discardRefused).toBe(false)
+    expect(storage.getItem(STATE_KEY)).toBeNull()
+  })
+})
+
+/**
+ * THE DOUBLE REFUSAL — a storage that degrades between the two writes of a
+ * single decision. The switch then has to choose whose truth it shows, and it
+ * shows the STORAGE's: that is what the next boot will read.
+ */
+describe('when even the revert is refused', () => {
+  it('the switch follows what the storage holds, not what was intended', () => {
+    const storage = createMemoryStorage()
+    const store = createStore(testPortfolio())
+    const wiring = createPersistenceControl(store, storage, true, timeoutScheduler)
+    wiring.control.toggle(true)
+
+    // The preference write goes through; the erasure and the revert do not.
+    let spent = false
+    storage.refuse = (key) => key === PREF_KEY && spent
+    storage.refuseRemoval = (key) => {
+      if (key !== STATE_KEY) return false
+      spent = true
+      return 'keep'
+    }
+
+    wiring.control.toggle(false)
+
+    expect(storage.getItem(PREF_KEY)).toBe('off') // what the next boot reads…
+    expect(wiring.control.enabled).toBe(false) // …and what the switch shows
+    // The document is still in there, and the strip is still saying so.
+    expect(stored(storage)).toEqual(testPortfolio())
+    expect(wiring.control.save?.phase).toBe('error')
+  })
+})

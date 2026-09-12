@@ -334,6 +334,15 @@ describe('the byte ceiling, weighed on EVERY command — not on a list of the gr
     },
   }
 
+  /**
+   * The one variant whose payload IS a whole document. `validPortfolio` answers
+   * the very verdict `parsePortfolio` would give on the serialised form, and
+   * that verdict includes the entity count and the size — so the SHAPE gate
+   * refuses this one on its own, before the projected state is ever weighed.
+   * Everywhere else the shape gate still says nothing about length.
+   */
+  const WHOLE_DOCUMENT: readonly Command['type'][] = ['ReplacePortfolio']
+
   it('refuses the oversize payload of every variant that can carry one', () => {
     for (const [type, oversize] of Object.entries(OVERSIZE) as [
       Command['type'],
@@ -344,8 +353,10 @@ describe('the byte ceiling, weighed on EVERY command — not on a list of the gr
         expect(decide(p, COMMAND_SAMPLES[type].command), type).toBeDefined()
         continue
       }
-      // The SHAPE gate says yes — length is not one of the rules it states …
-      expect(honorsContract(p, oversize), type).toBe(true)
+      // The SHAPE gate says yes — length is not one of the rules it states,
+      // except where the payload is a whole portfolio and the shape rule IS
+      // the file's own verdict …
+      expect(honorsContract(p, oversize), type).toBe(!WHOLE_DOCUMENT.includes(type))
       // … and the budget is what refuses, for this variant like for any other.
       expect(decide(p, oversize), type).toBeUndefined()
     }

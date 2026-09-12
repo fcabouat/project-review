@@ -15,7 +15,7 @@ tests. When this page and the code disagree, the page is wrong.
 | Package                   | Role                                                                                                                                |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | `packages/core`           | Pure domain: no DOM, no clock, no storage, zero dependencies — embeddable anywhere                                                  |
-| `packages/components`     | Svelte views: slides, editor widgets, slideshow host, five pure-props screens                                                       |
+| `packages/components`     | Svelte views: slides, editor widgets, slideshow host, seven pure-props screens                                                      |
 | `packages/infrastructure` | Browser adapters for the interfaces the core declares (localStorage, scheduler, hash router, fonts, picked images, palette, export) |
 | `app`                     | The deliverable — wiring only: `src/bindings/` binds core state to runes, `App.svelte` injects and mounts                           |
 
@@ -90,10 +90,12 @@ The saved document is ONE envelope under ONE key —
 undo/redo log travels in the same bytes as the portfolio, so it can never be
 replayed against a document it does not belong to.
 
-Reading it is a VERDICT, never a guess: `absent`, `restored` or `unreadable`.
-An `unreadable` one is never overwritten — the app opens the recovery screen
-instead of the editor, hands the stored bytes back verbatim, and writes
-nothing at all until a person decides.
+Reading it is a VERDICT, never a guess, and it has FOUR answers: `absent`,
+`restored`, `unreadable`, and `unavailable` — a browser that offers no storage
+at all, which is a state and not an absence. An `unreadable` one is never
+overwritten — the app opens the recovery screen instead of the editor, hands
+the stored bytes back verbatim, and writes nothing at all until a person
+decides.
 
 Writing it is GUARDED, and the guard is not a lock: a write names the stored
 state it expects — a STAMP of the bytes, not a counter — and is refused when
@@ -113,7 +115,7 @@ event.
 ## What is guaranteed visually
 
 The Svelte components carry no unit tests by design: the component catalog
-(`bun run storybook`, 71 stories) is the visual contract for every slide,
+(`bun run storybook`, 73 stories) is the visual contract for every slide,
 widget and screen — the refused save and the two-tab conflict among them, since
 neither can be produced on demand out of a real browser storage — and a
 Playwright smoke run on the built deliverable (`bun run smoke`, after a build;

@@ -9,6 +9,7 @@
  * key that is there — a missing required key is never reported twice.
  */
 import { MAX_ROWS } from '../../model/budget'
+import type { KeySet } from '../../model/contract'
 import type { IsoDate } from '../../values/date'
 import { isoDate } from '../../values/date'
 import type { ParseError, ParseErrorCode } from './errors'
@@ -34,25 +35,35 @@ export function isRecord(x: unknown): x is Record<string, unknown> {
 export const at = (path: string, key: string): string => (path === '' ? key : `${path}.${key}`)
 
 /**
- * Structural check of one object: every `required` key present, every present
- * key known (required or optional) — `missingKey` / `unknownKey` otherwise.
+ * Structural check of one object against the aggregate's KEY SET: every
+ * required key present, every present key known — `missingKey` / `unknownKey`
+ * otherwise.
+ *
+ * The set comes from `model/contract.ts`, where it is stated ONCE and read by
+ * both sides: this parse on the way in, `ownKeysOnly` on an object already in
+ * memory. Two lists would drift, and the drift has a name — a runtime object
+ * carrying a key the contract does not own, accepted as a command, stored, and
+ * refused by this very function at the next boot.
  */
 export function checkKeys(
   o: Record<string, unknown>,
   path: string,
-  required: readonly string[],
-  optional: readonly string[],
+  keys: KeySet,
   errors: Errors,
 ): void {
-  for (const key of required) {
+  for (const key of keys.required) {
     if (!(key in o)) fail(errors, at(path, key), 'missingKey')
   }
   for (const key of Object.keys(o)) {
-    if (!required.includes(key) && !optional.includes(key)) {
+    if (!keys.required.includes(key) && !keys.optional.includes(key)) {
       fail(errors, at(path, key), 'unknownKey')
     }
   }
 }
+
+/** An ad-hoc set for the one place that has no aggregate of its own — the
+ * exhaustive table of the twelve palette colours. */
+export const exactly = (required: readonly string[]): KeySet => ({ required, optional: [] })
 
 /**
  * An object field: `undefined` (with a `wrongType`) unless `x` is a plain

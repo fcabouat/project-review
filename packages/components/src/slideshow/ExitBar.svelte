@@ -1,3 +1,12 @@
+<script lang="ts" module>
+  /**
+   * Where the standalone export stands, as the bar shows it: nothing asked
+   * (`idle`), the file being built (`saving`), the download handed to the
+   * browser (`done`), the attempt refused (`error` — the same button retries).
+   */
+  export type SaveState = 'idle' | 'saving' | 'done' | 'error'
+</script>
+
 <script lang="ts">
   /**
    * Slideshow exit bar
@@ -28,13 +37,40 @@
     readonly overview: () => void
     /** Standalone .html download. */
     readonly save: () => void
+    /**
+     * Where that download stands. The export harvests the rendered deck,
+     * inlines the engine and the fonts and builds a file of several megabytes:
+     * it TAKES TIME and it can fail. A button that fires and says nothing
+     * leaves the person clicking again — so the four states are labelled, the
+     * wait disables the button, and the failure is announced and retryable by
+     * the same click.
+     */
+    readonly saveState?: SaveState
     readonly print: () => void
     readonly close: () => void
     /** Stories force the bar open; the application never does. */
     readonly pinned?: boolean
   }
 
-  let { language, back, overview, save, print, close, pinned = false }: Props = $props()
+  let {
+    language,
+    back,
+    overview,
+    save,
+    saveState = 'idle',
+    print,
+    close,
+    pinned = false,
+  }: Props = $props()
+
+  /** The label follows the state; `error` labels the RETRY, because the same
+   * button is the way to try again. */
+  const SAVE_LABEL: Readonly<Record<SaveState, string>> = {
+    idle: 'editor.slideshow.save',
+    saving: 'editor.slideshow.saving',
+    done: 'editor.slideshow.saved',
+    error: 'editor.slideshow.saveRetry',
+  }
 
   // Focus inside the bar keeps it visible for keyboard users (the hover CSS
   // alone would flash it away as soon as the mouse leaves).
@@ -79,8 +115,19 @@
           language,
         )}
       </button>
-      <button class="exit-btn" type="button" onclick={save}>
-        {te('editor.slideshow.save', language)}
+      <!-- The failure is an INSERTED alert, not a role swapped onto a node
+           that was already there: an inserted one gets announced. -->
+      {#if saveState === 'error'}
+        <span class="exit-msg" role="alert">{te('editor.slideshow.saveFailed', language)}</span>
+      {/if}
+      <button
+        class="exit-btn"
+        type="button"
+        onclick={save}
+        disabled={saveState === 'saving'}
+        aria-busy={saveState === 'saving' ? 'true' : undefined}
+      >
+        {te(SAVE_LABEL[saveState], language)}
       </button>
       <button class="exit-btn" type="button" onclick={print}>
         {te('editor.slideshow.print', language)}
@@ -161,6 +208,18 @@
   }
   .exit-btn:hover {
     text-decoration: underline;
+  }
+  .exit-btn[disabled] {
+    cursor: progress;
+    opacity: 0.6;
+    text-decoration: none;
+  }
+
+  /* The failure line, beside the button that retries it. */
+  .exit-msg {
+    align-self: center;
+    color: #ffb4a9;
+    white-space: nowrap;
   }
   .exit-btn:focus-visible {
     outline: 2px solid #fff;

@@ -28,6 +28,24 @@
     if (before.length === after.length && before.every((l, i) => l === after[i])) return
     dispatch({ type: 'ChangeProjectList', id: project.id, list, after })
   }
+
+  /**
+   * THE TWO LINE BUDGETS, AND WHAT THEY ARE NOT. `5` for each narrative list
+   * and `3` for the risks are an EDITORIAL guideline — what a review bullet
+   * list should carry to stay readable on a slide read from across a room —
+   * and NOT a frame measurement. No one ever grew a list until the card
+   * clipped it, the way the character budgets of `model/budget.ts` were grown
+   * (that is why they live in the core and these do not); the narrative card
+   * renders every line it is given and hides the overflow.
+   *
+   * They are stated here rather than passed as bare numbers so the difference
+   * is legible at the one place a reader would otherwise assume a measurement:
+   * the MEASURED rule of this tab is `lineCapacity="narrativeLine"`, 110
+   * characters per bullet, and the counts beside it are advice. Both are said
+   * and neither refuses anything.
+   */
+  const BULLETS_ADVISED = 5
+  const RISK_LINES_ADVISED = 3
 </script>
 
 <section class="bg-background border-border rounded-lg border p-4">
@@ -42,7 +60,7 @@
           label={t(`sheet.${list}`, language)}
           value={project[list].join('\n')}
           rows={4}
-          maxLines={5}
+          maxLines={BULLETS_ADVISED}
           lineCapacity="narrativeLine"
           hint={te('editor.hint.bullets', language)}
           commit={(v) => setList(list, v)}
@@ -78,7 +96,7 @@
       label={t('sheet.risks', language)}
       value={project.risks}
       rows={3}
-      maxLines={3}
+      maxLines={RISK_LINES_ADVISED}
       hint={te('editor.hint.risks', language)}
       commit={(v) => set('risks', v)}
     />

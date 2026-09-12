@@ -114,11 +114,15 @@
           onclick={() => (previewingTitle = true)}><Icon name="eye-line" /></Button
         >
       </h2>
+      <!-- `required`: the review title's model type is `string` — emptying
+           the box stores the empty string, which the contract accepts, not an
+           absence it would refuse in silence. -->
       <FieldText
         {language}
         label={te('editor.field.title', language)}
         value={review.title}
         commit={(v) => change('title', v)}
+        required
         capacity="reviewTitle"
       />
       <FieldText

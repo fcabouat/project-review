@@ -4,6 +4,7 @@
  */
 import type { Category } from '../../model/category'
 import { COLORS } from '../../model/category'
+import { CATEGORY_KEYS } from '../../model/contract'
 import type { CategoryId } from '../../values/ids'
 import type { Errors } from './json'
 import { checkKeys, enumVal, idStr, list, record, str } from './json'
@@ -17,7 +18,7 @@ export function parseCategories(x: unknown, errors: Errors): readonly Category[]
     const path = `categories[${i}]`
     const o = record(raw, path, errors)
     if (o === undefined) return
-    checkKeys(o, path, ['id', 'name', 'color'], [], errors)
+    checkKeys(o, path, CATEGORY_KEYS, errors)
     categories.push({
       id: idStr(o['id'], seen, `${path}.id`, errors) as CategoryId,
       name: str(o['name'], `${path}.name`, errors) ?? '',

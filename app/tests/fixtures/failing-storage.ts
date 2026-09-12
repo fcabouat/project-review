@@ -16,6 +16,14 @@ export interface MemoryStorage extends KeyValueStorage {
   readonly content: Map<string, string>
   /** Which keys the storage says no to. Nothing, by default. */
   refuse: (key: string) => boolean
+  /**
+   * Which keys the storage will not GIVE UP — the other half of a partial
+   * failure, and the one a caller is most tempted to assume away. Two shapes,
+   * both real: `'throw'` is the storage that raises on `removeItem`, `'keep'`
+   * is the one that returns as if it had obeyed and leaves the value in place.
+   * Only a read-back tells the second from a success.
+   */
+  refuseRemoval: (key: string) => false | 'throw' | 'keep'
   /** Successful `setItem` calls since creation. */
   writes: number
 }
@@ -25,6 +33,7 @@ export const createMemoryStorage = (): MemoryStorage => {
   const self: MemoryStorage = {
     content,
     refuse: () => false,
+    refuseRemoval: () => false,
     writes: 0,
     getItem: (k) => content.get(k) ?? null,
     setItem: (k, v) => {
@@ -32,7 +41,12 @@ export const createMemoryStorage = (): MemoryStorage => {
       content.set(k, v)
       self.writes += 1
     },
-    removeItem: (k) => void content.delete(k),
+    removeItem: (k) => {
+      const refusal = self.refuseRemoval(k)
+      if (refusal === 'throw') throw new Error('removal refused')
+      if (refusal === 'keep') return
+      content.delete(k)
+    },
   }
   return self
 }

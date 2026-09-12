@@ -5,6 +5,7 @@
  * but a malformed or empty reference is a fault.
  */
 import type { Anchor, FreeSlide } from '../../model/free-slide'
+import { ANCHOR_CATEGORY_KEYS, ANCHOR_KEYS, FREE_SLIDE_KEYS } from '../../model/contract'
 import type { CategoryId, FreeSlideId } from '../../values/ids'
 import type { Errors } from './json'
 import { checkKeys, enumVal, fail, idStr, list, record, str, withinRows } from './json'
@@ -16,13 +17,13 @@ function parseAnchor(x: unknown, path: string, errors: Errors): Anchor {
   if (o === undefined) return { type: 'closing' }
   const type = enumVal(o['type'], ANCHOR_TYPES, `${path}.type`, errors)
   if (type === 'beforeCategory') {
-    checkKeys(o, path, ['type', 'categoryId'], [], errors)
+    checkKeys(o, path, ANCHOR_CATEGORY_KEYS, errors)
     const reference = str(o['categoryId'], `${path}.categoryId`, errors)
     if (reference === '') fail(errors, `${path}.categoryId`, 'emptyId')
     if (reference === undefined || reference === '') return { type: 'closing' }
     return { type, categoryId: reference as CategoryId }
   }
-  checkKeys(o, path, ['type'], [], errors)
+  checkKeys(o, path, ANCHOR_KEYS, errors)
   return type === undefined ? { type: 'closing' } : { type }
 }
 
@@ -59,7 +60,7 @@ export function parseFreeSlides(x: unknown, errors: Errors): readonly FreeSlide[
     const path = `freeSlides[${i}]`
     const o = record(raw, path, errors)
     if (o === undefined) return
-    checkKeys(o, path, ['id', 'anchor', 'title', 'blocks'], [], errors)
+    checkKeys(o, path, FREE_SLIDE_KEYS, errors)
     freeSlides.push({
       id: idStr(o['id'], seen, `${path}.id`, errors) as FreeSlideId,
       anchor: parseAnchor(o['anchor'], `${path}.anchor`, errors),

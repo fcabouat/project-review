@@ -15,6 +15,7 @@
  */
 import type { Portfolio } from '../../model/portfolio'
 import { MAX_CHARS, MAX_ENTITIES, offeredEntities } from '../../model/budget'
+import { PORTFOLIO_KEYS } from '../../model/contract'
 import type { ParseError } from './errors'
 import type { Errors } from './json'
 import { checkKeys, fail, isRecord } from './json'
@@ -61,8 +62,6 @@ export type ParseResult =
   | { readonly ok: true; readonly portfolio: Portfolio }
   | { readonly ok: false; readonly errors: readonly ParseError[] }
 
-const ROOT_REQUIRED = ['version', 'review', 'settings', 'categories', 'projects', 'freeSlides']
-
 /**
  * The single entry point of every byte that becomes a portfolio: file import,
  * pasted JSON, the portfolio inside the stored envelope. STRICT — see the module header; the
@@ -104,7 +103,7 @@ export function parsePortfolio(unknownInput: unknown): ParseResult {
     }
   }
 
-  checkKeys(root, '', ROOT_REQUIRED, [], errors)
+  checkKeys(root, '', PORTFOLIO_KEYS, errors)
   if (root['version'] !== undefined && root['version'] !== 3) {
     fail(errors, 'version', 'invalidVersion', { value: String(root['version']) })
   }

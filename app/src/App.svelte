@@ -8,7 +8,7 @@
    * adapter.
    *
    * Startup order: the stored envelope is read through the strict parse
-   * (`readStored`), which answers one of three things — and the three are
+   * (`readStored`), which answers one of four things — and the four are
    * kept apart on purpose:
    *  - `absent`: a first run. Empty portfolio (identity pre-filled, no
    *    content), or the `?sample` set when the URL asks for it;
@@ -241,6 +241,7 @@
     refusal={persistence.unreadable.refusal}
     raw={persistence.unreadable.raw}
     startEmpty={() => persistence.discard()}
+    startEmptyRefused={persistence.discardRefused}
   />
 {:else}
   <Shell

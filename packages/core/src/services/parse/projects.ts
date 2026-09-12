@@ -6,6 +6,7 @@
  */
 import type { Decision, Milestone, Project } from '../../model/project'
 import { HEALTH_LEVELS, PRIORITIES, SHEET_MODES, STAGES } from '../../model/project'
+import { DECISION_KEYS, MILESTONE_KEYS, OUTCOME_KEYS, PROJECT_KEYS } from '../../model/contract'
 import type { CategoryId, ProjectId } from '../../values/ids'
 import { progressOf } from '../../values/progress'
 import type { Errors } from './json'
@@ -24,37 +25,6 @@ import {
   withinRows,
 } from './json'
 
-const REQUIRED = [
-  'id',
-  'name',
-  'categoryId',
-  'stage',
-  'onHold',
-  'goal',
-  'done',
-  'ongoing',
-  'next',
-  'decisions',
-  'milestones',
-  'sheet',
-] as const
-
-const OPTIONAL = [
-  'priority',
-  'health',
-  'progress',
-  'lead',
-  'sponsor',
-  'scope',
-  'budget',
-  'start',
-  'targetEnd',
-  'actualEnd',
-  'risks',
-  'updatedOn',
-  'author',
-] as const
-
 function parseDecisions(x: unknown, path: string, errors: Errors): readonly Decision[] {
   if (!withinRows(x, path, errors)) return []
   const items = list(x, path, errors) ?? []
@@ -63,12 +33,12 @@ function parseDecisions(x: unknown, path: string, errors: Errors): readonly Deci
     const p = `${path}[${i}]`
     const o = record(raw, p, errors)
     if (o === undefined) return
-    checkKeys(o, p, ['question'], ['decider', 'taken'], errors)
+    checkKeys(o, p, DECISION_KEYS, errors)
     let taken: Decision['taken']
     if (o['taken'] !== undefined) {
       const t = record(o['taken'], `${p}.taken`, errors)
       if (t !== undefined) {
-        checkKeys(t, `${p}.taken`, ['text', 'when'], [], errors)
+        checkKeys(t, `${p}.taken`, OUTCOME_KEYS, errors)
         const text = str(t['text'], `${p}.taken.text`, errors)
         const when = dateVal(t['when'], `${p}.taken.when`, errors)
         if (text !== undefined && when !== undefined) taken = { text, when }
@@ -91,7 +61,7 @@ function parseMilestones(x: unknown, path: string, errors: Errors): readonly Mil
     const p = `${path}[${i}]`
     const o = record(raw, p, errors)
     if (o === undefined) return
-    checkKeys(o, p, ['label', 'date', 'done'], ['display'], errors)
+    checkKeys(o, p, MILESTONE_KEYS, errors)
     milestones.push({
       label: str(o['label'], `${p}.label`, errors) ?? '',
       date: dateVal(o['date'], `${p}.date`, errors) ?? ('' as Milestone['date']),
@@ -115,7 +85,7 @@ export function parseProjects(x: unknown, errors: Errors): readonly Project[] {
     const path = `projects[${i}]`
     const o = record(raw, path, errors)
     if (o === undefined) return
-    checkKeys(o, path, REQUIRED, OPTIONAL, errors)
+    checkKeys(o, path, PROJECT_KEYS, errors)
 
     // `""` is the sanctioned unassigned reference, so this is NOT idStr.
     const categoryId = str(o['categoryId'], `${path}.categoryId`, errors) ?? ''

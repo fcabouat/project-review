@@ -8,6 +8,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import sampleFr from '@project-review/core/samples/sample-portfolio.fr.json'
 import sampleEn from '@project-review/core/samples/sample-portfolio.en.json'
+import { MAX_IMPORT_BYTES } from '@project-review/core/model/budget'
 import { detectLanguage, fetchSample, sampleFileName, shouldBootSample } from '../src/sample-boot'
 
 describe('shouldBootSample — the demo never overwrites an existing base', () => {
@@ -54,12 +55,35 @@ describe('fetchSample — the neighbour file, strictly parsed, silently refused'
     vi.unstubAllGlobals()
   })
 
+  /** A response whose body streams `text` in small chunks — the shape the
+   * bounded read actually consumes, so the tests exercise the real path. */
+  const streamed = (text: string, headers: Record<string, string> = {}): unknown => {
+    const bytes = new TextEncoder().encode(text)
+    let offset = 0
+    return {
+      ok: true,
+      headers: { get: (name: string) => headers[name] ?? null },
+      body: {
+        getReader: () => ({
+          read: () => {
+            if (offset >= bytes.length) return Promise.resolve({ done: true, value: undefined })
+            const slice = bytes.slice(offset, offset + 64)
+            offset += slice.length
+            return Promise.resolve({ done: false, value: slice })
+          },
+          cancel: () => Promise.resolve(),
+        }),
+      },
+    }
+  }
+
   /** Stubs fetch with one canned JSON answer and records the asked URLs. */
   const stubFetch = (body: unknown, ok = true): string[] => {
     const asked: string[] = []
     vi.stubGlobal('fetch', (url: URL | string) => {
       asked.push(String(url))
-      return Promise.resolve({ ok, json: () => Promise.resolve(body) })
+      const response = streamed(JSON.stringify(body)) as { ok: boolean }
+      return Promise.resolve({ ...response, ok })
     })
     return asked
   }
@@ -102,10 +126,70 @@ describe('fetchSample — the neighbour file, strictly parsed, silently refused'
   })
 
   it('resolves undefined when the response is not JSON at all', async () => {
+    vi.stubGlobal('fetch', () => Promise.resolve(streamed('not JSON at all')))
+    await expect(fetchSample('fr', BASE)).resolves.toBeUndefined()
+  })
+
+  /* AMPLIFICATION — a served file must never be allocated before it is
+     judged. The two bounds below are the whole of the guard: the length the
+     server DECLARES, and the length it actually sends. */
+  it('refuses on the declared length, without reading one byte', async () => {
+    let readBody = false
     vi.stubGlobal('fetch', () =>
-      Promise.resolve({ ok: true, json: () => Promise.reject(new Error('not JSON')) }),
+      Promise.resolve({
+        ok: true,
+        headers: { get: () => String(MAX_IMPORT_BYTES + 1) },
+        get body() {
+          readBody = true
+          return null
+        },
+      }),
     )
     await expect(fetchSample('fr', BASE)).resolves.toBeUndefined()
+    expect(readBody).toBe(false)
+  })
+
+  it('abandons a body that keeps coming past the bound', async () => {
+    let cancelled = false
+    let served = 0
+    const chunk = new TextEncoder().encode('x'.repeat(1_000_000))
+    vi.stubGlobal('fetch', () =>
+      Promise.resolve({
+        ok: true,
+        // No declared length: the running count is the only guard left.
+        headers: { get: () => null },
+        body: {
+          getReader: () => ({
+            read: () => {
+              served += 1
+              return Promise.resolve({ done: false, value: chunk })
+            },
+            cancel: () => {
+              cancelled = true
+              return Promise.resolve()
+            },
+          }),
+        },
+      }),
+    )
+    await expect(fetchSample('fr', BASE)).resolves.toBeUndefined()
+    expect(cancelled).toBe(true)
+    // Bounded, and bounded TIGHTLY: the ceiling in megabytes, not the endless
+    // stream the old `response.json()` would have swallowed whole.
+    expect(served).toBeLessThanOrEqual(MAX_IMPORT_BYTES / chunk.byteLength + 1)
+  })
+
+  it('falls back to the whole read when the runtime streams nothing', async () => {
+    vi.stubGlobal('fetch', () =>
+      Promise.resolve({
+        ok: true,
+        headers: { get: () => null },
+        body: null,
+        text: () => Promise.resolve(JSON.stringify(sampleEn)),
+      }),
+    )
+    const portfolio = await fetchSample('en', BASE)
+    expect(portfolio?.projects).toHaveLength(20)
   })
 
   it('resolves undefined when the network itself refuses', async () => {

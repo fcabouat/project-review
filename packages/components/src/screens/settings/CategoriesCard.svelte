@@ -169,11 +169,12 @@
           label={te('editor.field.name', language)}
           capacity="categoryName"
           value={category.name}
+          required
           commit={(v) =>
             dispatch({
               type: 'RenameCategory',
               id: category.id,
-              after: v ?? category.name,
+              after: v ?? '',
             })}
         />
         <span class="text-muted-foreground text-[10.5px] font-bold tracking-[0.05em] uppercase"

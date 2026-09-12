@@ -16,8 +16,10 @@
  * and they are read back together or not at all.
  *
  * READING IS A VERDICT, NEVER A GUESS. {@link readStored} is the one way in:
- * it says `absent`, `restored` or `unreadable`, and in the last case it hands
- * back the STORED BYTES together with the exhaustive report. There is no
+ * it says `absent`, `restored`, `unreadable` or `unavailable` — four answers,
+ * the last of them a browser that offers no storage at all — and for an
+ * unreadable one it hands back the STORED BYTES together with the
+ * exhaustive report. There is no
  * outcome that quietly means "start over" — because the caller that cannot
  * tell "nothing stored" from "stored, unreadable" is one debounce away from
  * writing an empty document over the only copy of the data.
@@ -84,7 +86,7 @@
 
 import type { Portfolio } from '../model/portfolio'
 import { HISTORY_LIMIT, emptyHistory, type History } from '../events/history'
-import { MAX_CHARS } from '../model/budget'
+import { MAX_CHARS, MAX_STORED_CHARS } from '../model/budget'
 import { parsePortfolio, type ReadOutcome } from './parse'
 import { decodeHistory } from './stored-events'
 
@@ -141,14 +143,28 @@ const readKey = (storage: KeyValueStorage, key: string): KeyRead => {
   }
 }
 
-/** The one removal of this module — total, and silent about its own failure:
- * a key that could not be removed could not have been written either. */
-const dropKey = (storage: KeyValueStorage, key: string): void => {
+/**
+ * The one removal of this module — total, and it RENDERS A VERDICT. `false`
+ * means the key is still in there: the storage refused the call, or it answered
+ * and the key survived it. Removal is not a formality the caller may assume
+ * succeeded — erasing the saved document is how the application honours « stop
+ * keeping my data », and an erasure that silently failed turns that promise
+ * into a claim.
+ *
+ * The read-back is what makes the verdict worth anything: a `removeItem` that
+ * returns without throwing has not necessarily removed anything (a storage
+ * shim, a quota-frozen store), and the only proof available here is that the
+ * key can no longer be read. A storage that will not answer the read is also
+ * `false` — not knowing whether the bytes are gone is not knowing they are.
+ */
+const dropKey = (storage: KeyValueStorage, key: string): boolean => {
   try {
     storage.removeItem(key)
   } catch {
-    /* a storage that refuses removal refuses writing too — nothing to undo */
+    return false
   }
+  const after = readKey(storage, key)
+  return after.ok && after.value === null
 }
 
 /* ----------------------------- keys & flags ----------------------------- */
@@ -446,17 +462,23 @@ export const writeState = (
       history: { past: log.past.slice(-HISTORY_LIMIT), future: log.future },
     })
 
-  // NOTHING IS WRITTEN THAT THE NEXT BOOT WOULD REFUSE TO READ. The portfolio
-  // is inside the memory budget by the time it gets here (the command gate
-  // weighs every growing command on the projected state) — the LOG is not:
-  // five hundred `PortfolioReplaced` steps carry a thousand whole portfolios,
-  // and the envelope can pass the ceiling on its own. So the document is tried
-  // WITHOUT its log rather than not at all: losing undo steps is not losing
-  // the document, and the same trade is already the one `decodeHistory` makes
-  // on the way in.
+  // NOTHING IS WRITTEN THAT THE NEXT BOOT WOULD REFUSE TO READ, AND NOTHING IS
+  // OFFERED TO THE STORAGE THAT IT WILL NOT TAKE. The ceiling here is the
+  // STORAGE one (`MAX_STORED_CHARS`), not the file one: the browser's quota is
+  // about half the size the format accepts, so a document the parse would read
+  // back perfectly can still be one the storage refuses. Judged here it is a
+  // `refused` the strip explains; left to the quota it was an exception at an
+  // unpredictable size.
+  //
+  // The portfolio is inside the FILE budget by the time it gets here (the
+  // command gate weighs every growing command on the projected state) — the
+  // LOG is bounded on its own (`HISTORY_MAX_CHARS`), and the two together can
+  // still pass this ceiling. So the document is tried WITHOUT its log rather
+  // than not at all: losing undo steps is not losing the document, and the
+  // same trade is already the one `decodeHistory` makes on the way in.
   let text = envelope(history)
-  if (text.length > MAX_CHARS) text = envelope(emptyHistory)
-  if (text.length > MAX_CHARS) return { outcome: 'refused' }
+  if (text.length > MAX_STORED_CHARS) text = envelope(emptyHistory)
+  if (text.length > MAX_STORED_CHARS) return { outcome: 'refused' }
   try {
     storage.setItem(STATE_KEY, text)
     // The stamp of the bytes just written — computed on the text, so the
@@ -468,11 +490,14 @@ export const writeState = (
   }
 }
 
-/** Erases the saved document; the opt-out preference itself stays. Total: a
- * storage that refuses the removal refuses the write that put it there. */
-export const clearStored = (storage: KeyValueStorage): void => {
-  dropKey(storage, STATE_KEY)
-}
+/**
+ * Erases the saved document; the opt-out preference itself stays. Total, and
+ * it RENDERS A VERDICT: `false` when the bytes are still in there. The caller
+ * must not announce an erasure it did not get — turning the save off and
+ * abandoning an unreadable envelope are both privacy moves, and a privacy move
+ * that failed in silence is the one failure this module must never produce.
+ */
+export const clearStored = (storage: KeyValueStorage): boolean => dropKey(storage, STATE_KEY)
 
 /* -------------------------------- debounce ------------------------------- */
 

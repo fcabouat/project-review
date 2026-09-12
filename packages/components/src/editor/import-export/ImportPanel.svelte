@@ -7,8 +7,15 @@
     type ReadOutcome,
   } from '@project-review/core/services/parse'
   import type { Portfolio } from '@project-review/core/model/portfolio'
+  import { MAX_IMPORT_BYTES } from '@project-review/core/model/budget'
   import { decide, type MergeProjects } from '@project-review/core/commands'
   import { mergeReport, type MergeReport } from '@project-review/core/events'
+  import {
+    ERROR_REPORT_FILE_NAME,
+    errorReportText,
+    isTruncated,
+    shownErrors,
+  } from '../error-report'
   import type { Dispatch } from '../../contracts'
   import { te } from '../../i18n'
   import { Button } from '../../commons/ui/button'
@@ -90,7 +97,32 @@
 
   async function readFile(file: File | undefined): Promise<void> {
     if (!file) return
+    // THE SIZE IS JUDGED ON THE DECLARATION, BEFORE ONE BYTE IS READ. `text()`
+    // allocates the whole file as a string: dropped a multi-gigabyte archive,
+    // the tab used to die of the read itself, long before the length check
+    // that would have refused it. A file declaring more bytes than the format
+    // can possibly hold cannot be a portfolio, so it is refused unread — and
+    // with the very verdict the length check would have given.
+    if (file.size > MAX_IMPORT_BYTES) {
+      source = ''
+      mergedDone = undefined
+      result = { ok: false, refusal: 'tooLarge' }
+      return
+    }
     analyse(await file.text())
+  }
+
+  /** The whole report, as the file the list cannot be. Built on the click. */
+  function downloadReport(): void {
+    if (result === undefined || result.ok || 'refusal' in result) return
+    const url = URL.createObjectURL(
+      new Blob([errorReportText(result.errors, errorMessage)], { type: 'text/plain' }),
+    )
+    const link = document.createElement('a')
+    link.href = url
+    link.download = ERROR_REPORT_FILE_NAME
+    link.click()
+    URL.revokeObjectURL(url)
   }
 
   function confirmImport(): void {
@@ -170,14 +202,25 @@
             n: result.errors.length,
           })}
         </p>
+        <!-- The count above is the WHOLE report; this list is bounded. A
+             hundred thousand list items say the same sentence a hundred
+             thousand times and cost the browser everything. -->
         <ul class="m-0 flex max-h-[190px] list-none flex-col gap-1.5 overflow-auto p-0">
-          {#each result.errors as error, i (i)}
+          {#each shownErrors(result.errors) as error, i (i)}
             <li class="text-(--warn) text-[12.5px]">
               — {#if error.path}{error.path} :
               {/if}{errorMessage(error)}
             </li>
           {/each}
         </ul>
+        {#if isTruncated(result.errors)}
+          <p class="text-muted-foreground mt-2 flex flex-wrap items-center gap-2 text-[11.5px]">
+            {te('editor.io.errorListCapped', language, { n: shownErrors(result.errors).length })}
+            <Button variant="outline" size="sm" onclick={downloadReport}>
+              {te('editor.io.errorReport', language)}
+            </Button>
+          </p>
+        {/if}
       {/if}
     </div>
   {/if}

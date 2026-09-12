@@ -22,7 +22,7 @@
     "a11y": "node app/tests-smoke/a11y.mjs",
     "storybook": "bun run --cwd packages/components storybook",
     "build-storybook": "bun run --cwd packages/components build-storybook",
-    "lint": "eslint .",
+    "lint": "eslint . && bun scripts/lint-probes.mjs",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

@@ -56,7 +56,7 @@
   import type { Portfolio } from '@project-review/core/model/portfolio'
   import { deckTree } from '@project-review/core/projections'
   import SlideView from '../slides/SlideView.svelte'
-  import ExitBar from './ExitBar.svelte'
+  import ExitBar, { type SaveState } from './ExitBar.svelte'
   import PrintView from './PrintView.svelte'
   import { te } from '../i18n'
   import { STANDALONE_REVEAL_OPTIONS } from './reveal-options'
@@ -120,7 +120,22 @@
   }
 
   let stage = $state<HTMLDivElement | undefined>()
-  let ready = $state(false)
+  /**
+   * WHERE THE BOOT STANDS — three states, and the third is the one that was
+   * missing. Loading the engine is two dynamic imports and an `initialize()`
+   * over the network of a single-file deliverable: an offline reload, a
+   * blocked chunk or an engine that throws are all real. Left uncaught, the
+   * promise rejected in silence and the « loading » line stayed on screen for
+   * ever — a spinner that means "broken" is the worst thing an interface can
+   * say, because it says nothing at all. `failed` says it and offers the one
+   * move that can help: try again.
+   */
+  let phase = $state<'booting' | 'ready' | 'failed'>('booting')
+  /** Bumped by « try again » — the boot effect reads it, so a new attempt is
+   * an ordinary re-run (teardown included) rather than a second code path. */
+  let attempt = $state(0)
+  /** Where the standalone export stands — see {@link ExitBar}'s `saveState`. */
+  let saveState = $state<SaveState>('idle')
   let printing = $state(false)
 
   let revealDeck: RevealDeck | undefined
@@ -135,16 +150,30 @@
    * back must build it again. The effect reads `stage` and nothing else — the
    * asynchronous part runs outside the tracking window on purpose.
    */
+  /** What the effect below boots: the stage, and WHICH attempt this is. A new
+   * object on either change is what makes « try again » an ordinary re-run of
+   * the one boot path — teardown included — rather than a second one. */
+  const target = $derived(stage === undefined ? undefined : { el: stage, attempt })
+
   $effect(() => {
-    const el = stage
-    if (!el) return
+    const current = target
+    if (current === undefined) return
     let cancelled = false
-    void boot(el, () => cancelled)
+    phase = 'booting'
+    void boot(current.el, () => cancelled).catch(() => {
+      // A cancelled boot is not a failed one: the component (or the print
+      // detour) took the stage away, and there is nobody left to tell.
+      if (!cancelled) phase = 'failed'
+    })
     return () => {
       cancelled = true
       teardown()
     }
   })
+
+  function retry(): void {
+    attempt += 1
+  }
 
   async function boot(el: HTMLElement, isCancelled: () => boolean): Promise<void> {
     const [engine, base] = await Promise.all([
@@ -199,7 +228,7 @@
     }
 
     if (position.h > 0 || position.v > 0) instance.slide(position.h, position.v)
-    ready = true
+    phase = 'ready'
   }
 
   function onSlideChanged(): void {
@@ -208,7 +237,7 @@
   }
 
   function teardown(): void {
-    ready = false
+    phase = 'booting'
     unhide?.disconnect()
     unhide = undefined
     if (revealDeck) {
@@ -264,11 +293,35 @@
    * « Enregistrer » — delegated to the injected export (the harvesting needs
    * the RENDERED sections, which only this host holds).
    */
+  /** Cleared after a success so the bar goes back to offering the action
+   * rather than reporting the last one for ever. */
+  const DONE_MS = 2500
+
   async function save(): Promise<void> {
-    if (!exportStandalone) return
+    // A second click while the file is being built would harvest the same DOM
+    // twice and hand the browser two downloads.
+    if (saveState === 'saving') return
     const slidesEl = stage?.querySelector('.slides')
-    if (!(slidesEl instanceof HTMLElement)) return
-    await exportStandalone(slidesEl, portfolio)
+    if (!exportStandalone || !(slidesEl instanceof HTMLElement)) {
+      // No export wired (a story) or no rendered deck to harvest: there is
+      // nothing to try again, and saying « failed » would invite a retry that
+      // cannot work.
+      return
+    }
+    saveState = 'saving'
+    try {
+      await exportStandalone(slidesEl, portfolio)
+      saveState = 'done'
+      setTimeout(() => {
+        if (saveState === 'done') saveState = 'idle'
+      }, DONE_MS)
+    } catch {
+      // The reason is a browser one (a refused download, an engine source that
+      // would not load, a document too large to inline) and none of it is
+      // actionable prose. What IS actionable is the retry, and the bar labels
+      // it on the very button that failed.
+      saveState = 'error'
+    }
   }
 
   /**
@@ -318,7 +371,14 @@
       </div>
     </div>
 
-    {#if !ready}
+    {#if phase === 'failed'}
+      <div class="rp-loading rp-failed" role="alert">
+        <p>{te('editor.slideshow.bootFailed', language)}</p>
+        <button class="rp-retry" type="button" onclick={retry}>
+          {te('editor.slideshow.retry', language)}
+        </button>
+      </div>
+    {:else if phase === 'booting'}
       <p class="rp-loading">{te('editor.slideshow.loading', language)}</p>
     {/if}
 
@@ -327,6 +387,7 @@
       back={close}
       overview={toggleOverview}
       save={() => void save()}
+      {saveState}
       {print}
       {close}
     />

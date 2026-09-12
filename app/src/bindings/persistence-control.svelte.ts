@@ -44,7 +44,19 @@
  * compares the STAMP of the stored bytes, so a tab whose save was overwritten
  * by a document of the same revision number hears about it too.
  *
- * THE FOURTH INVARIANT — a browser that offers NO storage is a state, not an
+ * THE FOURTH INVARIANT — NO VISIBLE STATE MOVES BEFORE THE STORAGE HAS
+ * CONFIRMED IT. Writing the opt-out preference and erasing the saved document
+ * both render a verdict (`savePersistEnabled`, `clearStored`), and both
+ * verdicts are binding here. A switch that reads ON over a preference that
+ * stayed `'off'` promises a save the next boot will not make; a « saving
+ * disabled » over a copy that is still in the storage is a privacy claim the
+ * browser never honoured; and leaving the recovery screen without the erasure
+ * is the worst of the three, because the person explicitly asked for that
+ * deletion. Every one of the three therefore leaves the interface where it was
+ * and says the storage refused, with the one action that still works — take a
+ * copy away with you.
+ *
+ * THE FIFTH INVARIANT — a browser that offers NO storage is a state, not an
  * absence. `storage === null` (the access throws, or there is none) makes the
  * control answer the `unavailable` phase for good: the switch is inert, the
  * strip says so permanently and offers the one thing that still saves the work
@@ -102,9 +114,15 @@ export interface PersistenceWiring {
   /**
    * The one way out of `blocked`, and it is a PERSON's decision: abandon the
    * unreadable envelope (erased) and let the saves resume. Called by the
-   * recovery screen's « start empty », never automatically.
+   * recovery screen's « start empty », never automatically. It only takes
+   * effect once the storage has CONFIRMED the erasure — see
+   * {@link discardRefused}.
    */
   readonly discard: () => void
+  /** `true` when {@link discard} was asked for and the storage refused to give
+   * the bytes up: the wiring stays blocked, and the recovery screen says why
+   * rather than mime a deletion that did not happen. */
+  readonly discardRefused: boolean
 }
 
 /**
@@ -131,6 +149,9 @@ export const createPersistenceControl = (
   /** The readable document the switch found on its way ON — a decision is
    * pending and NOTHING has been written yet. */
   let offered = $state<Portfolio | undefined>(undefined)
+  /** `true` once « start empty » was asked for and the storage would not give
+   * the bytes up: the recovery screen stays, and says it. */
+  let discardRefused = $state(false)
 
   /** The stored state this tab believes is in there — the COMPARE half of
    * every guarded write. `null` means "nothing was there". */
@@ -242,12 +263,29 @@ export const createPersistenceControl = (
     return found
   }
 
-  /** Arms the saves and writes the current state — the tail of every path that
-   * has EARNED the right to write (nothing stored, or a settled decision). */
+  /** Files the refusal of a storage that would not move: nothing changed, and
+   * the `error` phase is what the strip already says out loud — the storage
+   * said no, this document lives in this tab, take a copy with you. */
+  const refuse = (): void => {
+    status = { revision: edit, phase: 'error' }
+  }
+
+  /**
+   * Arms the saves and writes the current state — the tail of every path that
+   * has EARNED the right to write (nothing stored, or a settled decision).
+   *
+   * THE PREFERENCE IS WRITTEN FIRST AND ITS VERDICT IS BINDING. A storage that
+   * refuses that one small key leaves `'off'` in there; the switch would read
+   * ON, the saves would run, and the NEXT BOOT would load neither — the
+   * application would come up empty next to a document it declined to read.
+   * So nothing is armed until the preference is known to have stuck.
+   */
   const armAndWrite = (storageNow: KeyValueStorage): void => {
-    enabled = true
+    // The decision is taken, so the question closes either way: which of two
+    // copies wins is moot once the storage will not take one of them.
     offered = undefined
-    savePersistEnabled(storageNow, true)
+    if (!savePersistEnabled(storageNow, true)) return refuse()
+    enabled = true
     write(...current())
   }
 
@@ -262,8 +300,10 @@ export const createPersistenceControl = (
       // exactly the failure this strip exists to prevent.
       if (!storage) return UNAVAILABLE
       // The switch is off: an indicator on a document nobody is saving would
-      // be a lie.
-      return enabled ? status : undefined
+      // be a lie — UNLESS it is off because the storage REFUSED to move it.
+      // A switch that silently stays where it was is the same surprise one
+      // reload later, so the refusal keeps the strip up and says what to do.
+      return enabled || status.phase === 'error' ? status : undefined
     },
     get pendingRestore() {
       return offered !== undefined
@@ -281,16 +321,37 @@ export const createPersistenceControl = (
       // claim a choice the browser has already taken away.
       if (!storage) return
       if (!next) {
-        enabled = false
-        offered = undefined
-        savePersistEnabled(storage, false)
+        // TURNING THE SAVE OFF IS TWO WRITES, AND NEITHER IS ASSUMED. The
+        // switch does not move until the storage has confirmed both — «
+        // saving disabled » next to a copy that is still in there is the
+        // confirmation this control exists not to give.
+        //
+        // The ORDER is the reversible half first: the preference can be put
+        // back, an erasure cannot. So the choice is recorded, the erasure is
+        // attempted, and a refused erasure restores the preference — leaving
+        // the state the person started from, which is the only state that can
+        // honestly be reported when nothing could be done.
+        if (!savePersistEnabled(storage, false)) return refuse()
         // Disarm the pending debounce BEFORE erasing: belt (cancel here) and
         // braces (the fire-time check above) against a posthumous rewrite.
         saver?.cancel()
-        clearStored(storage)
+        if (!clearStored(storage)) {
+          // The erasure failed, so nothing was granted. Put the preference
+          // back — and if even THAT is refused, the storage now holds 'off'
+          // beside a document it will not give up. The switch then follows the
+          // STORAGE and not the intention, because the storage is what the
+          // next boot reads; the strip keeps saying the write was refused.
+          if (!savePersistEnabled(storage, true)) enabled = false
+          return refuse()
+        }
+        enabled = false
+        offered = undefined
         base = null
         // Nothing is in there any more, so nothing is an echo of it.
         saved = undefined
+        // The switch is off BY CHOICE and the storage obeyed: no strip, and
+        // no stale verdict left behind to keep one up.
+        status = { revision: edit, phase: 'dirty' }
         return
       }
       // ON is a write path: read the storage BEFORE touching it. The save may
@@ -370,11 +431,23 @@ export const createPersistenceControl = (
     get unreadable() {
       return unreadable
     },
+    get discardRefused() {
+      return discardRefused
+    },
     discard: () => {
       if (!blocked()) return
       // Erase FIRST, unblock second: the next reload must find nothing rather
-      // than the blob the user just abandoned.
-      if (storage) clearStored(storage)
+      // than the blob the user just abandoned. AND THE ERASURE IS CHECKED:
+      // leaving this screen is the application's answer to « throw that away
+      // », so an erasure the browser refused must keep the screen up and say
+      // so. Walking into the editor over bytes that are still in there would
+      // announce a deletion that did not happen — and the same blob would be
+      // waiting at the next reload.
+      if (storage && !clearStored(storage)) {
+        discardRefused = true
+        return
+      }
+      discardRefused = false
       base = null
       saved = undefined
       unreadable = undefined

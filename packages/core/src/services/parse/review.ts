@@ -4,6 +4,7 @@
  * calendar-valid date, like every other date in the file.
  */
 import type { Review } from '../../model/portfolio'
+import { REVIEW_KEYS } from '../../model/contract'
 import { isoDate } from '../../values/date'
 import type { Errors } from './json'
 import { at, checkKeys, dateVal, optStr, record, str } from './json'
@@ -16,7 +17,7 @@ const NEVER_DATE = isoDate('1970-01-01')!
 export function parseReview(x: unknown, errors: Errors): Review {
   const o = record(x, 'review', errors)
   if (o === undefined) return { title: '', reviewDate: NEVER_DATE }
-  checkKeys(o, 'review', ['title', 'reviewDate'], ['subtitle', 'previousReviewDate'], errors)
+  checkKeys(o, 'review', REVIEW_KEYS, errors)
   return {
     title: str(o['title'], at('review', 'title'), errors) ?? '',
     subtitle: optStr(o['subtitle'], at('review', 'subtitle'), errors),

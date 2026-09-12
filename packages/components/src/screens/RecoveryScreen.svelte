@@ -23,6 +23,7 @@
   import type { StateRefusal } from '@project-review/core/services/persistence'
   import { UNREADABLE_STATE_FILE_NAME } from '@project-review/core/services/portfolio-json'
   import { te } from '../i18n'
+  import { isTruncated, shownErrors } from '../editor/error-report'
   import { Button } from '../commons/ui/button'
 
   interface Props {
@@ -34,9 +35,14 @@
     readonly raw: string
     /** The host's explicit-decision hook: abandon the stored bytes and start over. */
     readonly startEmpty: () => void
+    /** `true` when {@link startEmpty} was asked for and the browser REFUSED to
+     * erase: the screen stays and says so. Walking into the editor would
+     * announce a deletion that did not happen, and the same blob would be
+     * waiting at the next reload. */
+    readonly startEmptyRefused?: boolean
   }
 
-  let { language, refusal, raw, startEmpty }: Props = $props()
+  let { language, refusal, raw, startEmpty, startEmptyRefused = false }: Props = $props()
 
   /** Localized wording of one contract violation — the import dialog's. */
   const errorMessage = (error: ParseError): string =>
@@ -79,14 +85,22 @@
         <p class="text-destructive mb-2 text-[13px] font-bold">
           {te('editor.io.errorCount', language, { n: refusal.errors.length })}
         </p>
+        <!-- The count above is the whole report; the list is bounded, for the
+             same reason the import dialog's is (`editor/error-report.ts`).
+             The stored bytes themselves go out verbatim, below. -->
         <ul class="m-0 flex max-h-[190px] list-none flex-col gap-1.5 overflow-auto p-0">
-          {#each refusal.errors as error, i (i)}
+          {#each shownErrors(refusal.errors) as error, i (i)}
             <li class="text-(--warn) text-[12.5px]">
               — {#if error.path}{error.path} :
               {/if}{errorMessage(error)}
             </li>
           {/each}
         </ul>
+        {#if isTruncated(refusal.errors)}
+          <p class="text-muted-foreground mt-2 text-[11.5px]">
+            {te('editor.io.errorListCapped', language, { n: shownErrors(refusal.errors).length })}
+          </p>
+        {/if}
       {/if}
     </div>
 
@@ -98,6 +112,13 @@
         {te('editor.recovery.startEmpty', language)}
       </Button>
     </div>
+    <!-- The erasure was refused. An inserted alert, not a swapped role: the
+         node appears when the verdict turns, which is what gets announced. -->
+    {#if startEmptyRefused}
+      <p class="text-destructive mt-3 text-[12.5px] leading-[1.55] font-bold" role="alert">
+        {te('editor.recovery.startEmptyRefused', language)}
+      </p>
+    {/if}
     <p class="text-muted-foreground mt-3 text-[11.5px] leading-[1.55]">
       {te('editor.recovery.startEmptyHint', language)}
     </p>

@@ -13,13 +13,22 @@
  * over). Nothing is restated here; this module only says WHICH aggregate each
  * command would produce.
  *
- * THE SIZE OF THE DOCUMENT IS NOT JUDGED HERE. This gate answers one question
- * — would the VALUE the command carries be readable back? — and the memory
- * budget answers another, about the whole document the event would leave
- * behind. That second one is weighed once, after the event is completed, in
- * `decide`: a gate that had to know which commands grow the document was a
- * gate that had to enumerate them, and the enumeration is what let a
- * ten-million-character title through.
+ * THE SIZE OF THE DOCUMENT IS NOT JUDGED HERE — with one exception that is
+ * the rule itself, not a hole in it. This gate answers one question — would
+ * the VALUE the command carries be readable back? — and the memory budget
+ * answers another, about the whole document the event would leave behind. That
+ * second one is weighed once, after the event is completed, in `decide`: a
+ * gate that had to know which commands grow the document was a gate that had
+ * to enumerate them, and the enumeration is what let a ten-million-character
+ * title through.
+ *
+ * The exception is `ReplacePortfolio`, whose value IS a whole document:
+ * `validPortfolio` answers the very verdict `parsePortfolio` would give on its
+ * serialised form, and that verdict counts the entities and measures the text.
+ * So the shape question and the size question have the same answer there, and
+ * this gate gives it. It costs one serialisation of the payload on top of
+ * `decide`'s own, which replacements — an import, a purge, a restore, an undo
+ * — can afford, and which no keystroke ever pays.
  *
  * HOW IT STAYS EXHAUSTIVE. Nothing here re-lists fields one by one: a command
  * is validated by BUILDING the aggregate it would produce — through `apply`'s

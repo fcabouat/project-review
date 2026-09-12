@@ -79,7 +79,8 @@
         rows={2}
         capacity="decisionQuestion"
         hint={te('editor.hint.question', language)}
-        commit={(v) => patchDecision(index, { question: v ?? decision.question })}
+        required
+        commit={(v) => patchDecision(index, { question: v })}
       />
       <FieldText
         {language}

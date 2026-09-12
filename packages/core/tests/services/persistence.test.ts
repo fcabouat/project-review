@@ -23,6 +23,9 @@
 import { describe, expect, it } from 'vitest'
 import type { DomainEvent } from '../../src/events'
 import { HISTORY_LIMIT, emptyHistory } from '../../src/events/history'
+import { MAX_CHARS, MAX_STORED_CHARS } from '../../src/model/budget'
+import { readPortfolioJson } from '../../src/services/parse'
+import { serializePortfolio } from '../../src/services/portfolio-json'
 import {
   PREF_KEY,
   SAVE_DELAY_MS,
@@ -436,9 +439,46 @@ describe('local-save preference and total writes', () => {
     const storage = createMemoryStorage()
     writeState(storage, null, testPortfolio(), emptyHistory)
     savePersistEnabled(storage, true)
-    clearStored(storage)
+    expect(clearStored(storage)).toBe(true)
     expect(storage.getItem(STATE_KEY)).toBeNull()
     expect(storage.getItem(PREF_KEY)).toBe('on')
+  })
+
+  /* ERASING IS A VERDICT TOO. Removing the saved document is how the
+     application honours « stop keeping my data »; a caller that assumes the
+     removal happened turns that promise into a claim. The three storages below
+     are the three ways it does not happen. */
+  it('clearStored says false when the bytes are still in there', () => {
+    const kept = createMemoryStorage()
+    kept.setItem(STATE_KEY, 'whatever was in there')
+    const silentlyKeeping: KeyValueStorage = {
+      getItem: (key) => kept.getItem(key),
+      setItem: (key, value) => kept.setItem(key, value),
+      // Returns as if it had obeyed: only a read-back tells this apart from a
+      // success, which is exactly why there is one.
+      removeItem: () => {},
+    }
+    expect(clearStored(silentlyKeeping)).toBe(false)
+    expect(kept.getItem(STATE_KEY)).toBe('whatever was in there')
+
+    const throwing: KeyValueStorage = {
+      getItem: () => null,
+      setItem: () => {},
+      removeItem: () => {
+        throw new DOMException('access denied', 'SecurityError')
+      },
+    }
+    expect(clearStored(throwing)).toBe(false)
+
+    // A storage that will not be READ cannot prove the key is gone either.
+    const unreadable: KeyValueStorage = {
+      getItem: () => {
+        throw new DOMException('access denied', 'SecurityError')
+      },
+      setItem: () => {},
+      removeItem: () => {},
+    }
+    expect(clearStored(unreadable)).toBe(false)
   })
 })
 
@@ -613,5 +653,48 @@ describe('debounced saving (the app wiring in miniature)', () => {
     enabled = false // toggle(false) without the cancel — the guard alone holds
     clock.fire()
     expect(storage.getItem(STATE_KEY)).toBeNull()
+  })
+})
+
+/**
+ * IMPORTABLE IS NOT SAVABLE, AND BOTH ARE SAID. The file ceiling is ~10 M
+ * characters; the browser's storage takes about half of that (measured: 5.2 M
+ * pass, 5.3 M do not). One figure for both promised what it could not keep —
+ * a portfolio could honour the format and never fit in the storage, and only
+ * the quota's refusal ever said so, at an unpredictable size.
+ */
+describe('the two ceilings, named apart', () => {
+  /** A portfolio whose serialised form is about `chars` characters. */
+  const sized = (chars: number) => {
+    const base = testPortfolio()
+    return { ...base, review: { ...base.review, title: 'x'.repeat(chars) } }
+  }
+
+  it('the storage ceiling is well under the file ceiling', () => {
+    expect(MAX_STORED_CHARS).toBeLessThan(MAX_CHARS)
+  })
+
+  it('refuses a document past the STORAGE ceiling, deterministically', () => {
+    const storage = createMemoryStorage()
+    expect(writeState(storage, null, sized(MAX_STORED_CHARS), emptyHistory)).toStrictEqual({
+      outcome: 'refused',
+    })
+    // Refused means refused: nothing half-written, nothing to read back.
+    expect(storage.getItem(STATE_KEY)).toBeNull()
+    expect(storage.writes).toBe(0)
+  })
+
+  it('and that very document is still a legal FILE the parse reads back', () => {
+    // The distinction, in one assertion: the format accepts it, the browser
+    // will not keep it, and the two answers are given by two ceilings.
+    const legal = sized(MAX_STORED_CHARS)
+    expect(readPortfolioJson(serializePortfolio(legal)).ok).toBe(true)
+  })
+
+  it('a document under the storage ceiling is written whole', () => {
+    const storage = createMemoryStorage()
+    const outcome = writeState(storage, null, sized(1_000), emptyHistory)
+    expect(outcome.outcome).toBe('written')
+    expect(restored(storage)!.portfolio).toEqual(sized(1_000))
   })
 })

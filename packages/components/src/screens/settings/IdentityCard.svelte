@@ -32,17 +32,22 @@
   <h2 class="text-primary mb-3 text-xs font-bold tracking-[0.06em] uppercase">
     {te('editor.review.identity', language)}
   </h2>
+  <!-- `required`: org and unit are `string` in the model (a blank start ships
+       them empty), so clearing one stores `''` — the state the contract has
+       for "not filled" — instead of an absence the gate refuses in silence. -->
   <FieldText
     {language}
     label={te('editor.field.org', language)}
     value={identity.org}
     commit={(v) => setIdentity('org', v)}
+    required
   />
   <FieldText
     {language}
     label={te('editor.field.unit', language)}
     value={identity.unit}
     commit={(v) => setIdentity('unit', v)}
+    required
   />
   <FieldText
     {language}

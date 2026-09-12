@@ -122,6 +122,21 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
     en: 'The bar appears when hovering the top edge; Esc toggles the overview.',
   },
   'editor.slideshow.loading': { fr: 'Chargement du diaporama…', en: 'Loading the slideshow…' },
+  /* The engine did not come up. Said out loud, with the one move that helps:
+     a « loading » line that never ends is a failure the person cannot name. */
+  'editor.slideshow.bootFailed': {
+    fr: `Le moteur du diaporama n'a pas pu être chargé.`,
+    en: 'The slideshow engine could not be loaded.',
+  },
+  'editor.slideshow.retry': { fr: 'Réessayer', en: 'Try again' },
+  /* The standalone export: three more states beside the offer itself. */
+  'editor.slideshow.saving': { fr: 'Enregistrement…', en: 'Saving…' },
+  'editor.slideshow.saved': { fr: 'Fichier enregistré', en: 'File saved' },
+  'editor.slideshow.saveFailed': {
+    fr: `L'enregistrement a échoué`,
+    en: 'Saving failed',
+  },
+  'editor.slideshow.saveRetry': { fr: 'Réessayer', en: 'Try again' },
   'editor.slideshow.aria': { fr: 'Diaporama', en: 'Slideshow' },
   'editor.slideshow.printAria': {
     fr: `Aperçu d'impression${NBSP}: {n} pages A4 paysage`,
@@ -787,6 +802,16 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
     fr: `{n} erreur(s) de contrat${NBSP}:`,
     en: '{n} contract error(s):',
   },
+  /* The COUNT above is exhaustive; the list is not. Said out loud, because a
+     list that silently stops is a report the reader cannot trust. */
+  'editor.io.errorListCapped': {
+    fr: `Les {n} premières sont affichées.`,
+    en: 'The first {n} are shown.',
+  },
+  'editor.io.errorReport': {
+    fr: 'Télécharger le rapport complet',
+    en: 'Download the full report',
+  },
 
   /* The review date is the reference of every derivation (law 1): it is the
      one date the format will not let go missing. */
@@ -821,6 +846,12 @@ export const EDITOR_CATALOG: Record<string, Entry> = {
   'editor.recovery.startEmptyHint': {
     fr: 'Repartir à vide efface définitivement cette sauvegarde de ce navigateur — téléchargez-la d’abord si elle compte.',
     en: 'Starting empty erases this backup from this browser for good — download it first if it matters.',
+  },
+  /* The erasure was asked for and REFUSED: the screen stays, because leaving
+     it would announce a deletion the browser did not perform. */
+  'editor.recovery.startEmptyRefused': {
+    fr: `Ce navigateur a refusé d'effacer la sauvegarde${NBSP}: elle est toujours là. Téléchargez-la, puis videz les données du site depuis les réglages du navigateur.`,
+    en: 'This browser refused to erase the backup: it is still there. Download it, then clear this site’s data from the browser settings.',
   },
   'editor.io.cancel': { fr: 'Annuler', en: 'Cancel' },
   /* Confirm button of the destructive-action dialogs (AlertDialog). */

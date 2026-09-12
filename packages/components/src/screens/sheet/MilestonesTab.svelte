@@ -3,6 +3,7 @@
   import type { Portfolio } from '@project-review/core/model/portfolio'
   import type { Milestone, Project } from '@project-review/core/model/project'
   import { isoDate } from '@project-review/core/values/date'
+  import { TEXT_CAPACITY, overCapacity } from '@project-review/core/model/budget'
   import { t } from '@project-review/core/services/i18n'
   import type { Language } from '@project-review/core/model/theme'
   import type { ProjectScalarField } from '@project-review/core/events'
@@ -71,6 +72,28 @@
   }
 
   const MROW = 'grid grid-cols-[1.5fr_1fr_0.9fr_46px_34px] items-center gap-2.5'
+
+  /**
+   * THE ONE FRAME OF THIS TAB THAT WAS MEASURED AND NEVER SAID. The timeline
+   * label has a visual-capacity budget like every other framed text of the
+   * deck (`milestoneLabel`, 40 characters, measured on the printed deck) — and
+   * it was the only one in the ladder with no caller at all: this row is a
+   * five-column grid, not a `FieldText`, so the counter and the warning that
+   * come with that component had nowhere to go.
+   *
+   * They go HERE, under the row, next to the place the refused date already
+   * speaks from — the one line of this table that can carry prose. Said, never
+   * refused: the slide clips a long label in its own frame, the value is kept,
+   * and the person decides whether to shorten it.
+   */
+  const LABEL_MAX = TEXT_CAPACITY.milestoneLabel
+  const longLabels = $derived(
+    new Set(
+      project.milestones
+        .map((m, index) => (overCapacity('milestoneLabel', m.label) ? index : -1))
+        .filter((index) => index >= 0),
+    ),
+  )
 </script>
 
 <section class="bg-background border-border rounded-lg border p-4">
@@ -184,6 +207,18 @@
             >
           </span>
         </div>
+        <!-- Past its frame: the counter AND what happens, because a number on
+             its own is not a message. `status`, not `alert` — nothing was
+             refused, the slide will simply clip it. -->
+        {#if longLabels.has(entry.index)}
+          <p class="text-(--warn) px-0.5 pb-[7px] text-[11.5px]" role="status">
+            {te('editor.counter.over', language)}
+            {te('editor.counter.chars', language, {
+              n: entry.milestone.label.length,
+              max: LABEL_MAX,
+            })}
+          </p>
+        {/if}
         {#if milestoneDateError?.index === entry.index}
           <p class="text-destructive px-0.5 pb-[7px] text-[11.5px]" role="alert">
             {milestoneDateError.message}

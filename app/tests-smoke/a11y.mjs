@@ -5,9 +5,14 @@
  * docs:site`).
  *
  * Perimeter, each in LIGHT and DARK:
- *   - the seven editor surfaces: review, projects, sheet, settings, history,
- *     and the import and export dialogs (dark = the reader preference the app
- *     stores app-side, seeded through localStorage before boot);
+ *   - the eight editor surfaces: review, projects, sheet, settings, history,
+ *     about, and the import and export dialogs (dark = the reader preference
+ *     the app stores app-side, seeded through localStorage before boot);
+ *   - the RECOVERY screen — the one screen the editor shell never renders, and
+ *     the one a person meets at their worst moment: a stored document the
+ *     format refuses. It was exercised functionally by the smoke run and
+ *     scanned by nothing, which is the wrong way round for a screen that is
+ *     all prose, one error list and two consequential buttons;
  *   - the slideshow (reveal booted on the sample deck — slides stay light by
  *     design, the pass proves it holds);
  *   - the landing page, English and French (dark = the OS preference, which
@@ -178,6 +183,46 @@ async function printPass(browser, base) {
   }
 }
 
+/**
+ * The recovery screen. It has no route and no way in from the interface: it is
+ * what `App.svelte` renders INSTEAD of the editor when the stored envelope
+ * cannot be read, so the only way to reach it is to put such an envelope in
+ * the storage before the app boots — the same corrupt value the smoke run
+ * uses, and the shape that matters: a well-formed envelope whose PORTFOLIO
+ * breaks the contract, which is the one that renders the error list.
+ */
+async function recoveryPass(browser, base, mode) {
+  const context = await browser.newContext({
+    locale: 'fr-FR',
+    viewport: { width: 1280, height: 860 },
+  })
+  await context.addInitScript(
+    (scheme) => localStorage.setItem('project-review/scheme', scheme),
+    mode,
+  )
+  await context.addInitScript(
+    (raw) => localStorage.setItem('project-review/state', raw),
+    '{"format":1,"revision":7,"portfolio":{"version":3,"review":{"title":"Revue du 3 mars"},' +
+      '"was":"a portfolio"},"history":{"past":[],"future":[]}}',
+  )
+  const page = await context.newPage()
+  // No `?sample`: an unreadable envelope already counts as an existing base,
+  // and the plain URL is what a person would have open.
+  await page.goto(`${base}/dist/index.html`)
+  await page.waitForSelector('main#main')
+  await page.waitForTimeout(300)
+  // ASSERT THE SCREEN, DO NOT ASSUME IT. The editor shell carries a `main#main`
+  // too: a seed that failed would leave this pass scanning the editor a second
+  // time and reporting a green it never earned — the exact shape of hole the
+  // boundary probes exist for. `.editor` is the shell this screen REPLACES.
+  if ((await page.locator('.editor').count()) > 0) {
+    console.error('recovery: the editor is mounted — the unreadable seed did not take')
+    process.exit(1)
+  }
+  await scan(page, 'recovery', mode)
+  await context.close()
+}
+
 async function landingPass(browser, base, mode) {
   const context = await browser.newContext({
     colorScheme: mode,
@@ -212,6 +257,7 @@ async function main() {
   try {
     for (const mode of ['light', 'dark']) {
       await editorPass(browser, base, mode)
+      await recoveryPass(browser, base, mode)
       await landingPass(browser, base, mode)
     }
     await printPass(browser, base)

@@ -64,27 +64,30 @@ ever edited by hand.
   forms stack and wide tables scroll inside their own frame; the slideshow
   scales to the screen with a touch-visible exit bar.
 - **Accessibility as a target** — WCAG 2.1 AA aimed for and checked by an
-  axe-core pass (zero serious/critical across every screen, both schemes) and
-  a scripted keyboard walk; motion honours `prefers-reduced-motion`. The
-  editor holds AA text contrast, and the slides' semantic inks (labels, health
-  and risk scales, all three themes) were measured and brought to AA text
+  axe-core pass (zero serious/critical across every screen, both schemes, the
+  recovery screen and the nine printed style × palette pairs included) and a
+  scripted keyboard walk; motion honours `prefers-reduced-motion`. The editor
+  holds AA text contrast, and the slides' semantic inks (labels, health and
+  risk scales, all three themes) were measured and brought to AA text
   contrast. Where a category tint carries TEXT — the id chips and pills — the
   glyph takes an ink DERIVED from that tint, contracted in OKLCH until it
   clears 4.5:1 on both grounds it sits on (measured floor 4.70:1, over the
   three families' twelve colours and the neutral sentinel): `palettes.css`
   keeps its hexes exactly as the ecosystems it names publish them, and only
-  the ink moves. What stays below 4.5:1 is white text ON a category plane —
-  the divider, the sheet rail — wherever the tint itself is light: the two
-  borrowed families at full white, and the divider's translucent lines in
-  every family, `uniform` included. Darkening those planes would be retuning
-  the palettes by another route; `modern` gives the other answer and takes its
-  rail off the tint altogether. No formal RGAA audit.
+  the ink moves. The white text ON a category plane — the divider, the sheet
+  rail — was the last exception, and it is closed on paper: every text node of
+  the printed deck was composited against its own ground and compared to its
+  own threshold, and `flat` and `institutional` come out at ZERO under
+  threshold in all three families. `modern`'s cover is the one thing no such
+  measurement can judge — its ground is a gradient, and a gradient has no
+  single colour to composite against; axe declines it for the same reason. No
+  formal RGAA audit.
 - **Light and dark editor** — System/Light/Dark reader preference, stored on
   the device, never in the portfolio file; the slides are the artifact and
   stay light in both schemes.
 - **Print-perfect A4** — the deck prints one page per slide through the
   browser's dialog; PDF is a print, not an export pipeline.
-- **Visual contract** — 71 Storybook stories covering every slide, widget and
+- **Visual contract** — 73 Storybook stories covering every slide, widget and
   screen, including a fully playable in-memory editor; the toolbar reads any
   of them in three slide themes, three palettes and both schemes.
 

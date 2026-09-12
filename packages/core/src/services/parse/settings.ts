@@ -26,7 +26,15 @@ import { LOGO_MAX_CHARS, isImageDataUri } from '../../values/logo'
 import { isHexColor } from '../../values/palette'
 import { isRecapRows } from '../../values/recap-rows'
 import type { Errors } from './json'
-import { at, bool, checkKeys, enumVal, fail, list, optStr, record, str } from './json'
+import {
+  CUSTOM_PALETTE_KEYS,
+  FONT_FACE_KEYS,
+  IDENTITY_KEYS,
+  SETTINGS_KEYS,
+  SHOW_KEYS,
+  THEME_KEYS,
+} from '../../model/contract'
+import { at, bool, checkKeys, enumVal, exactly, fail, list, optStr, record, str } from './json'
 
 // The rules themselves live in values/ — one statement, read here at the door
 // and in `commands/contract.ts` when the editor emits: what the parse refuses,
@@ -58,7 +66,7 @@ function parseFontFaces(
     const itemPath = `${path}[${i}]`
     const o = record(raw, itemPath, errors)
     if (o === undefined) return
-    checkKeys(o, itemPath, ['family', 'dataUri'], ['weight', 'style'], errors)
+    checkKeys(o, itemPath, FONT_FACE_KEYS, errors)
 
     const familyPath = at(itemPath, 'family')
     let family = str(o['family'], familyPath, errors)
@@ -119,12 +127,12 @@ function parseFontFaces(
 function parseCustomPalette(x: unknown, path: string, errors: Errors): CustomPalette | undefined {
   const block = record(x, path, errors)
   if (block === undefined) return undefined
-  checkKeys(block, path, ['colors'], ['label'], errors)
+  checkKeys(block, path, CUSTOM_PALETTE_KEYS, errors)
   const label = optStr(block['label'], at(path, 'label'), errors)
 
   const colorsPath = at(path, 'colors')
   const table = record(block['colors'], colorsPath, errors)
-  if (table !== undefined) checkKeys(table, colorsPath, COLORS, [], errors)
+  if (table !== undefined) checkKeys(table, colorsPath, exactly(COLORS), errors)
 
   const colors = {} as Record<Color, string>
   for (const name of COLORS) {
@@ -141,21 +149,14 @@ function parseCustomPalette(x: unknown, path: string, errors: Errors): CustomPal
 /** Parses the `settings` block, collecting every violation. */
 export function parseSettings(x: unknown, errors: Errors): Settings {
   const root = record(x, 'settings', errors)
-  if (root)
-    checkKeys(root, 'settings', ['identity', 'show', 'recapRows'], ['language', 'theme'], errors)
+  if (root) checkKeys(root, 'settings', SETTINGS_KEYS, errors)
   const o = root ?? {}
 
   /* ---- identity (required: org, unit) ---- */
   const identityPath = at('settings', 'identity')
   const identityBlock = record(o['identity'], identityPath, errors)
   if (identityBlock) {
-    checkKeys(
-      identityBlock,
-      identityPath,
-      ['org', 'unit'],
-      ['orgLong', 'unitLong', 'contact', 'logo'],
-      errors,
-    )
+    checkKeys(identityBlock, identityPath, IDENTITY_KEYS, errors)
   }
   const rawIdentity = identityBlock ?? {}
   const logoPath = at(identityPath, 'logo')
@@ -172,13 +173,7 @@ export function parseSettings(x: unknown, errors: Errors): Settings {
   const themePath = at('settings', 'theme')
   const themeBlock = record(o['theme'], themePath, errors)
   if (themeBlock) {
-    checkKeys(
-      themeBlock,
-      themePath,
-      [],
-      ['style', 'palette', 'font', 'fontFaces', 'customPalette'],
-      errors,
-    )
+    checkKeys(themeBlock, themePath, THEME_KEYS, errors)
   }
   const th = themeBlock ?? {}
   const fontPath = at(themePath, 'font')
@@ -198,13 +193,7 @@ export function parseSettings(x: unknown, errors: Errors): Settings {
   const showPath = at('settings', 'show')
   const showBlock = record(o['show'], showPath, errors)
   if (showBlock) {
-    checkKeys(
-      showBlock,
-      showPath,
-      ['healthDashboard', 'recap', 'archives', 'decisions'],
-      [],
-      errors,
-    )
+    checkKeys(showBlock, showPath, SHOW_KEYS, errors)
   }
   const show = showBlock ?? {}
 

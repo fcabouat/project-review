@@ -308,6 +308,8 @@ C'est ainsi qu'une organisation transmet ses couleurs à ses collègues : un
 
 ### Police embarquée
 
+<!-- Mise en scène de cette capture (palette + deux fontes + logo) :
+     `node scripts/stage-doc-images.mjs` — voir l'en-tête de ce script. -->
 <img src="images/fr-embedded-font.png" width="720" alt="La carte Apparence, moitié identité du portefeuille : la liste des palettes menée par les douze couleurs du portefeuille, le champ Police avec son statut vivant « Police embarquée dans le portefeuille », les deux fontes embarquées avec leur graisse et leur taille, les deux sélecteurs, le logo, et l’unique ligne de licence qui couvre les trois">
 
 La zone **Police embarquée** de la même carte embarque des fichiers `.woff2`
