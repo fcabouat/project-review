@@ -19,6 +19,51 @@ const run = new (Object.getPrototypeOf(async function () {}).constructor)(
   source,
 )
 
+test('release preparation requires explicit dispatch while main publication retains its gates', () => {
+  const ci = readFileSync(new URL('../.github/workflows/ci.yml', import.meta.url), 'utf8')
+  const expression = ci
+    .split('\n  release:\n')[1]
+    .split('if: >-\n')[1]
+    .split('\n    permissions:')[0]
+    .trim()
+  const allowed = new Function(
+    'github',
+    'inputs',
+    'needs',
+    'always',
+    'cancelled',
+    `return (${expression})`,
+  )
+  const needs = {
+    verify: { result: 'success' },
+    codeql: { result: 'success' },
+    deploy: { result: 'skipped' },
+  }
+  const check = (branch, event, prepare = false, results = needs) =>
+    allowed(
+      { ref: `refs/heads/${branch}`, event_name: event, event: { repository: { private: false } } },
+      { prepare_release: prepare },
+      results,
+      () => true,
+      () => false,
+    )
+  assert.equal(check('develop', 'push'), false)
+  assert.equal(check('develop', 'workflow_dispatch'), false)
+  assert.equal(check('develop', 'workflow_dispatch', true), true)
+  assert.equal(check('develop', 'pull_request', true), false)
+  assert.equal(check('release/0.2.1', 'workflow_dispatch', true), false)
+  assert.equal(check('main', 'push'), false)
+  assert.equal(check('main', 'push', false, { ...needs, deploy: { result: 'success' } }), true)
+  assert.equal(
+    check('develop', 'workflow_dispatch', true, { ...needs, verify: { result: 'failure' } }),
+    false,
+  )
+  assert.equal(
+    check('develop', 'workflow_dispatch', true, { ...needs, codeql: { result: 'failure' } }),
+    false,
+  )
+})
+
 function fixture({ existing = false, lookupError, resolveError, conflict = false } = {}) {
   const writes = []
   let resolved = false

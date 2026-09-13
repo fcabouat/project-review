@@ -167,7 +167,12 @@ fail. Empty changesets are valid for non-release changes. Package versions
 must remain unchanged on feature PRs. Dependabot PRs may target `develop`
 without a changeset; they ship with the next planned release.
 
-After successful develop CI, automation reads the plan from `pnpm changeset
+Merging features into develop does **not** prepare or publish a release.
+When ready, open **Actions → Verify and publish → Run workflow**, select
+**develop**, and check **prepare_release**. Without this explicit input,
+manual and push runs on develop only verify the project.
+
+After that requested develop run passes CI, automation reads the plan from `pnpm changeset
 status`, cuts `release/X.Y.Z` from that verified commit, and runs **`pnpm
 changeset version` on the release branch**. It commits the generated versions
 and changelogs and opens its PR to `main`. One delivery at a time: the release
@@ -183,7 +188,7 @@ release branch back into `develop`; merge it the same way, then delete the
 branch. If GitHub auto-deleted it after the first merge, automation restores
 only the exact published head for this second PR. Fetch/pull normally afterward.
 
-The pending changesets produce one release, **0.2.0 from 0.1.0**, through this same path;
+Pending changesets accumulate until a maintainer requests preparation;
 there is no bootstrap exemption. `app/package.json` supplies the product version
 and `app/CHANGELOG.md` the release notes. The workspace root has no version.
 Downloads and generated example decks remain on the project site.
@@ -197,8 +202,10 @@ shipping it (including any version collision); automation never guesses a merge.
 One-time GitHub setup:
 
 - Keep `develop` as default; require PRs and the `verify` check on `main` and
-  `develop`, with no bypass or force-push. Allow **merge commits**, disable
-  **squash** and **rebase** merging, and do not require linear history.
+  `develop`, with no bypass or force-push. Allow **merge commits** and
+  **rebase merging**, and do not require linear history.
+  **Rebase and merge** is allowed for feature PRs; delivery and backport PRs
+  require **Create a merge commit**. Keep both methods available in GitHub.
 - Enable Pages from Actions, `PAGES_ENABLED=true`, and allow `main` in the
   `github-pages` environment. Without successful deployment, no release is made.
 - Allow Actions to create PRs in **Settings → Actions → General**. The workflow
@@ -208,7 +215,14 @@ No personal access token or npm credentials are needed. The built-in
 `GITHUB_TOKEN` opens PRs; GitHub asks a maintainer to approve their CI runs.
 [GitHub workflow trigger rules](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow).
 
-On failure, correct the issue and rerun **Verify and publish**. Active delivery
+Each publication attempt reports verification, CodeQL, Pages and release status
+separately in the workflow summary. Preparation may succeed without opening a
+PR when there are no pending changesets or a delivery is already active.
+
+On transient failure, rerun the failed jobs. A workflow correction requires a
+new run using the corrected commit; rerunning the old job keeps its old code.
+Manual publication recovery runs **Verify and publish** on current **main**.
+Active delivery
 PRs stop new release cuts. An orphan release branch is never overwritten: inspect
 it and open its PR manually. Existing tags/releases remain unchanged. These
 checks require the protections above to be blocking; YAML alone cannot prevent
