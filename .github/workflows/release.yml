@@ -117,8 +117,15 @@ jobs:
             if (!notes) throw new Error('Missing changelog for this version');
             const tag = `v${version}`;
             let tagged;
-            try { tagged = (await github.rest.repos.getCommit({...repo, ref: `refs/tags/${tag}`})).data.sha; }
+            let tagExists = false;
+            try {
+              await github.rest.git.getRef({...repo, ref: `tags/${tag}`});
+              tagExists = true;
+            }
             catch (error) { if (error.status !== 404) throw error; }
+            // getCommit returns 422 for a missing ref, not 404. Check existence
+            // first; resolving here also peels annotated tags to their commit.
+            if (tagExists) tagged = (await github.rest.repos.getCommit({...repo, ref: `refs/tags/${tag}`})).data.sha;
             if (tagged && tagged !== context.sha) {
               const comparison = await github.rest.repos.compareCommitsWithBasehead({...repo, basehead: `${tagged}...${context.sha}`});
               if (!['ahead', 'identical'].includes(comparison.data.status)) throw new Error('Tag conflicts with main');
