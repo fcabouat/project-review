@@ -1,7 +1,7 @@
 <script lang="ts">
   /**
    * Settings screen: appearance (palette, font, language), aggregate slides,
-   * categories (CRUD + reorder) and free slides. Destructive confirmations
+   * categories (CRUD + reorder). Destructive confirmations
    * run in the vendored AlertDialog (see `settings/DataCard`).
    *
    * Every control emits a `ChangeSetting` / category command, so switching the
@@ -21,7 +21,6 @@
   import AggregateSlidesCard from './settings/AggregateSlidesCard.svelte'
   import DataCard from './settings/DataCard.svelte'
   import CategoriesCard from './settings/CategoriesCard.svelte'
-  import FreeSlidesCard from './settings/FreeSlidesCard.svelte'
 
   interface Props {
     readonly portfolio: Portfolio
@@ -66,6 +65,5 @@
 
   <div class="flex min-w-0 flex-col gap-4">
     <CategoriesCard {portfolio} {dispatch} />
-    <FreeSlidesCard {portfolio} {dispatch} />
   </div>
 </div>

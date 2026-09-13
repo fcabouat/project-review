@@ -69,9 +69,9 @@
   /** Mounted only while open: a closed preview renders no slide at all. */
   let previewingTitle = $state(false)
 
-  const openings = $derived(portfolio.freeSlides.filter((s) => s.anchor.type === 'opening'))
+  const slides = $derived(portfolio.freeSlides)
 
-  function addOpening(): void {
+  function addSlide(): void {
     // Born empty: the display does the "—" fallback, the data stays honest.
     const slide: FreeSlide = {
       id: nextFreeSlideId(portfolio.freeSlides),
@@ -82,13 +82,14 @@
     dispatch({ type: 'CreateFreeSlide', slide, index: portfolio.freeSlides.length })
   }
 
-  /**
-   * ↑/↓ move an opening slide RELATIVE TO ITS VISIBLE NEIGHBOUR: `to` is the
-   * neighbour's index in the full `freeSlides` list, which `FreeSlideMoved`'s
-   * splice semantics turn into "right before it" (up) / "right after it" (down).
-   */
-  function moveOpening(slide: FreeSlide, delta: -1 | 1): void {
-    const neighbour = openings[openings.indexOf(slide) + delta]
+  /** Position determines placement in the deck; arrows order slides at that position. */
+  function neighbourOf(slide: FreeSlide, delta: -1 | 1): FreeSlide | undefined {
+    const siblings = slides.filter((s) => JSON.stringify(s.anchor) === JSON.stringify(slide.anchor))
+    return siblings[siblings.indexOf(slide) + delta]
+  }
+
+  function moveSlide(slide: FreeSlide, delta: -1 | 1): void {
+    const neighbour = neighbourOf(slide, delta)
     if (!neighbour) return
     dispatch({
       type: 'MoveFreeSlide',
@@ -161,7 +162,10 @@
       <h2 class="text-primary mb-3 text-xs font-bold tracking-[0.06em] uppercase">
         {te('editor.review.freeSlides', language)}
       </h2>
-      {#each openings as slide, index (slide.id)}
+      <p class="text-muted-foreground mb-3 text-[11.5px]">
+        {te('editor.review.freeSlidesHint', language)}
+      </p>
+      {#each slides as slide (slide.id)}
         <div class="grid grid-cols-[26px_minmax(0,1fr)] items-start gap-1.5">
           <span class="flex flex-col gap-0.5 pt-2">
             <Button
@@ -170,8 +174,8 @@
               class="text-muted-foreground"
               title={te('editor.projects.moveUp', language)}
               aria-label="{te('editor.projects.moveUp', language)} {slide.title}"
-              disabled={index === 0}
-              onclick={() => moveOpening(slide, -1)}
+              disabled={neighbourOf(slide, -1) === undefined}
+              onclick={() => moveSlide(slide, -1)}
               ><span class="inline-block -rotate-90">▸</span></Button
             >
             <Button
@@ -180,8 +184,8 @@
               class="text-muted-foreground"
               title={te('editor.projects.moveDown', language)}
               aria-label="{te('editor.projects.moveDown', language)} {slide.title}"
-              disabled={index === openings.length - 1}
-              onclick={() => moveOpening(slide, 1)}
+              disabled={neighbourOf(slide, 1) === undefined}
+              onclick={() => moveSlide(slide, 1)}
               ><span class="inline-block rotate-90">▸</span></Button
             >
           </span>
@@ -192,7 +196,7 @@
           {te('editor.review.noFreeSlide', language)}
         </p>
       {/each}
-      <Button variant="outline" size="sm" class="mt-2.5 w-full" onclick={addOpening}>
+      <Button variant="outline" size="sm" class="mt-2.5 w-full" onclick={addSlide}>
         {te('editor.settings.add', language)}
       </Button>
     </section>

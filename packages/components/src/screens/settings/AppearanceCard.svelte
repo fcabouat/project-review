@@ -2,10 +2,9 @@
   /**
    * Appearance card, in two halves.
    *
-   * ABOVE — what THIS BUILD offers: the slide theme, the reader scheme and the
-   * interface language.
+   * ABOVE — editor preferences: the reader scheme and interface language.
    *
-   * BELOW — PORTFOLIO IDENTITY: the three assets the .json file carries
+   * BELOW — SLIDE APPEARANCE: the slide style and the three assets the .json file carries
    * itself, gathered in one section because they are one idea. An
    * organization's colours, typeface and mark travel INSIDE the document —
    * no deployment, no network, nothing to install on the machine that opens
@@ -277,16 +276,6 @@
     {te('editor.settings.appearance', language)}
   </h2>
 
-  <FieldSegmented
-    label={te('editor.setting.style', language)}
-    value={settings.theme.style}
-    options={THEME_STYLES.map((candidate) => ({
-      value: candidate,
-      label: te(`editor.style.${candidate}`, language),
-    }))}
-    commit={setStyle}
-  />
-
   {#if appearance}
     <FieldSegmented
       label={te('editor.setting.scheme', language)}
@@ -311,15 +300,25 @@
     commit={setLanguage}
   />
 
-  <!-- ============ the three assets the FILE carries, in one section ======= -->
+  <!-- Slide style, palette, font and logo belong to the document. -->
   <h3
     class="text-(--txt2) border-border mt-5 mb-1.5 border-t pt-4 text-xs font-bold tracking-[0.06em] uppercase"
   >
-    {te('editor.settings.portfolioIdentity', language)}
+    {te('editor.settings.slideAppearance', language)}
   </h3>
   <p class="text-muted-foreground mb-3.5 text-[11.5px]">
     {te('editor.settings.identityHint', language)}
   </p>
+
+  <FieldSegmented
+    label={te('editor.setting.style', language)}
+    value={settings.theme.style}
+    options={THEME_STYLES.map((candidate) => ({
+      value: candidate,
+      label: te(`editor.style.${candidate}`, language),
+    }))}
+    commit={setStyle}
+  />
 
   <!-- 1. Colours: the built-in families, plus the portfolio's own palette
        when it carries one — which then applies, whatever family is named. -->
