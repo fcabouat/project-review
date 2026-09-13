@@ -12,10 +12,15 @@ time. The French version of this guide is [user-guide.fr.md](user-guide.fr.md).
 
 Two ways to run the app:
 
-- **No install.** Download `project-review.html` and double-click it. The app
+- **Use online.** [Open the full editor on GitHub Pages](https://fcabouat.github.io/project-review/demo/project-review.html?lang=en).
+  This is the same application, not a limited demo. Portfolios stay in your browser.
+- **Standalone, offline.** Download `project-review.html` and double-click it. The app
   runs from `file://` — no server, no network, no account.
-- **From source.** Follow the pinned runtime and install instructions in [README](../README.md),
-  then `pnpm run dev` and open the printed URL.
+
+Browser storage is tied to the origin and browser profile, not an account.
+Export/import JSON to move work between the online editor, local files or devices;
+there is no automatic synchronization. Keep backups in either deployment mode.
+For development, follow [README](../README.md), then run `pnpm run dev`.
 
 The display language is auto-detected on first launch and can be switched at
 any time from the language menu in the top bar (or in
@@ -31,8 +36,8 @@ To see a full example, import the Projay Inc. sample set: 20 projects in
 8 categories. The app itself carries no content — sample portfolios come with
 the app (`sample-portfolio.en.json` next to the downloaded file) and with the
 project site; import one through **Import…** like any portfolio file. The
-import is a single history entry — Ctrl+Z undoes it. The online demo takes
-the shortcut: its `?sample` address boots straight into the same set.
+import is a single history entry — Ctrl+Z undoes it. The optional example-data
+link (`?sample`) opens the same set on first use, without replacing saved work.
 
 <!-- Every picture in this guide is remade by one command, never by hand:
      `node scripts/stage-doc-images.mjs` — see that script's header. -->
@@ -67,7 +72,11 @@ has five tabs: **Frame & status**, **Narrative**, **Decisions**,
   **Move down** and **Delete** (with a confirmation).
 - Changes are recorded when fields lose focus. A decision outcome commits its
   text and date together. The close/reload hook commits complete valid drafts
-  before saving; incomplete or invalid input remains pending, not saved.
+  before saving. Raw drafts, including incomplete or invalid input, are saved
+  separately after 1.5 seconds idle, or after 10 seconds of continuous typing.
+  These checkpoints add no undo steps. Reopen the same fields after reloading
+  to resume editing; the model and slide exports change only on validation.
+  Search filters and confirmation dialogs (such as renumbering) stay temporary UI state.
   Check the save status and keep JSON backups.
 - Undo/redo keeps up to 500 actions, additionally limited by a memory budget:
   **Ctrl+Z** / **Ctrl+Y**, or the top-bar arrows. Older entries are discarded.
@@ -158,7 +167,7 @@ projects, categories, review and free slides are replaced, while identity,
 theme, logo and display settings are kept. The file's language is adopted so
 generated slide labels match its content. Untick it to take the whole file.
 Changing the language manually changes interface and slide labels, never your
-written content. Demo links select the site's language only on first use;
+written content. Online editor links select the site's language only on first use;
 an already saved portfolio always takes precedence.
 
 ## Working together
@@ -195,18 +204,22 @@ only requests the app can make go to its own deployment, for a font you chose
 to serve from it (see **Font** above); opened from a file, it makes none at
 all.
 
-- **Local save (localStorage)** — on by default. The database and the
+- **Local save (localStorage)** — on by default. The database, raw drafts and
   undo/redo history are saved TOGETHER, under a single key, so an undo can
   never be replayed onto a document it does not belong to. Both survive a page
-  reload. Turning the save off erases the saved copy; the open database stays
+  reload. Checkpoints reduce crash losses but cannot guarantee zero loss: timers
+  can be delayed and a crash can precede the next write. Imports and structural
+  deletions discard obsolete drafts; edits and undo/redo of other fields preserve
+  unrelated drafts. Turning the save off erases the saved copy, including drafts; the open database stays
   intact until the tab closes.
 - **The save state, always on screen** — a line under the top bar says where
-  the document stands: saved in this browser, unsaved changes, typing not
-  recorded yet, or a problem. It never reads « saved » while a field holds
-  something the document has not taken up. If the browser refuses the write —
+  the document stands: saved in this browser, unsaved changes, draft pending,
+  draft saved, or a problem. A saved draft is not a validated document edit.
+  If the browser refuses the write —
   storage full, private browsing, a restricted profile — the line says so and
-  offers **Download a copy** on the spot. Your work is never lost for want of
-  a save you were not told about.
+  offers **Download a copy** for the validated document and **Download drafts**
+  for raw text not included in normal JSON exports. The latter is a rescue file
+  to read/copy manually, not an importable portfolio.
 - **The save switched off elsewhere** — the preference belongs to the browser,
   not to the tab. If another tab switches the local save off, yours stops
   writing and erases what it had already stored, says so and offers

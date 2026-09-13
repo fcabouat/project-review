@@ -29,7 +29,9 @@ export function createPersistenceControl(
   stored: StoredState = { state: 'absent' },
 ): PersistenceWiring {
   let revision = $state(0)
-  const drafts = createDraftRegistry()
+  const drafts = createDraftRegistry(
+    initiallyEnabled && stored.state === 'restored' ? stored.drafts : [],
+  )
   const session = createPersistenceSession(
     {
       get present() {
@@ -42,6 +44,7 @@ export function createPersistenceControl(
         return store.future
       },
       replace: (portfolio) => {
+        drafts.reset?.()
         store.dispatch({ type: 'ReplacePortfolio', portfolio })
       },
     },
@@ -89,8 +92,15 @@ export function createPersistenceControl(
     },
     scheduleSave: (portfolio, history) => {
       void canSchedule
-      session.scheduleSave(portfolio, history)
+      untrack(() => session.scheduleSave(portfolio, history))
     },
+    scheduleDrafts: () => {
+      void canSchedule
+      void drafts.snapshot
+      untrack(() => session.scheduleDrafts())
+    },
+    checkpoint: session.checkpoint,
+    dispose: session.dispose,
     flush: session.flush,
     noticeStoredChange: session.noticeStoredChange,
     get blocked() {

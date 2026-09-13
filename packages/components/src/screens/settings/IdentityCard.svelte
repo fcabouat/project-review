@@ -38,6 +38,7 @@
   <FieldText
     {language}
     label={te('editor.field.org', language)}
+    draftKey="identity.org"
     value={identity.org}
     commit={(v) => setIdentity('org', v)}
     required
@@ -45,6 +46,7 @@
   <FieldText
     {language}
     label={te('editor.field.unit', language)}
+    draftKey="identity.unit"
     value={identity.unit}
     commit={(v) => setIdentity('unit', v)}
     required
@@ -52,18 +54,21 @@
   <FieldText
     {language}
     label={te('editor.field.orgLong', language)}
+    draftKey="identity.orgLong"
     value={identity.orgLong}
     commit={(v) => setIdentity('orgLong', v)}
   />
   <FieldText
     {language}
     label={te('editor.field.unitLong', language)}
+    draftKey="identity.unitLong"
     value={identity.unitLong}
     commit={(v) => setIdentity('unitLong', v)}
   />
   <FieldText
     {language}
     label={te('editor.field.contact', language)}
+    draftKey="identity.contact"
     value={identity.contact}
     commit={(v) => setIdentity('contact', v)}
   />

@@ -68,18 +68,26 @@ describe('createDraftRegistry', () => {
     expect(typing.state.commits).toBe(1)
   })
 
-  it('a field that unmounts stops being counted, draft and all', () => {
-    // The strip would otherwise wait for ever on input that went away with
-    // the view holding it — a screen left mid-edit.
+  it('unmount removes the live callback but preserves a recoverable raw checkpoint', () => {
     const registry = createDraftRegistry()
     const typing = field('à moitié tapé', '')
     const forget = registry.register(typing.draft)
+    registry.checkpoint?.('title', '', 'à moitié tapé')
+    const snapshot = registry.snapshot
+    registry.checkpoint?.('title', '', 'à moitié tapé')
+    expect(registry.snapshot).toBe(snapshot) // identical echoes do not rearm the timer
+    expect(registry.generation).toBe(0)
     expect(registry.pending).toBe(true)
 
     forget()
-    expect(registry.pending).toBe(false)
+    expect(registry.pending).toBe(true)
+    expect(registry.recover?.('title', '')).toBe('à moitié tapé')
     registry.commitAll()
     expect(typing.state.commits).toBe(0)
+    registry.reset?.()
+    expect(registry.generation).toBe(1)
+    expect(registry.pending).toBe(false)
+    expect(registry.recover?.('title', '')).toBeUndefined()
   })
 
   it('unregistering one field leaves the others exactly where they were', () => {

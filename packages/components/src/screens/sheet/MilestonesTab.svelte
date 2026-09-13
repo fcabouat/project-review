@@ -8,11 +8,10 @@
   import type { Language } from '@project-review/core/model/theme'
   import type { ProjectScalarField } from '@project-review/core/events'
   import { te } from '../../i18n'
-  import FieldText, { useDrafts } from '../../editor/FieldText.svelte'
+  import FieldText from '../../editor/FieldText.svelte'
   import Icon from '../../commons/Icon.svelte'
   import { Button } from '../../commons/ui/button'
   import { Checkbox } from '../../commons/ui/checkbox'
-  import { Input } from '../../commons/ui/input'
   import type { Dispatch } from '../contracts'
 
   interface Props {
@@ -71,85 +70,28 @@
     setMilestones(project.milestones.map((m, i) => (i === index ? { ...m, ...patch } : m)))
   }
 
-  /* ---- the row inputs, and the draft they hold while someone types ---- */
-
-  /** The three texts of a milestone row — the columns of the grid below. */
-  type RowField = 'label' | 'date' | 'display'
-
-  /**
-   * WHAT IS TYPED IN A ROW AND NOT YET RECORDED. These three columns are not
-   * `FieldText`s — this is a five-column grid, with no room for a label or a
-   * counter — so they commit at blur off their own input, and the window
-   * between the keystroke and the blur is the same one `editor/drafts.ts`
-   * describes: unrecorded input the save state must not call « saved » and a
-   * closing page must commit.
-   *
-   * ONE CELL IS THE WHOLE OF IT, because only one of these inputs can ever be
-   * mid-edit: taking the focus elsewhere blurs the previous one, which commits
-   * it and clears this. Pinned by the built deliverable's smoke run («mid-edit:
-   * the milestone label survives the close as well»).
-   */
-  let typing = $state<{ index: number; field: RowField; raw: string } | undefined>(undefined)
-
-  /** What the model holds for one row column, as text. */
-  function held(index: number, field: RowField): string | undefined {
+  /** Each cell uses the shared draft field; invalid dates remain editable. */
+  function commitCell(
+    index: number,
+    field: 'label' | 'date' | 'display',
+    raw: string | undefined,
+  ): void {
     const milestone = project.milestones[index]
-    if (milestone === undefined) return undefined
-    return field === 'label'
-      ? milestone.label
-      : field === 'date'
-        ? milestone.date
-        : (milestone.display ?? '')
-  }
-
-  /**
-   * Commits the pending row draft, exactly as a blur does — the one path, so
-   * the blur and the closing page cannot record two different things.
-   * A REFUSED DATE KEEPS THE DRAFT: the text is genuinely not in the model,
-   * the row says why right under it, and forgetting it here would let the
-   * save state call the document complete while the entry is still only typed.
-   */
-  function commitTyping(): void {
-    const pending = typing
-    if (pending === undefined) return
-    const { index, field, raw } = pending
-    if (raw === held(index, field)) {
-      typing = undefined
-      return
-    }
-    if (field === 'label') {
-      patchMilestone(index, { label: raw })
-    } else if (field === 'display') {
-      patchMilestone(index, { display: raw || undefined })
-    } else {
-      const when = isoDate(raw)
+    if (!milestone || (milestone[field] ?? '') === (raw ?? '')) return
+    if (field === 'date') {
+      const when = isoDate(raw ?? '')
       if (when === undefined) {
         milestoneDateError = {
           index,
-          message: te('editor.error.invalidDate', language, { value: raw }),
+          message: te('editor.error.invalidDate', language, { value: raw ?? '' }),
         }
         return
       }
       milestoneDateError = undefined
       patchMilestone(index, { date: when })
-    }
-    typing = undefined
+    } else if (field === 'label') patchMilestone(index, { label: raw ?? '' })
+    else patchMilestone(index, { display: raw || undefined })
   }
-
-  /** Whether the row draft is something the model has not recorded — compared
-   * HERE, eagerly, and NOT as a $derived: the reader is the save strip, above
-   * this view, and `project` belongs to the view that mounted this tab, which
-   * has nothing to give while it is being left. `FieldText` carries the full
-   * reasoning next to its own; `editor/drafts.ts` states the rule. */
-  // eslint-disable-next-line svelte/prefer-writable-derived
-  let unrecorded = $state(false)
-  $effect(() => {
-    unrecorded = typing !== undefined && typing.raw !== held(typing.index, typing.field)
-  })
-
-  const drafts = useDrafts()
-  // Nothing reactive is read here: the two closures are the host's to call.
-  $effect(() => drafts?.register({ dirty: () => unrecorded, commit: commitTyping }))
 
   const MROW = 'grid grid-cols-[1.5fr_1fr_0.9fr_46px_34px] items-center gap-2.5'
 
@@ -184,6 +126,7 @@
     <FieldText
       {language}
       label={t('sheet.start', language)}
+      draftKey={JSON.stringify(['project', project.id, 'start'])}
       value={project.start}
       placeholder={te('editor.review.dateHint', language)}
       error={dateErrors.start}
@@ -192,6 +135,7 @@
     <FieldText
       {language}
       label={t('sheet.targetEnd', language)}
+      draftKey={JSON.stringify(['project', project.id, 'targetEnd'])}
       value={project.targetEnd}
       placeholder={te('editor.review.dateHint', language)}
       error={dateErrors.targetEnd}
@@ -200,6 +144,7 @@
     <FieldText
       {language}
       label={t('sheet.actualEnd', language)}
+      draftKey={JSON.stringify(['project', project.id, 'actualEnd'])}
       value={project.actualEnd}
       placeholder={te('editor.review.dateHint', language)}
       error={dateErrors.actualEnd}
@@ -223,41 +168,32 @@
       </div>
       {#each sortedMilestones as entry (entry.index)}
         <div class="{MROW} border-border border-b px-0.5 py-[7px] last:border-b-0">
-          <!-- Wholesale-replacement rule again: commit at blur ONLY on a real
-                   change — `decide` cannot dedup a whole milestones list, so a
-                   plain focus/blur would spend the redo stack. `oninput` is
-                   not a second commit path: it only makes the draft visible to
-                   the host (`commitTyping` above is the one path in). -->
-          <Input
-            class="h-8 text-[13px]"
-            value={entry.milestone.label}
-            aria-label={te('editor.sheet.milestoneLabel', language)}
-            oninput={(e) =>
-              (typing = { index: entry.index, field: 'label', raw: e.currentTarget.value })}
-            onblur={commitTyping}
-          />
-          <!-- A refused milestone date keeps the typed text and says why,
-               under the row: the format stores calendar dates only, and a
-               silent snap-back reads as the app eating the entry. -->
-          <Input
-            class="h-8 text-[13px] aria-invalid:border-destructive"
-            value={entry.milestone.date}
-            placeholder={te('editor.review.dateHint', language)}
-            aria-label={te('editor.sheet.milestoneDate', language)}
-            aria-invalid={milestoneDateError?.index === entry.index ? 'true' : undefined}
-            oninput={(e) =>
-              (typing = { index: entry.index, field: 'date', raw: e.currentTarget.value })}
-            onblur={commitTyping}
-          />
-          <Input
-            class="h-8 text-[13px]"
-            value={entry.milestone.display ?? ''}
-            placeholder="—"
-            aria-label={te('editor.sheet.milestoneDisplay', language)}
-            oninput={(e) =>
-              (typing = { index: entry.index, field: 'display', raw: e.currentTarget.value })}
-            onblur={commitTyping}
-          />
+          {#each ['label', 'date', 'display'] as const as field (field)}
+            <FieldText
+              {language}
+              compact
+              required={field !== 'display'}
+              value={entry.milestone[field]}
+              draftKey={JSON.stringify(['project', project.id, 'milestone', entry.index, field])}
+              ariaLabel={te(
+                field === 'label'
+                  ? 'editor.sheet.milestoneLabel'
+                  : field === 'date'
+                    ? 'editor.sheet.milestoneDate'
+                    : 'editor.sheet.milestoneDisplay',
+                language,
+              )}
+              error={field === 'date' && milestoneDateError?.index === entry.index
+                ? milestoneDateError.message
+                : undefined}
+              placeholder={field === 'date'
+                ? te('editor.review.dateHint', language)
+                : field === 'display'
+                  ? '—'
+                  : undefined}
+              commit={(raw) => commitCell(entry.index, field, raw)}
+            />
+          {/each}
           <span class="flex justify-center">
             <Checkbox
               checked={entry.milestone.done}
@@ -287,11 +223,6 @@
               n: entry.milestone.label.length,
               max: LABEL_MAX,
             })}
-          </p>
-        {/if}
-        {#if milestoneDateError?.index === entry.index}
-          <p class="text-destructive px-0.5 pb-[7px] text-[11.5px]" role="alert">
-            {milestoneDateError.message}
           </p>
         {/if}
       {:else}

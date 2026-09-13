@@ -79,6 +79,39 @@ export const PREF_KEY = 'project-review/local-save'
 /** Debounce of the automatic save. */
 export const SAVE_DELAY_MS = 500
 
+/** Draft checkpoints do not create domain events or undo steps. */
+export const DRAFT_IDLE_MS = 1_500
+export const DRAFT_MAX_WAIT_MS = 10_000
+
+/** Stable field identity, original value and raw (possibly invalid) input. */
+export interface DraftSnapshot {
+  readonly key: string
+  readonly base: string
+  readonly value: string
+}
+
+/** Untrusted checkpoints are bounded and never interpreted as portfolio data. */
+const readDrafts = (value: unknown): readonly DraftSnapshot[] | undefined => {
+  if (value === undefined) return [] // envelopes from before draft autosave
+  if (!Array.isArray(value) || value.length > 256) return undefined
+  const keys = new Set<string>()
+  for (const entry of value) {
+    if (typeof entry !== 'object' || entry === null) return undefined
+    const { key, base, value: raw } = entry as Partial<DraftSnapshot>
+    if (
+      typeof key !== 'string' ||
+      key.length === 0 ||
+      key.length > 512 ||
+      keys.has(key) ||
+      typeof base !== 'string' ||
+      typeof raw !== 'string'
+    )
+      return undefined
+    keys.add(key)
+  }
+  return value as DraftSnapshot[]
+}
+
 /** The one key the saved document lives under — envelope and all. */
 export const STATE_KEY = 'project-review/state'
 
@@ -210,6 +243,7 @@ export type StoredState =
       readonly stamp: StateStamp
       readonly portfolio: Portfolio
       readonly history: History
+      readonly drafts?: readonly DraftSnapshot[]
     }
   | { readonly state: 'unreadable'; readonly raw: string; readonly refusal: StateRefusal }
   | { readonly state: 'unavailable' }
@@ -238,11 +272,12 @@ export const readStored = (storage: KeyValueStorage | null): StoredState => {
   if (typeof envelope !== 'object' || envelope === null) {
     return { state: 'unreadable', raw, refusal: { ok: false, refusal: 'unknownFormat' } }
   }
-  const { format, revision, portfolio, history } = envelope as {
+  const { format, revision, portfolio, history, drafts } = envelope as {
     format?: unknown
     revision?: unknown
     portfolio?: unknown
     history?: unknown
+    drafts?: unknown
   }
   if (format !== STATE_FORMAT || !isRevision(revision)) {
     return { state: 'unreadable', raw, refusal: { ok: false, refusal: 'unknownFormat' } }
@@ -255,6 +290,10 @@ export const readStored = (storage: KeyValueStorage | null): StoredState => {
   const stamp = stampWith(revision, raw)
   const parsed = parsePortfolio(portfolio)
   if (!parsed.ok) return { state: 'unreadable', raw, refusal: parsed }
+  const checkpoints = readDrafts(drafts)
+  if (checkpoints === undefined) {
+    return { state: 'unreadable', raw, refusal: { ok: false, refusal: 'unknownFormat' } }
+  }
   return {
     state: 'restored',
     stamp,
@@ -263,6 +302,7 @@ export const readStored = (storage: KeyValueStorage | null): StoredState => {
     // whole if any part of it fails: stored events are ordinary text, and one
     // that reached `invert` misshapen would crash the first Undo.
     history: decodeHistory(history),
+    drafts: checkpoints,
   }
 }
 
@@ -289,7 +329,9 @@ export const writeState = (
   expected: StateStamp | null,
   portfolio: Portfolio,
   history: History,
+  drafts: readonly DraftSnapshot[] = [],
 ): WriteOutcome => {
+  if (readDrafts(drafts) === undefined) return { outcome: 'refused' }
   const read = readKey(storage, STATE_KEY)
   // A storage that will not be READ cannot be compared against, and a write
   // that skips the comparison is the blind overwrite this module exists to
@@ -304,7 +346,7 @@ export const writeState = (
   // `format` and `revision` first: `storedStamp` reads them off the head of
   // this very text without parsing the document that follows.
   const envelope = (log: History): string =>
-    JSON.stringify({ format: STATE_FORMAT, revision, portfolio, history: log })
+    JSON.stringify({ format: STATE_FORMAT, revision, portfolio, history: log, drafts })
 
   /** Keep references when under the cap, so an unchanged state does not look dirty. */
   const capped = (log: History): History =>

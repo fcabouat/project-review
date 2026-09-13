@@ -425,6 +425,7 @@
          one embedded in the portfolio below. No third party is ever asked. -->
     <FieldText
       {language}
+      draftKey="theme.font"
       value={settings.theme.font}
       ariaLabel={te('editor.setting.font', language)}
       hint={te('editor.settings.fontHint', language)}

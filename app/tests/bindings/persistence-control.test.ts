@@ -12,6 +12,8 @@ import {
 import {
   PREF_KEY,
   SAVE_DELAY_MS,
+  DRAFT_IDLE_MS,
+  DRAFT_MAX_WAIT_MS,
   STATE_KEY,
   clearStored,
   loadPersistEnabled,
@@ -99,6 +101,136 @@ const effect = (wiring: PersistenceWiring, store: Store): void =>
 const editTitle = (store: Store, title: string): void => {
   store.dispatch({ type: 'ChangeReviewField', field: 'title', after: title })
 }
+
+describe('raw draft checkpoints', () => {
+  const setup = () => {
+    const storage = createMemoryStorage()
+    const store = createStore(testPortfolio())
+    const wiring = createPersistenceControl(store, storage, true, timeoutScheduler)
+    effect(wiring, store)
+    vi.advanceTimersByTime(SAVE_DELAY_MS)
+    const type = (text: string | undefined) => {
+      wiring.drafts.checkpoint?.('review.title', store.present.review.title, text)
+      wiring.scheduleDrafts()
+    }
+    return { storage, store, wiring, type }
+  }
+
+  it('checkpoints idle typing without events; a fresh session recovers it without pagehide', () => {
+    const { storage, store, wiring, type } = setup()
+    type('Unfinished text')
+    expect(wiring.control.save?.phase).toBe('pending')
+    vi.advanceTimersByTime(DRAFT_IDLE_MS - 1)
+    expect(JSON.parse(storage.getItem(STATE_KEY)!).drafts).toEqual([])
+    vi.advanceTimersByTime(1)
+    expect(wiring.control.save?.phase).toBe('draftSaved')
+    expect(store.past).toHaveLength(0)
+    expect(storedTitle(storage)).toBe(store.present.review.title)
+    wiring.dispose() // simulated crash: no commitAll / flush
+    const recovered = bootedOn(storage, readStored(storage))
+    expect(recovered.wiring.drafts.recover?.('review.title', store.present.review.title)).toBe(
+      'Unfinished text',
+    )
+    expect(recovered.store.past).toHaveLength(0)
+    editTitle(recovered.store, 'Unfinished text')
+    recovered.wiring.drafts.checkpoint?.('review.title', 'Unfinished text', undefined)
+    effect(recovered.wiring, recovered.store)
+    vi.advanceTimersByTime(SAVE_DELAY_MS)
+    expect(recovered.store.past).toHaveLength(1)
+    expect(JSON.parse(storage.getItem(STATE_KEY)!).drafts).toEqual([])
+    recovered.store.undo()
+    expect(recovered.store.present.review.title).toBe(store.present.review.title)
+  })
+
+  it('bounds continuous typing at ten seconds and saves on hiding without committing', () => {
+    const { storage, store, wiring, type } = setup()
+    for (let elapsed = 0; elapsed < DRAFT_MAX_WAIT_MS; elapsed += 1000) {
+      type(`text ${elapsed}`)
+      vi.advanceTimersByTime(1000)
+    }
+    expect(JSON.parse(storage.getItem(STATE_KEY)!).drafts[0].value).toBe('text 9000')
+    expect(store.past).toHaveLength(0)
+    type('last hidden-page input')
+    wiring.checkpoint()
+    expect(JSON.parse(storage.getItem(STATE_KEY)!).drafts[0].value).toBe('last hidden-page input')
+    expect(store.past).toHaveLength(0)
+  })
+
+  it('retains invalid raw input but refuses stale bases, and reset clears dormant drafts', () => {
+    const { storage, wiring } = setup()
+    wiring.drafts.checkpoint?.('date', '2026-09-13', '2026-0')
+    wiring.scheduleDrafts()
+    vi.advanceTimersByTime(DRAFT_IDLE_MS)
+    const recovered = bootedOn(storage, readStored(storage)).wiring
+    expect(recovered.drafts.recover?.('date', '2026-09-13')).toBe('2026-0')
+    expect(recovered.drafts.recover?.('date', '2026-09-14')).toBeUndefined()
+    recovered.drafts.reset?.()
+    recovered.scheduleDrafts()
+    vi.advanceTimersByTime(DRAFT_IDLE_MS)
+    expect(JSON.parse(storage.getItem(STATE_KEY)!).drafts).toEqual([])
+    expect(recovered.drafts.pending).toBe(false)
+  })
+
+  it('guards draft timers against opt-out and other tabs, including draft-only conflicts', () => {
+    const { storage, wiring, type } = setup()
+    const other = bootedOn(storage, readStored(storage)).wiring
+    type('first tab')
+    vi.advanceTimersByTime(DRAFT_IDLE_MS)
+    const firstRaw = storage.getItem(STATE_KEY)
+    other.drafts.checkpoint?.('review.title', testPortfolio().review.title, 'second tab')
+    other.scheduleDrafts()
+    vi.advanceTimersByTime(DRAFT_IDLE_MS)
+    expect(other.control.save?.phase).toBe('conflict')
+    expect(storage.getItem(STATE_KEY)).toBe(firstRaw)
+    other.control.takeStored()
+    expect(other.drafts.recover?.('review.title', testPortfolio().review.title)).toBe('first tab')
+    type('must not reappear')
+    wiring.control.toggle(false)
+    vi.advanceTimersByTime(DRAFT_MAX_WAIT_MS)
+    expect(storage.getItem(STATE_KEY)).toBeNull()
+    other.noticeStoredChange()
+    expect(other.control.save?.phase).toBe('off')
+  })
+
+  it('reports a refused draft write and does not damage the last good envelope', () => {
+    const { storage, store, wiring, type } = setup()
+    const before = storage.getItem(STATE_KEY)
+    const original = storage.setItem
+    storage.setItem = () => {
+      throw new Error('quota')
+    }
+    type('still in memory')
+    vi.advanceTimersByTime(DRAFT_IDLE_MS)
+    expect(wiring.control.save?.phase).toBe('error')
+    expect(storage.getItem(STATE_KEY)).toBe(before)
+    expect(wiring.drafts.recover?.('review.title', store.present.review.title)).toBe(
+      'still in memory',
+    )
+    storage.setItem = original
+    wiring.checkpoint()
+    expect(wiring.control.save?.phase).toBe('draftSaved')
+  })
+
+  it('protects malformed checkpoints and rejects oversized envelopes instead of dropping raw input', () => {
+    const { storage, store } = setup()
+    const envelope = JSON.parse(storage.getItem(STATE_KEY)!)
+    for (const drafts of [
+      [{ key: 'x', base: '', value: 3 }],
+      Array(257).fill({ key: 'x', base: '', value: 'a' }),
+    ]) {
+      storage.setItem(STATE_KEY, JSON.stringify({ ...envelope, drafts }))
+      expect(readStored(storage).state).toBe('unreadable')
+    }
+    storage.setItem(STATE_KEY, JSON.stringify(envelope))
+    const before = storage.getItem(STATE_KEY)
+    expect(
+      writeState(storage, storedStamp(storage), store.present, emptyHistory, [
+        { key: 'x', base: '', value: 'x'.repeat(4_100_000) },
+      ]).outcome,
+    ).toBe('refused')
+    expect(storage.getItem(STATE_KEY)).toBe(before)
+  })
+})
 
 describe('createPersistenceControl', () => {
   it('toggle(on) on an empty storage writes the whole envelope right away', () => {

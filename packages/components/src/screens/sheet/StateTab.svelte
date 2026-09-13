@@ -142,6 +142,7 @@
     <FieldText
       {language}
       label={te('editor.field.lead', language)}
+      draftKey={JSON.stringify(['project', project.id, 'lead'])}
       value={project.lead}
       capacity="projectPerson"
       commit={(v) => set('lead', v)}
@@ -149,6 +150,7 @@
     <FieldText
       {language}
       label={te('editor.field.sponsor', language)}
+      draftKey={JSON.stringify(['project', project.id, 'sponsor'])}
       value={project.sponsor}
       capacity="projectPerson"
       commit={(v) => set('sponsor', v)}
@@ -156,6 +158,7 @@
     <FieldText
       {language}
       label={te('editor.field.scope', language)}
+      draftKey={JSON.stringify(['project', project.id, 'scope'])}
       value={project.scope}
       hint={te('editor.hint.scope', language)}
       commit={(v) => set('scope', v)}
@@ -163,6 +166,7 @@
     <FieldText
       {language}
       label={te('editor.field.goal', language)}
+      draftKey={JSON.stringify(['project', project.id, 'goal'])}
       value={project.goal}
       rows={3}
       hint={te('editor.hint.goal', language)}
@@ -171,6 +175,7 @@
     <FieldText
       {language}
       label={te('editor.field.budget', language)}
+      draftKey={JSON.stringify(['project', project.id, 'budget'])}
       value={project.budget}
       hint={te('editor.hint.budget', language)}
       commit={(v) => set('budget', v)}

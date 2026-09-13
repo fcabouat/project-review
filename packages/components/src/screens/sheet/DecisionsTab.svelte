@@ -22,10 +22,12 @@
   }
 
   let { project, language, dispatch }: Props = $props()
+  const drafts = useDrafts()
 
   // The acknowledged list is also the base of consecutive synchronous commits
   // during pagehide, before props have echoed the preceding command.
   let owner = untrack(() => project.id)
+  let generation = untrack(() => drafts?.generation)
   let held = $state.raw(untrack(() => project.decisions))
   let outcomes = $state.raw<readonly OutcomeDraft[]>(
     untrack(() => held.map((d) => outcomeDraft(d.taken))),
@@ -34,11 +36,39 @@
   $effect(() => {
     const id = project.id
     const decisions = project.decisions
+    const nextGeneration = drafts?.generation
+    const raw = drafts?.recover?.(
+      JSON.stringify(['project', id, 'outcomes']),
+      JSON.stringify(decisions),
+    )
     untrack(() => {
-      if (id === owner && decisions === held) return
+      if (id === owner && decisions === held && nextGeneration === generation && raw === undefined)
+        return
+      generation = nextGeneration
       owner = id
       held = decisions
       outcomes = decisions.map((d) => outcomeDraft(d.taken))
+      if (raw !== undefined) {
+        try {
+          const parsed: unknown = JSON.parse(raw)
+          if (
+            Array.isArray(parsed) &&
+            parsed.length === decisions.length &&
+            parsed.every(
+              (one: unknown) =>
+                typeof one === 'object' &&
+                one !== null &&
+                'text' in one &&
+                typeof one.text === 'string' &&
+                'when' in one &&
+                typeof one.when === 'string',
+            )
+          )
+            outcomes = parsed as OutcomeDraft[]
+        } catch {
+          /* A malformed local draft never becomes a domain value. */
+        }
+      }
     })
   })
 
@@ -82,7 +112,13 @@
   $effect(() => {
     unrecorded = outcomes.some((draft, index) => !matchesOutcome(draft, held[index]?.taken))
   })
-  const drafts = useDrafts()
+  $effect(() =>
+    drafts?.checkpoint?.(
+      JSON.stringify(['project', project.id, 'outcomes']),
+      JSON.stringify(held),
+      unrecorded ? JSON.stringify(outcomes) : undefined,
+    ),
+  )
   $effect(() => drafts?.register({ dirty: () => unrecorded, commit: commitOutcomes }))
 </script>
 
@@ -113,6 +149,7 @@
         {language}
         label={te('editor.sheet.question', language)}
         value={decision.question}
+        draftKey={JSON.stringify(['project', project.id, 'decision', index, 'question'])}
         rows={2}
         capacity="decisionQuestion"
         hint={te('editor.hint.question', language)}
@@ -123,6 +160,7 @@
         {language}
         label={te('editor.sheet.decider', language)}
         value={decision.decider}
+        draftKey={JSON.stringify(['project', project.id, 'decision', index, 'decider'])}
         capacity="decisionDecider"
         hint={te('editor.hint.decider', language)}
         commit={(v) => patchDecision(index, { decider: v })}
@@ -139,6 +177,7 @@
             {language}
             label={te('editor.sheet.takenText', language)}
             value={outcomes[index]?.text ?? ''}
+            draftKey={JSON.stringify(['project', project.id, 'decision', index, 'text'])}
             required
             placeholder="—"
             commit={(v) => patchOutcome(index, { text: v ?? '' })}
@@ -147,6 +186,7 @@
             {language}
             label={te('editor.sheet.takenWhen', language)}
             value={outcomes[index]?.when ?? ''}
+            draftKey={JSON.stringify(['project', project.id, 'decision', index, 'when'])}
             required
             placeholder={te('editor.review.dateHint', language)}
             error={readings[index]?.ok === false && readings[index]?.reason === 'invalidDate'

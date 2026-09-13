@@ -36,6 +36,7 @@ export function siteNav(lang: Language, section: Section, depth = 0): string {
       </svg>project-review
     </a>
     <nav class="pr-site-links" aria-label="${lang === 'fr' ? 'Navigation du site' : 'Site navigation'}">
+      ${link(`demo/project-review.html?lang=${lang}`, lang === 'fr' ? 'Utiliser' : 'Open app', false)}
       ${link(`${home}#examples`, lang === 'fr' ? 'Exemples' : 'Examples', false)}
       ${link('overview.html', lang === 'fr' ? 'Architecture (EN)' : 'Overview', section === 'overview')}
       ${link(`guide/${lang}.html`, lang === 'fr' ? 'Guide' : 'User guide', section === 'guide')}

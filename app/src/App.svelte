@@ -58,6 +58,10 @@
   import { applyCustomPalette } from '@project-review/infrastructure/palette'
   import { saveStandalone } from '@project-review/infrastructure/dom-export'
   import { MediaQuery } from 'svelte/reactivity'
+  import { flushSync, onDestroy } from 'svelte'
+  import type { Command } from '@project-review/core/commands'
+  import type { DomainEvent } from '@project-review/core/events'
+  import { invert } from '@project-review/core/events/invert'
   import { createStore } from './bindings/runtime.svelte'
   import { createRouter } from './bindings/route.svelte'
   import { createPersistenceControl } from './bindings/persistence-control.svelte'
@@ -118,7 +122,7 @@
       // it cannot describe another document.
       return { portfolio: storedState.portfolio, log: storedState.history }
     }
-    // `?sample` — the landing's « Try it » link: a full demo on the first
+    // `?sample` — the optional example-data link: a full sample on the first
     // click. `main.ts` already applied the whole policy (URL asks, nothing
     // stored, neighbour file fetched and strictly parsed) before mounting.
     if (sampleBoot) return { portfolio: sampleBoot }
@@ -139,6 +143,39 @@
     timeoutScheduler,
     storedState,
   )
+  // Explicit document/history choices win over old raw input, including when
+  // an imported field happens to equal the previous model value.
+  function clearDrafts(prefix?: readonly string[]): void {
+    const start = prefix === undefined ? undefined : JSON.stringify(prefix).slice(0, -1) + ','
+    persistence.drafts.reset?.(
+      start === undefined
+        ? []
+        : persistence.drafts.snapshot?.filter((draft) => !draft.key.startsWith(start)),
+    )
+  }
+  function invalidateDrafts(event: DomainEvent | undefined): void {
+    if (event?.type === 'PortfolioReplaced' || event?.type === 'ProjectsMerged') clearDrafts()
+    if (event?.type === 'ProjectDeleted') clearDrafts(['project', event.project.id])
+    if (event?.type === 'ProjectRenumbered') clearDrafts(['project', event.oldId])
+    if (event?.type === 'CategoryDeleted') clearDrafts(['category', event.category.id])
+    if (event?.type === 'FreeSlideDeleted') clearDrafts(['slide', event.slide.id])
+    // These collections have positional rows, not permanent row IDs.
+    if (
+      (event?.type === 'ProjectMilestonesChanged' || event?.type === 'ProjectDecisionsChanged') &&
+      event.before.length !== event.after.length
+    )
+      clearDrafts(['project', event.id])
+  }
+  function dispatch(command: Command) {
+    const event = store.dispatch(command)
+    invalidateDrafts(event)
+    return event
+  }
+  function moveHistory(move: () => void, event: DomainEvent | undefined): void {
+    move()
+    invalidateDrafts(event)
+  }
+  onDestroy(persistence.dispose)
   const appearance = createAppearance(storage)
   const systemDark = new MediaQuery('(prefers-color-scheme: dark)')
   const fontStatus = createFontStatus((family) => probeFont(family))
@@ -165,6 +202,7 @@
   $effect(() => {
     persistence.scheduleSave(store.present, { past: store.past, future: store.future })
   })
+  $effect(() => persistence.scheduleDrafts())
 
   // The other tab wrote: the browser says so on this very document. Hearing it
   // turns a conflict into something the user is TOLD about, instead of
@@ -231,11 +269,17 @@
   })
 </script>
 
-<!-- The last reliable signal of a page's life, and the whole closing write
-     hangs off it: the wiring commits what is typed and not yet recorded, then
-     writes the state that results, synchronously (see `flush`). Nothing here
-     may wait for another effect — there is none. -->
-<svelte:window onpagehide={() => persistence.flush()} />
+<!-- Lifecycle hooks complement the periodic checkpoint: neither is guaranteed
+     after a crash. Settle field effects synchronously before the final write. -->
+<svelte:window onpagehide={persistence.flush} />
+<svelte:document
+  onvisibilitychange={() => {
+    if (document.visibilityState === 'hidden') {
+      flushSync()
+      persistence.checkpoint()
+    }
+  }}
+/>
 
 {#if printMode}
   <PrintView portfolio={store.present} />
@@ -256,9 +300,12 @@
     future={store.future}
     canUndo={store.canUndo}
     canRedo={store.canRedo}
-    dispatch={store.dispatch}
-    undo={store.undo}
-    redo={store.redo}
+    {dispatch}
+    undo={() => {
+      const event = store.past.at(-1)
+      moveHistory(store.undo, event === undefined ? undefined : invert(event))
+    }}
+    redo={() => moveHistory(store.redo, store.future[0])}
     route={router.route}
     navigate={router.navigate}
     replaceRoute={router.replace}
