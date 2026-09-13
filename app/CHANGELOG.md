@@ -1,5 +1,14 @@
 # @project-review/app
 
+## 0.2.1
+
+### Patch Changes
+
+- Updated dependencies [4421a31]
+  - @project-review/components@0.2.1
+  - @project-review/core@0.2.1
+  - @project-review/infrastructure@0.2.1
+
 ## 0.2.0
 
 ### Minor Changes
