@@ -52,8 +52,17 @@ test('release preparation requires explicit dispatch while main publication reta
   assert.equal(check('develop', 'workflow_dispatch', true), true)
   assert.equal(check('develop', 'pull_request', true), false)
   assert.equal(check('release/0.2.1', 'workflow_dispatch', true), false)
-  assert.equal(check('main', 'push'), false)
-  assert.equal(check('main', 'push', false, { ...needs, deploy: { result: 'success' } }), true)
+  // No DAG dependency on Pages: publishing need not even wait for deployment.
+  assert.match(ci.split('\n  release:\n')[1], /^\s+needs: \[verify, codeql\]/)
+  for (const result of ['success', 'failure', 'skipped', 'cancelled']) {
+    assert.equal(check('main', 'push', false, { ...needs, deploy: { result } }), true)
+  }
+  assert.equal(check('main', 'workflow_dispatch'), true)
+  for (const gate of ['verify', 'codeql']) {
+    for (const result of ['failure', 'skipped', 'cancelled']) {
+      assert.equal(check('main', 'push', false, { ...needs, [gate]: { result } }), false)
+    }
+  }
   assert.equal(
     check('develop', 'workflow_dispatch', true, { ...needs, verify: { result: 'failure' } }),
     false,

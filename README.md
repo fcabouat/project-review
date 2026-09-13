@@ -182,7 +182,7 @@ its version and updating its changelog. No pending changesets may reach main.
 
 On bot-created PRs, click **Approve workflows to run** when requested. Once
 checks are green, use **Create a merge commit**. Main CI verifies delivery-PR
-provenance before deployment; CI, CodeQL and Pages must succeed before creating
+provenance before deployment; CI and CodeQL must succeed before creating
 the immutable `vX.Y.Z` tag and GitHub release. A second PR brings the published
 release branch back into `develop`; merge it the same way, then delete the
 branch. If GitHub auto-deleted it after the first merge, automation restores
@@ -206,8 +206,10 @@ One-time GitHub setup:
   **rebase merging**, and do not require linear history.
   **Rebase and merge** is allowed for feature PRs; delivery and backport PRs
   require **Create a merge commit**. Keep both methods available in GitHub.
-- Enable Pages from Actions, `PAGES_ENABLED=true`, and allow `main` in the
-  `github-pages` environment. Without successful deployment, no release is made.
+- For online deployment, enable Pages from Actions, set `PAGES_ENABLED=true`,
+  and allow `main` in the `github-pages` environment. Pages is optional and
+  independent of the tag/release: a disabled or failed deployment does not
+  block publication of the validated software.
 - Allow Actions to create PRs in **Settings → Actions → General**. The workflow
   never approves or merges them. [Changesets CLI](https://changesets.dev/guide/cli).
 
@@ -218,6 +220,10 @@ No personal access token or npm credentials are needed. The built-in
 Each publication attempt reports verification, CodeQL, Pages and release status
 separately in the workflow summary. Preparation may succeed without opening a
 PR when there are no pending changesets or a delivery is already active.
+The release and Pages jobs run independently after their validation gates.
+A Pages failure remains visible as a workflow failure, even if the release
+was published successfully; rerun the failed deployment jobs. Never infer
+that the online site is up to date from the existence of a release alone.
 
 On transient failure, rerun the failed jobs. A workflow correction requires a
 new run using the corrected commit; rerunning the old job keeps its old code.
