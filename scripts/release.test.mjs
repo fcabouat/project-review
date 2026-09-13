@@ -21,6 +21,15 @@ const run = new (Object.getPrototypeOf(async function () {}).constructor)(
 
 test('release preparation requires explicit dispatch while main publication retains its gates', () => {
   const ci = readFileSync(new URL('../.github/workflows/ci.yml', import.meta.url), 'utf8')
+  // Work branches are checked through their PR, not a duplicate push run.
+  assert.equal(
+    ci.split('  push:\n')[1].split('  pull_request:')[0].trim(),
+    'branches: [main, develop]',
+  )
+  assert.equal(
+    ci.split('  pull_request:\n')[1].split('  workflow_dispatch:')[0].trim(),
+    'types: [opened, synchronize, reopened, edited]',
+  )
   const expression = ci
     .split('\n  release:\n')[1]
     .split('if: >-\n')[1]
