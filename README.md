@@ -167,6 +167,11 @@ fail. Empty changesets are valid for non-release changes. Package versions
 must remain unchanged on feature PRs. Dependabot PRs may target `develop`
 without a changeset; they ship with the next planned release.
 
+Push-triggered CI runs only on `main` and `develop`. Feature, release, hotfix
+and Dependabot branches are checked through their pull requests, avoiding
+duplicate push/PR runs. Manual runs remain available; full browser/site
+validation runs on integration-branch pushes and manual runs.
+
 Merging features into develop does **not** prepare or publish a release.
 When ready, open **Actions → Verify and publish → Run workflow**, select
 **develop**, and check **prepare_release**. Without this explicit input,

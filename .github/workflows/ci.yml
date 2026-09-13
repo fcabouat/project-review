@@ -2,7 +2,7 @@ name: Verify and publish
 # Read-only validation; browser/site checks run on pushes and manual runs.
 on:
   push:
-    branches: [main, develop, 'release/**', 'hotfix/**']
+    branches: [main, develop]
   pull_request:
     types: [opened, synchronize, reopened, edited]
   workflow_dispatch:
