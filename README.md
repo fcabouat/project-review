@@ -1,7 +1,8 @@
 # project-review
 
-A project-portfolio review app: use it online through GitHub Pages, or open
-one standalone HTML file offline. No account or installation required.
+A project-portfolio review app: try the live demo, or open one standalone HTML
+file offline. Online use with your own data has security limits described below.
+No account or installation required.
 
 [![CI](https://github.com/fcabouat/project-review/actions/workflows/ci.yml/badge.svg)](https://github.com/fcabouat/project-review/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -14,8 +15,10 @@ carry your own narrative.
 
 ## Use the app
 
-- [Use online](https://fcabouat.github.io/project-review/demo/project-review.html?lang=en)
-  — the full editor on GitHub Pages, for everyday use. Your portfolio stays in your browser.
+- [Live demo](https://fcabouat.github.io/project-review/demo/project-review.html?sample&lang=en)
+  — explore with fictional data; existing saved work takes precedence.
+- [Use online — see security limits](#online-security)
+  — the full editor, with the shared-origin limitations described below.
 - [Download the standalone version](https://fcabouat.github.io/project-review/demo/project-review.html)
   — save and double-click. Approximately 1.7 MB, fonts and runtime included.
 - [Project site](https://fcabouat.github.io/project-review/) — guides, component
@@ -32,6 +35,28 @@ Both deployment options provide the same editor. Browser storage is local to
 its origin/profile (and can behave differently for local files), not an online
 account: use JSON export/import to move between deployments or devices. Keep
 backups. The historical `/demo/` URL remains unchanged to preserve existing links.
+
+<a id="online-security"></a>
+
+### Online use: security warning
+
+Pages under `fcabouat.github.io` share an origin, regardless of repository path.
+A compromised script on another site of that origin could read your portfolio,
+history and drafts in the same browser profile. This does **not** make your data
+public, but browser-local storage is not isolation between these sites.
+Do not enter confidential data on this shared deployment: prefer the offline
+file or a trusted deployment on an origin dedicated to the application, separate
+from other apps and documentation catalogs. Changing the path or storage key is
+not sufficient. Keep JSON backups; the offline file still relies on your device
+and browser security.
+
+The app does not upload portfolio contents or use application telemetry.
+Online hosting does receive requests to serve files; GitHub Pages logs visitor
+IP addresses for security. See [GitHub Pages privacy](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages#data-collection)
+and [browser storage isolation](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
+
+[Open the online editor](https://fcabouat.github.io/project-review/demo/project-review.html?lang=en)
+for non-confidential data.
 
 ### Watch example slides
 

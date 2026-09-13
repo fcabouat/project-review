@@ -65,6 +65,7 @@
   import { createStore } from './bindings/runtime.svelte'
   import { createRouter } from './bindings/route.svelte'
   import { createPersistenceControl } from './bindings/persistence-control.svelte'
+  import { remapCollectionDrafts } from './bindings/collection-drafts'
   import { createAppearance } from './bindings/appearance.svelte'
   import { createFontStatus } from './bindings/font-status.svelte'
   import { detectLanguage } from './sample-boot'
@@ -164,7 +165,7 @@
       (event?.type === 'ProjectMilestonesChanged' || event?.type === 'ProjectDecisionsChanged') &&
       event.before.length !== event.after.length
     )
-      clearDrafts(['project', event.id])
+      persistence.drafts.reset?.(remapCollectionDrafts(persistence.drafts.snapshot ?? [], event))
   }
   function dispatch(command: Command) {
     const event = store.dispatch(command)
