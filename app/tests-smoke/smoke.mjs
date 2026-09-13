@@ -858,6 +858,39 @@ async function main() {
     )
     await mid.close()
 
+    // All positions stay editable in Review; changing an anchor must not hide a slide.
+    const organization = await browser.newContext({ locale: 'fr-FR' })
+    const op = await organization.newPage()
+    await op.goto(`${HTTP_APP}?sample#/review`)
+    await settle(op)
+    const anchors = op.getByRole('button', { name: 'Ancre', exact: true })
+    await op.waitForFunction(() => localStorage.getItem('project-review/state') !== null)
+    const freeSlideCount = await op.evaluate(
+      () => JSON.parse(localStorage.getItem('project-review/state')).portfolio.freeSlides.length,
+    )
+    check((await anchors.count()) === freeSlideCount, 'Review lists free slides at every position')
+    await anchors.first().click()
+    await op.getByRole('option', { name: 'clôture', exact: true }).click()
+    await settle(op)
+    check(
+      (await anchors.count()) === freeSlideCount,
+      'changing a slide to closing keeps its editor visible',
+    )
+    await op.reload()
+    await settle(op)
+    check(
+      (await anchors.first().innerText()).includes('clôture'),
+      'free-slide position survives reload',
+    )
+    await op.goto(`${HTTP_APP}#/settings`)
+    await settle(op)
+    check((await anchors.count()) === 0, 'Settings no longer duplicates free-slide editors')
+    check(
+      await op.getByRole('heading', { name: 'Apparence des slides', exact: true }).isVisible(),
+      'slide appearance has its own section in Settings',
+    )
+    await organization.close()
+
     /* ---- 13. AN IMPORT UNDONE INSIDE THE SAVE DELAY. Undoing a whole-
        document replacement puts the previous portfolio BACK — the very object
        that was saved — while moving both stacks. The write armed for the
@@ -1028,7 +1061,7 @@ async function main() {
     await settle(edge)
     check(await edge.getByRole('dialog').isVisible(), 'group keys: export dialog mounts too')
     await edge.keyboard.press('Escape')
-    await edge.goto(`${HTTP_APP}#/settings`)
+    await edge.goto(`${HTTP_APP}#/review`)
     await settle(edge)
     await edge.getByLabel('Ancre', { exact: true }).click()
     await edge.getByRole('option', { name: /avant.*Catégorie Opening/ }).click()

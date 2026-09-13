@@ -237,6 +237,10 @@ export const EDITOR_CATALOG = {
   'editor.review.title': { fr: 'Revue', en: 'Review' },
   'editor.review.identity': { fr: 'Identité', en: 'Identity' },
   'editor.review.freeSlides': { fr: 'Slides libres', en: 'Free slides' },
+  'editor.review.freeSlidesHint': {
+    fr: 'Toutes les slides libres se gèrent ici. Choisissez leur position ; les flèches règlent leur ordre à une même position.',
+    en: 'Manage all free slides here. Choose their position; arrows reorder slides at the same position.',
+  },
   'editor.review.dateHint': { fr: 'AAAA-MM-JJ', en: 'YYYY-MM-DD' },
   'editor.review.noFreeSlide': { fr: 'Aucune slide libre.', en: 'No free slide.' },
 
@@ -288,7 +292,6 @@ export const EDITOR_CATALOG = {
   'editor.settings.appearance': { fr: 'Apparence', en: 'Appearance' },
   'editor.settings.aggregates': { fr: 'Diaporama', en: 'Slideshow' },
   'editor.settings.categories': { fr: 'Catégories', en: 'Categories' },
-  'editor.settings.freeSlides': { fr: 'Slides libres', en: 'Free slides' },
   'editor.settings.color': { fr: 'Couleur', en: 'Colour' },
   /* The 12 category colors of the data contract — the ADT values are
      code names, never shown raw. */
@@ -354,13 +357,13 @@ export const EDITOR_CATALOG = {
     en: 'The .woff2 files travel inside the .json: the font follows the portfolio, standalone export included.',
   },
   /* ---- portfolio identity: the three assets the .json carries ---- */
-  'editor.settings.portfolioIdentity': {
-    fr: 'Identité du portefeuille',
-    en: 'Portfolio identity',
+  'editor.settings.slideAppearance': {
+    fr: 'Apparence des slides',
+    en: 'Slide appearance',
   },
   'editor.settings.identityHint': {
-    fr: `Palette, police et logo voyagent dans le fichier .json${NBSP}: ils suivent le portefeuille partout, export autonome et impression compris — sans déploiement et sans réseau.`,
-    en: 'Palette, font and logo travel inside the .json file: they follow the portfolio everywhere, standalone export and printing included — no deployment, no network.',
+    fr: `Thème, palette, police et logo voyagent dans le fichier .json${NBSP}: ils suivent le portefeuille, export autonome et impression compris.`,
+    en: 'Slide theme, palette, font and logo travel inside the .json file: they follow the portfolio, standalone export and printing included.',
   },
   /* ONE licence line for the three — they raise the same question, and
      answering it three times would only make it easier to skip. It says what

@@ -16,7 +16,7 @@
  *   {en,fr}-navigation.png     #/settings — the slideshow settings card
  *   {en,fr}-import-merge.png   the import dialog, merge mode, counted preview
  *   {en,fr}-slide.png          the slideshow, opened on the P-01 sheet slide
- *   {en,fr}-embedded-font.png  Appearance ▸ Portfolio identity, all three
+ *   {en,fr}-embedded-font.png  Appearance ▸ Slide appearance, all three
  *                              carried assets present at once
  *
  * USAGE — the deliverable first, the pictures second:
@@ -116,7 +116,7 @@ const LABEL = {
   },
   previewSlide: { en: 'Preview the slide', fr: 'Aperçu de la slide' },
   openSlideshow: { en: 'Open the slideshow here', fr: 'Ouvrir le diaporama ici' },
-  identity: { en: 'Portfolio identity', fr: 'Identité du portefeuille' },
+  identity: { en: 'Slide appearance', fr: 'Apparence des slides' },
   houseColours: { en: 'House colours', fr: 'Couleurs maison' },
   projectsTotal: {
     en: `${SAMPLE_PROJECTS} projects`,
@@ -312,7 +312,7 @@ const staging = (language, sample, faces) => ({
 })
 
 /**
- * Where the card's identity half starts: the « Portfolio identity » heading,
+ * Where the document appearance section starts: the « Slide appearance » heading,
  * read from the live DOM rather than hard-coded, so the framing follows the
  * card instead of a pixel someone once measured.
  */

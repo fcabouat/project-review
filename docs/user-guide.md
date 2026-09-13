@@ -48,11 +48,12 @@ link (`?sample`) opens the same set on first use, without replacing saved work.
 From there:
 
 - **Review** holds the deck frame: title, subtitle, review dates, and the free
-  slides (each with a title, an anchor position and text blocks; the
-  **Move up** / **Move down** arrows reorder them).
+  slides at every position: opening, before a category or closing. Each has a
+  title, position and text blocks; **Move up** / **Move down** reorder slides
+  at the same position.
 - **Projects** lists the portfolio; **+ Add a project** creates one.
-- **Settings** holds the identity, the theme, the categories, the free
-  slides, the aggregate-slide switches and the data administration; every
+- **Settings** holds the identity, appearance, categories,
+  aggregate-slide switches and data administration; every
   project belongs to one category.
 
 Every view is an address: `#/review`, `#/projects`, `#/settings`,
@@ -268,17 +269,12 @@ a desktop simply stays the more comfortable place to edit.
 
 ## Appearance
 
-<img src="images/en-settings.png" width="720" alt="Settings view: identity, appearance, categories and free slides — the aggregate-slide switches and the data card follow below">
+<img src="images/en-settings.png" width="720" alt="Settings view: identity, appearance and categories — the aggregate-slide switches and the data card follow below">
 
-The card has two halves: what this build offers, and the three assets your
-portfolio file carries itself.
+The card separates interface preferences from slide appearance.
 
 **Settings > Appearance**:
 
-- **Theme** — Flat (default), Institutional or Modern. This styles the slides:
-  Flat is massive and square, Institutional dense and wiry, Modern soft and
-  spacious. The three render the same content — pick the one that suits the
-  room you present in.
 - **Interface theme** — System (default), Light or Dark. A preference of the
   device, stored outside the portfolio file: the editor chrome flips, the
   slides stay light (they are the artifact). The same three states sit in
@@ -286,9 +282,12 @@ portfolio file carries itself.
 - **Language** — French or English; switching redraws the app at runtime. The
   language can also be switched from the top bar's language menu.
 
-**Settings > Appearance > Portfolio identity** — palette, font and logo. All
-three travel INSIDE the `.json` file: they follow the portfolio everywhere,
-standalone export and printing included, with no deployment and no network.
+**Settings > Appearance > Slide appearance** — slide theme, palette, font and
+logo. These choices travel inside the `.json` file, including standalone
+exports and printing.
+
+- **Theme** — Flat (default), Institutional or Modern. This styles the slides,
+  independently of the interface's light/dark scheme.
 
 - **Palette** — Material (default), Tailwind or Uniform. It resolves the
   twelve category colours; the slides never name a colour, only a category.

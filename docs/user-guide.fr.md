@@ -53,11 +53,12 @@ entrée d'historique — Ctrl+Z l'annule. Le lien facultatif « Découvrir avec 
 Ensuite :
 
 - **Revue** porte le cadre du diaporama : titre, sous-titre, dates de revue,
-  et les slides libres (chacune avec un titre, une ancre et des blocs de
-  texte ; les flèches **Monter** / **Descendre** les réordonnent).
+  et toutes les slides libres (ouverture, avant une catégorie ou clôture).
+  Chacune a un titre, une position et des blocs de texte ; les flèches
+  **Monter** / **Descendre** règlent l'ordre à une même position.
 - **Projets** liste le portefeuille ; **+ Ajouter un projet** en crée un.
-- **Paramètres** porte l'identité, le thème, les catégories, les slides
-  libres, les slides d'agrégat et l'administration des données ; chaque
+- **Paramètres** porte l'identité, l'apparence, les catégories, les slides
+  d'agrégat et l'administration des données ; chaque
   projet appartient à une catégorie.
 
 Chaque vue est une adresse : `#/review`, `#/projects`, `#/settings`,
@@ -295,17 +296,12 @@ simplement plus confortable pour saisir.
 
 ## Apparence
 
-<img src="images/fr-settings.png" width="720" alt="Vue Paramètres : identité, apparence, catégories et slides libres — les interrupteurs de slides d’agrégat et la carte Données suivent plus bas">
+<img src="images/fr-settings.png" width="720" alt="Vue Paramètres : identité, apparence et catégories — les interrupteurs de slides d’agrégat et la carte Données suivent plus bas">
 
-La carte a deux moitiés : ce que cette version propose, et les trois actifs
-que votre fichier de portefeuille porte lui-même.
+La carte distingue les préférences de l'interface et l'apparence des slides.
 
 **Paramètres > Apparence** :
 
-- **Thème** — Flat (défaut), Institutionnel ou Moderne. Il habille les
-  slides : Flat est massif et carré, Institutionnel dense et filaire, Moderne
-  souple et aéré. Les trois rendent le même contenu — choisissez celui qui va
-  à la salle où vous présentez.
 - **Thème de l'interface** — Système (défaut), Clair ou Sombre. Une
   préférence de l'appareil, rangée hors du fichier de portefeuille :
   l'éditeur bascule, les slides restent claires (elles sont l'artefact). Les
@@ -315,10 +311,12 @@ que votre fichier de portefeuille porte lui-même.
   chaud. La langue se change aussi par le menu de langue de la barre du
   haut.
 
-**Paramètres > Apparence > Identité du portefeuille** — palette, police et
-logo. Les trois voyagent DANS le fichier `.json` : ils suivent le portefeuille
-partout, export autonome et impression compris, sans déploiement et sans
-réseau.
+**Paramètres > Apparence > Apparence des slides** — thème, palette, police et
+logo. Ces choix suivent le portefeuille dans le fichier `.json`, export
+autonome et impression compris.
+
+- **Thème** — Flat (défaut), Institutionnel ou Moderne. Il habille les slides,
+  indépendamment du thème clair/sombre de l'interface.
 
 - **Palette** — Material (défaut), Tailwind ou Uniforme. Elle résout les douze
   couleurs de catégorie ; les slides ne nomment jamais une couleur, seulement
