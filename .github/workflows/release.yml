@@ -10,6 +10,7 @@ jobs:
   prepare:
     if: github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions: { contents: write, pull-requests: write }
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.0.0
@@ -80,6 +81,7 @@ jobs:
   publish:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions: { contents: write, pull-requests: write }
     steps:
       # API-only: no checkout, package installation or repository code execution
