@@ -509,6 +509,7 @@
           <SaveStateBar
             {portfolio}
             save={persistence.save}
+            drafts={drafts?.snapshot}
             takeStored={() => persistence?.takeStored()}
             keepMine={() => persistence?.keepMine()}
           />

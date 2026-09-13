@@ -101,6 +101,7 @@
   <FieldText
     {language}
     label={te('editor.field.title', language)}
+    draftKey={JSON.stringify(['slide', slide.id, 'title'])}
     value={slide.title}
     required
     commit={(v) => replace({ ...held, title: v ?? '' })}
@@ -130,6 +131,7 @@
   <FieldText
     {language}
     label={te('editor.settings.blocks', language)}
+    draftKey={JSON.stringify(['slide', slide.id, 'blocks'])}
     value={asText}
     required
     rows={4}

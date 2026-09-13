@@ -175,6 +175,7 @@
           {language}
           label={te('editor.field.name', language)}
           capacity="categoryName"
+          draftKey={JSON.stringify(['category', category.id, 'name'])}
           value={category.name}
           required
           commit={(v) =>

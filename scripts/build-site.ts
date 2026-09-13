@@ -1,7 +1,7 @@
 /**
  * Assembles the GitHub Pages site into _site/: a product landing page, the
  * rendered docs (overview + user guides), the generated API reference, the
- * Storybook build — and the real app served as its own live demo.
+ * Storybook build — and the full editor for everyday online use.
  *
  * Everything is copied or rendered from artifacts that other scripts build;
  * this file never rebuilds anything heavy itself.
@@ -72,7 +72,7 @@ mkdirSync(join(OUT, 'guide'), { recursive: true })
 mkdirSync(join(OUT, 'assets'), { recursive: true })
 cpSync('scripts/site-nav.css', join(OUT, 'assets/site-nav.css'))
 
-// The real app, served as the live demo — the artifact IS the product.
+// Full online editor. Keep the historical /demo/ address and its stored work.
 // ONE multilingual file: the language is auto-detected and switchable in-app.
 // The sample sets sit NEXT TO it: `?sample` fetches the one of the current
 // language (sample-boot.ts), and the landing links them for download.

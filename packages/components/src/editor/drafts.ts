@@ -1,34 +1,12 @@
+import type { DraftSnapshot } from '@project-review/core/services/persistence'
+
 /**
- * PENDING INPUT — the contract between a field that holds a draft and the host
- * that saves.
- *
- * ONE FIELD ↔ ONE EVENT, AT BLUR (`FieldText`) is what keeps the history a
- * list of intentions rather than a list of letters. The price of that rule is
- * a window in which what a person typed exists in the field ALONE, and two
- * consequences follow — both of them the host's business, neither of them
- * something a field can honour on its own:
- *  - the save state must not read « saved » while such a draft differs from
- *    the model. The model really is saved; the sentence is still false about
- *    the person's work;
- *  - the page can go away at any moment, and a blur that never happened
- *    records nothing. The closing path must therefore COMMIT the drafts and
- *    write the state that results, in one synchronous turn — a commit followed
- *    by a save an effect was supposed to schedule is a save that never runs.
- * Both are pinned in `app/tests/bindings/persistence-control.test.ts` («the
- * strip says something is waiting, where it would have said « saved »», «the
- * closing page commits what is typed, then writes the state that results»)
- * and both are exercised end to end by the built deliverable's smoke run (its
- * «mid-edit» checks, on the title, a milestone row and the reload after).
- *
- * Registering is what makes the two possible, and nothing else about the field
- * changes: the draft, the character counter and the blur rule stay exactly
- * where they are.
- *
- * The registry is the HOST's — it lives next to the persistence, which is what
- * consumes it — and reaches the fields through the shell's context
- * (`provideDrafts` / `useDrafts`, declared in `FieldText.svelte`, the field
- * that needs them). A field mounted outside a shell — a story — finds no
- * registry and behaves as it always did.
+ * Field-local raw input is distinct from validated domain events. A blur
+ * still creates one undo step; the host checkpoints raw drafts independently.
+ * Stable keys and original values let remounted fields recover only matching
+ * drafts. Document replacements and structural changes reset obsolete drafts.
+ * The registry reaches fields through the shell's context; isolated component
+ * stories may omit the checkpoint port.
  */
 
 /** One field's unrecorded input, as the two questions a host can ask of it. */
@@ -57,15 +35,21 @@ export interface PendingDraft {
 
 /** Where the fields of one shell announce their drafts. */
 export interface DraftRegistry {
+  /** Raw checkpoints survive unmounts; fields recover only against their original value. */
+  readonly snapshot?: readonly DraftSnapshot[]
+  readonly generation?: number
+  readonly recover?: (key: string, base: string) => string | undefined
+  readonly checkpoint?: (key: string, base: string, value: string | undefined) => void
+  /** Explicitly replace the checkpoints and resync mounted fields. */
+  readonly reset?: (snapshot?: readonly DraftSnapshot[]) => void
   /**
    * Registers one field for the length of its mounting; the call handed back
-   * removes it again. A field that unmounts mid-edit stops being counted —
-   * its draft is gone with it, and nothing is waiting on it any more.
+   * removes its live callback. A raw checkpoint can outlive that mounting.
    */
   readonly register: (draft: PendingDraft) => () => void
   /**
-   * `true` while at least one registered field holds input the model has not
-   * recorded. An implementation must make this REACTIVE — reading it
+   * `true` while a live field or a checkpoint holds unvalidated input.
+   * An implementation must make this REACTIVE — reading it
    * subscribes to every draft it consults — because the save strip reads it
    * on every keystroke.
    */

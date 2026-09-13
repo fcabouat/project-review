@@ -1,6 +1,6 @@
 /**
  * `?sample` boot policy — a full demo on the very first click: the landing's
- * « Try it » link opens `project-review.html?sample` and the app boots into
+ * Optional example-data link opens `project-review.html?sample` and the app boots into
  * the Projay Inc. sample set FETCHED FROM NEXT DOOR instead of an empty
  * portfolio. The deliverable itself carries no content (the samples ship
  * alongside it — `dist/sample-portfolio.{en,fr}.json` — and on the project

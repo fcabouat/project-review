@@ -69,18 +69,23 @@ of expanding into an unbounded number of DOM elements. The source text is kept.
 decisions. The application binds its notifications to Svelte and supplies the
 document, draft registry, storage and scheduler.
 
-One envelope stores `{ format, revision, portfolio, history }` in one write.
+One envelope stores `{ format, revision, portfolio, history, drafts }` in one write.
 Unreadable storage is never overwritten before an explicit recovery decision.
 Writes compare the expected stamp of stored bytes; conflicts ask whether to
 take the stored document or keep the open one. This is optimistic detection,
 not a lock: localStorage has no atomic compare-and-swap across tabs.
 
 The shared opt-out preference stops subsequent writes. Storage operations report
-failure instead of claiming success. Pending or invalid input is not “saved”:
-the page-close hook commits complete drafts synchronously before saving the
-resulting model. Incomplete/invalid drafts cannot be persisted as valid domain
-objects; their warning remains visible while the editor is open. Keep JSON
-backups independently of browser storage.
+failure instead of claiming success. Raw input is checkpointed after 1.5 seconds
+idle, or 10 seconds of continuous typing, without adding undo events. A hidden
+page checkpoints too; pagehide additionally commits complete valid input.
+Timers and lifecycle signals are best-effort, not crash-proof guarantees.
+Drafts carry stable field keys and original values; matching fields recover them
+on mounting; imports and structural changes discard obsolete drafts. Undo/redo
+resyncs affected fields without discarding unrelated drafts. Invalid input
+stays outside the domain model. The save strip distinguishes pending, saved
+drafts and saved document; refused writes offer a separate raw-draft download.
+Keep JSON backups independently of browser storage.
 
 ## Verification
 

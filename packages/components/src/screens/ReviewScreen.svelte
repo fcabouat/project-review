@@ -120,6 +120,7 @@
       <FieldText
         {language}
         label={te('editor.field.title', language)}
+        draftKey="review.title"
         value={review.title}
         commit={(v) => change('title', v)}
         required
@@ -128,6 +129,7 @@
       <FieldText
         {language}
         label={te('editor.field.subtitle', language)}
+        draftKey="review.subtitle"
         value={review.subtitle}
         commit={(v) => change('subtitle', v)}
       />
@@ -136,6 +138,7 @@
       <FieldText
         {language}
         label={te('editor.field.reviewDate', language)}
+        draftKey="review.reviewDate"
         value={review.reviewDate}
         commit={(v) => change('reviewDate', v)}
         hint={te('editor.review.dateHint', language)}
@@ -144,6 +147,7 @@
       <FieldText
         {language}
         label={te('editor.field.previousReviewDate', language)}
+        draftKey="review.previousReviewDate"
         value={review.previousReviewDate}
         commit={(v) => change('previousReviewDate', v)}
         hint={te('editor.review.dateHint', language)}

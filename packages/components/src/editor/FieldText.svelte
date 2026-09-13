@@ -40,6 +40,9 @@
 
   interface Props {
     readonly label?: string
+    /** Stable model address, independent of translated labels and render order. */
+    readonly draftKey?: string
+    readonly compact?: boolean
     readonly value: string | undefined
     readonly commit: (next: string | undefined) => void
     readonly language: Language
@@ -80,6 +83,8 @@
 
   let {
     label,
+    draftKey,
+    compact = false,
     value,
     commit,
     language,
@@ -100,12 +105,19 @@
   // The draft must survive prop echoes of its own commit; a writable
   // $derived would resync (and lose cursor state) on every dispatch
   // round-trip — hence the deliberate $state + $effect pair.
-  // eslint-disable-next-line svelte/prefer-writable-derived
   let draft = $state(untrack(() => value) ?? '')
+  const drafts = useDrafts()
+  const checkpointBase = $derived(value ?? '')
 
   // External moves (undo / redo / import) win over an untouched draft.
   $effect(() => {
-    draft = value ?? ''
+    const base = value ?? ''
+    draft =
+      (draftKey === undefined ? undefined : drafts?.recover?.(draftKey, checkpointBase)) ?? base
+  })
+  $effect(() => {
+    if (draftKey !== undefined)
+      drafts?.checkpoint?.(draftKey, checkpointBase, draft !== (value ?? '') ? draft : undefined)
   })
 
   const lines = $derived(draft === '' ? [] : draft.split('\n'))
@@ -154,7 +166,6 @@
     unrecorded = pendingValue() !== value
   })
 
-  const drafts = useDrafts()
   // Registered for the length of the mounting, and NOTHING reactive is read
   // in here: the entry's two closures are called by the HOST — the strip that
   // asks `dirty`, the closing page that asks `commit` — so this effect runs
@@ -168,7 +179,7 @@
   )
 </script>
 
-<label class="mb-3.5 flex flex-col last:mb-0">
+<label class={compact ? 'flex min-w-0 flex-col' : 'mb-3.5 flex flex-col last:mb-0'}>
   {#if label}<span class="text-(--txt2) mb-[5px] text-[12.5px] font-semibold">{label}</span>{/if}
   {#if rows}
     <Textarea
@@ -185,7 +196,9 @@
     ></Textarea>
   {:else}
     <Input
-      class="read-only:text-(--txt2) read-only:bg-[#fafafa] aria-invalid:border-destructive dark:read-only:bg-white/5"
+      class="read-only:text-(--txt2) read-only:bg-[#fafafa] aria-invalid:border-destructive dark:read-only:bg-white/5 {compact
+        ? 'h-8 text-[13px]'
+        : ''}"
       type="text"
       {placeholder}
       {readonly}

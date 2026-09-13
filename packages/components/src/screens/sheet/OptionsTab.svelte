@@ -56,6 +56,7 @@
       <FieldText
         {language}
         label={te('editor.field.author', language)}
+        draftKey={JSON.stringify(['project', project.id, 'author'])}
         value={project.author}
         commit={(v) => set('author', v)}
       />

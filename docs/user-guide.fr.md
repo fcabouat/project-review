@@ -13,11 +13,17 @@ de langue à tout moment. Le guide anglais est [user-guide.md](user-guide.md).
 
 Deux façons de lancer l'application :
 
-- **Sans installation.** Téléchargez `project-review.html` et double-cliquez
+- **Utiliser en ligne.** [Ouvrez l'éditeur complet sur GitHub Pages](https://fcabouat.github.io/project-review/demo/project-review.html?lang=fr).
+  C'est la même application, pas une démo limitée. Les portefeuilles restent dans votre navigateur.
+- **Version autonome, hors ligne.** Téléchargez `project-review.html` et double-cliquez
   dessus. L'application tourne en `file://` — pas de serveur, pas de réseau,
   pas de compte.
-- **Depuis les sources.** Suivez les versions et l'installation du [README](../README.md),
-  puis `pnpm run dev` et ouvrez l'URL affichée.
+
+Le stockage dépend de l'origine et du profil du navigateur, pas d'un compte.
+Exportez/importez le JSON pour passer de l'éditeur en ligne au fichier local ou
+changer d'appareil : il n'y a pas de synchronisation automatique. Gardez des
+copies dans les deux modes. Pour développer, suivez le [README](../README.md),
+puis lancez `pnpm run dev`.
 
 La langue d'affichage est détectée au premier lancement et se change à tout
 moment par le menu de langue de la barre du haut (ou dans les
@@ -34,8 +40,8 @@ dans 8 catégories. L'application elle-même ne transporte aucun contenu — des
 portefeuilles d'exemple accompagnent l'app (`sample-portfolio.fr.json` à côté
 du fichier téléchargé) et le site du projet ; importez-en un par
 **Importer…**, comme n'importe quel portefeuille. L'import est une seule
-entrée d'historique — Ctrl+Z l'annule. La démo en ligne prend le raccourci :
-son adresse `?sample` démarre directement sur le même jeu.
+entrée d'historique — Ctrl+Z l'annule. Le lien facultatif « Découvrir avec un exemple »
+(`?sample`) ouvre ce même jeu au premier démarrage, sans remplacer le travail enregistré.
 
 <!-- Toutes les captures de ce guide sont refaites par une seule commande,
      jamais à la main : `node scripts/stage-doc-images.mjs` — voir l'en-tête
@@ -73,7 +79,12 @@ fiche a cinq onglets : **Cadre & état**, **Récit**, **Décisions**,
 - Les changements sont enregistrés quand les champs perdent le focus. Le texte
   et la date d'une décision prise se valident ensemble. La fermeture ou le
   rechargement valide les brouillons complets et valides avant sauvegarde ;
-  une saisie incomplète ou invalide reste en attente, pas enregistrée.
+  les brouillons bruts, même incomplets ou invalides, sont sauvegardés séparément
+  après 1,5 seconde de pause, ou après 10 secondes de frappe continue, sans ajouter
+  d'étape d'annulation. Après rechargement, retrouvez-les dans les mêmes champs.
+  Le document et les diaporamas exportés changent seulement après validation.
+  Les filtres de recherche et les dialogues de confirmation (comme la renumérotation)
+  restent des états d'interface temporaires.
   Vérifiez l'état de sauvegarde et conservez des copies JSON.
 - Annuler/rétablir conserve jusqu'à 500 actions, avec un plafond mémoire
   supplémentaire : **Ctrl+Z** / **Ctrl+Y**, ou les flèches de la barre du haut.
@@ -174,7 +185,7 @@ identité, thème, logo et affichage sont conservés. La langue du fichier est
 adoptée pour que les libellés du diaporama correspondent à son contenu.
 Décochez la case pour prendre le fichier entier. Changer manuellement la langue
 modifie l'interface et les libellés des slides, jamais vos textes.
-Les liens de démonstration choisissent la langue du site au premier démarrage
+Les liens vers l'éditeur en ligne choisissent la langue du site au premier démarrage
 uniquement : un portefeuille déjà enregistré reste toujours prioritaire.
 
 ## Travailler à plusieurs
@@ -212,20 +223,24 @@ seules requêtes possibles vont au déploiement de l'application lui-même, pour
 une police que vous avez choisi d'y servir (voir **Police** ci-dessus) ;
 ouverte depuis un fichier, l'application n'en fait aucune.
 
-- **Sauvegarde locale (localStorage)** — active par défaut. La base et
+- **Sauvegarde locale (localStorage)** — active par défaut. La base, les brouillons et
   l'historique annuler/rétablir sont enregistrés ENSEMBLE, sous une seule clé :
   un « annuler » ne peut donc jamais être rejoué sur un document auquel il
-  n'appartient pas. Les deux survivent au rechargement de la page. La
-  désactiver efface la copie enregistrée ; la base ouverte reste intacte
+  n'appartient pas. Ils survivent au rechargement. Les points de sauvegarde réduisent
+  les pertes sans garantir une perte nulle : le navigateur peut retarder les timers,
+  ou planter avant la prochaine écriture. Importer ou supprimer des éléments écarte
+  les brouillons obsolètes ; modifier un autre champ, ou annuler sa modification, les conserve.
+  Désactiver la sauvegarde efface aussi les brouillons enregistrés ; la base ouverte reste intacte
   jusqu'à la fermeture de l'onglet.
 - **L'état de la sauvegarde, toujours affiché** — une ligne sous la barre du
   haut dit où en est le document : enregistré dans ce navigateur, modifications
-  non enregistrées, saisie en cours pas encore enregistrée, ou problème. Elle
-  ne dit jamais « enregistré » tant qu'un champ contient une saisie que le
-  document n'a pas encore reprise. Si le navigateur refuse l'écriture —
+  non enregistrées, brouillon en attente, brouillon sauvegardé, ou problème. Un
+  brouillon sauvegardé n'est pas encore une modification validée du document.
+  Si le navigateur refuse l'écriture —
   stockage plein, navigation privée, profil restreint — la ligne le dit et
-  propose immédiatement **Télécharger une copie**. Votre travail n'est jamais
-  perdu faute d'un enregistrement dont personne ne vous aurait parlé.
+  propose **Télécharger une copie** du document validé et **Télécharger les brouillons**
+  pour les textes bruts absents de l'export JSON normal. Ce dernier fichier sert
+  à récupérer les textes par lecture/copie, pas à importer un portefeuille.
 - **La sauvegarde désactivée ailleurs** — la préférence appartient au
   navigateur, pas à l'onglet. Si un autre onglet désactive la sauvegarde
   locale, le vôtre arrête d'écrire et efface ce qu'il avait déjà enregistré,

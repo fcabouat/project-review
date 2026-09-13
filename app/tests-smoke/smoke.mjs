@@ -645,6 +645,51 @@ async function main() {
       'mid-edit: and nothing is in the storage, because no blur has happened',
     )
 
+    // Capture ONLY what was already stored: the fresh context gets no final
+    // pagehide write, modelling a renderer crash without a graceful close.
+    await midPage.waitForFunction(
+      () =>
+        document.querySelector('[data-save-phase]')?.getAttribute('data-save-phase') ===
+        'draftSaved',
+    )
+    const crashState = await midPage.evaluate(() => localStorage.getItem('project-review/state'))
+    const crashHistory = JSON.parse(crashState).history.past.length
+    const recoveredContext = await browser.newContext({ locale: 'fr-FR' })
+    const recoveredPage = await recoveredContext.newPage()
+    watchErrors(recoveredPage, midErrors)
+    await recoveredPage.addInitScript((raw) => {
+      localStorage.setItem('project-review/state', raw)
+    }, crashState)
+    await recoveredPage.goto(`${HTTP_APP}#/review`)
+    await settle(recoveredPage)
+    check(
+      (await titleField(recoveredPage).first().inputValue()) === TYPED_TITLE,
+      'draft crash recovery: the focused text returns without pagehide',
+    )
+    check(
+      (await storedTitle(recoveredPage)) !== TYPED_TITLE,
+      'draft crash recovery: no implicit document edit',
+    )
+    await titleField(recoveredPage).first().fill(`${TYPED_TITLE} et repris`)
+    await recoveredPage.waitForTimeout(1800)
+    check(
+      await recoveredPage.evaluate(
+        (n) => JSON.parse(localStorage.getItem('project-review/state')).history.past.length === n,
+        crashHistory,
+      ),
+      'draft checkpoints: typing and recovery do not add undo steps',
+    )
+    await titleField(recoveredPage).first().press('Tab')
+    await recoveredPage.waitForTimeout(700)
+    check(
+      await recoveredPage.evaluate((n) => {
+        const saved = JSON.parse(localStorage.getItem('project-review/state'))
+        return saved.history.past.length === n + 1 && saved.drafts.length === 0
+      }, crashHistory),
+      'draft validation: one blur creates one undo step and clears the checkpoint',
+    )
+    await recoveredContext.close()
+
     // The page goes away: a reload fires 'pagehide' like a close does.
     await midPage.reload()
     await settle(midPage)
@@ -661,8 +706,7 @@ async function main() {
       'mid-edit: nothing is waiting any more, so the strip says saved',
     )
 
-    // The milestone rows are NOT FieldTexts — a five-column grid, no room for
-    // a label or a counter — and they hold their draft the same way.
+    // Compact milestone cells share the same draft primitive.
     await midPage.goto(`${HTTP_APP}#/sheet/P-01`)
     await settle(midPage)
     // The sheet is in tabs; the milestone table lives on « Jalons & dates ».
@@ -685,6 +729,35 @@ async function main() {
       (await (await openMilestones()).inputValue()) === TYPED_LABEL,
       'mid-edit: the milestone label survives the close as well',
     )
+
+    const rowDate = midPage.getByRole('textbox', { name: 'Date', exact: true }).first()
+    const validDate = await rowDate.inputValue()
+    await rowDate.fill('2026-0')
+    await rowDate.press('Tab')
+    await (await openMilestones()).fill(`${TYPED_LABEL} modifié`)
+    await (await openMilestones()).press('Tab')
+    await midPage.waitForTimeout(1800)
+    check(
+      (await rowDate.inputValue()) === '2026-0',
+      'invalid date: editing another cell does not erase the unfinished date',
+    )
+    await midPage
+      .getByRole('button', { name: /Annuler/ })
+      .first()
+      .click()
+    await settle(midPage)
+    check(
+      (await rowDate.inputValue()) === '2026-0',
+      'invalid date: undoing another cell preserves its independent draft',
+    )
+    await midPage.reload()
+    await openMilestones()
+    check(
+      (await rowDate.inputValue()) === '2026-0',
+      'invalid date: raw input survives reload without entering the portfolio',
+    )
+    await rowDate.fill(validDate)
+    await rowDate.press('Tab')
 
     // The two outcome fields form one domain value, in either typing order.
     const openDecisions = async () => {
@@ -710,7 +783,17 @@ async function main() {
       await fields[first].fill(values[first])
       await fields[first].press('Tab')
       await midPage.waitForTimeout(700) // the clearing event finishes saving first
-      check((await savePhase(midPage)) === 'pending', 'outcome: one half remains visibly pending')
+      check(
+        ['pending', 'draftSaved'].includes(await savePhase(midPage)),
+        'outcome: one half is a draft, not a validated document edit',
+      )
+      await midPage.waitForTimeout(1600)
+      await midPage.reload()
+      await openDecisions()
+      check(
+        (await fields[first].inputValue()) === values[first] && (await taken()) === undefined,
+        'outcome: the incomplete half survives reload without becoming a domain outcome',
+      )
       await fields[1 - first].fill(values[1 - first])
       await midPage.reload() // last input stays focused until pagehide
       await settle(midPage)

@@ -58,6 +58,7 @@
         <FieldText
           {language}
           label={t(`sheet.${list}`, language)}
+          draftKey={JSON.stringify(['project', project.id, list])}
           value={project[list].join('\n')}
           rows={4}
           maxLines={BULLETS_ADVISED}
@@ -94,6 +95,7 @@
     <FieldText
       {language}
       label={t('sheet.risks', language)}
+      draftKey={JSON.stringify(['project', project.id, 'risks'])}
       value={project.risks}
       rows={3}
       maxLines={RISK_LINES_ADVISED}

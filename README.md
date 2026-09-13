@@ -1,7 +1,7 @@
 # project-review
 
-A project-portfolio review app in one HTML file: no server, no installation,
-works offline from `file://`.
+A project-portfolio review app: use it online through GitHub Pages, or open
+one standalone HTML file offline. No account or installation required.
 
 [![CI](https://github.com/fcabouat/project-review/actions/workflows/ci.yml/badge.svg)](https://github.com/fcabouat/project-review/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -12,11 +12,11 @@ carry your own narrative.
 
 <img src="docs/images/en-slide.png" width="720" alt="A derived project sheet slide in the flat style">
 
-## Try it
+## Use the app
 
-- [Live demo](https://fcabouat.github.io/project-review/demo/project-review.html?sample&lang=en)
-  — a 20-project sample, in French or English.
-- [Download the HTML file](https://fcabouat.github.io/project-review/demo/project-review.html)
+- [Use online](https://fcabouat.github.io/project-review/demo/project-review.html?lang=en)
+  — the full editor on GitHub Pages, for everyday use. Your portfolio stays in your browser.
+- [Download the standalone version](https://fcabouat.github.io/project-review/demo/project-review.html)
   — save and double-click. Approximately 1.7 MB, fonts and runtime included.
 - [Project site](https://fcabouat.github.io/project-review/) — guides, component
   catalog and API reference.
@@ -24,7 +24,14 @@ carry your own narrative.
 The app starts empty. Sample portfolios are separate
 [English](https://fcabouat.github.io/project-review/demo/sample-portfolio.en.json)
 and [French](https://fcabouat.github.io/project-review/demo/sample-portfolio.fr.json)
-files; import them like any other portfolio.
+files; import them like any other portfolio, or
+[open with example data](https://fcabouat.github.io/project-review/demo/project-review.html?sample&lang=en)
+on first use. Existing saved work always takes precedence.
+
+Both deployment options provide the same editor. Browser storage is local to
+its origin/profile (and can behave differently for local files), not an online
+account: use JSON export/import to move between deployments or devices. Keep
+backups. The historical `/demo/` URL remains unchanged to preserve existing links.
 
 ### Watch example slides
 
@@ -151,7 +158,7 @@ release branch back into `develop`; merge it the same way, then delete the
 branch. If GitHub auto-deleted it after the first merge, automation restores
 only the exact published head for this second PR. Fetch/pull normally afterward.
 
-The first pending changeset produces **0.1.1 from 0.1.0** through this same path;
+The pending changesets produce one release, **0.2.0 from 0.1.0**, through this same path;
 there is no bootstrap exemption. `app/package.json` supplies the product version
 and `app/CHANGELOG.md` the release notes. The workspace root has no version.
 Downloads and generated example decks remain on the project site.

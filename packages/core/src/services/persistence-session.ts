@@ -8,6 +8,8 @@ import type { Portfolio } from '../model/portfolio'
 import { hydrate as hydrateHistory, type History } from '../events/history'
 import {
   SAVE_DELAY_MS,
+  DRAFT_IDLE_MS,
+  DRAFT_MAX_WAIT_MS,
   clearStored,
   debounce,
   loadPersistEnabled,
@@ -20,6 +22,8 @@ import {
   type Scheduler,
   type StateRefusal,
   type StoredState,
+  type DraftSnapshot,
+  type Cancel,
 } from './persistence'
 
 /** A complete snapshot and an undoable replacement supplied by the host. */
@@ -34,10 +38,20 @@ export interface PersistenceDocument {
 export interface PendingInput {
   readonly pending: boolean
   readonly commitAll: () => void
+  readonly snapshot?: readonly DraftSnapshot[]
+  readonly reset?: (snapshot?: readonly DraftSnapshot[]) => void
 }
 
 export type SavePhase =
-  'dirty' | 'saving' | 'saved' | 'pending' | 'error' | 'conflict' | 'off' | 'unavailable'
+  | 'dirty'
+  | 'saving'
+  | 'saved'
+  | 'pending'
+  | 'draftSaved'
+  | 'error'
+  | 'conflict'
+  | 'off'
+  | 'unavailable'
 export interface SaveState {
   readonly revision: number
   readonly phase: SavePhase
@@ -61,6 +75,10 @@ export interface PersistenceActions {
 export interface PersistenceSession {
   readonly control: PersistenceActions
   readonly scheduleSave: (portfolio: Portfolio, history: History) => void
+  readonly scheduleDrafts: () => void
+  /** Save raw input without committing it (idle timer / hidden page). */
+  readonly checkpoint: () => void
+  readonly dispose: () => void
   /** Commit input, reread the model and write in one synchronous turn. */
   readonly flush: () => void
   readonly noticeStoredChange: () => void
@@ -97,6 +115,10 @@ export function createPersistenceSession(
   let unreadable: UnreadableState | undefined =
     stored.state === 'unreadable' ? { raw: stored.raw, refusal: stored.refusal } : undefined
   let offered: Portfolio | undefined
+  let offeredDrafts: readonly DraftSnapshot[] = []
+  const emptyDrafts: readonly DraftSnapshot[] = []
+  const snapshot = (): readonly DraftSnapshot[] => input.snapshot ?? emptyDrafts
+  let heldDrafts = snapshot()
   let discardRefused = false
   let base: StateStamp | null = stored.state === 'restored' ? stored.stamp : null
   let edit = 0
@@ -129,7 +151,7 @@ export function createPersistenceSession(
     }
   const blocked = (): boolean => unreadable !== undefined
   const isStored = (portfolio: Portfolio, history: History): boolean =>
-    sameState(held, portfolio, history)
+    sameState(held, portfolio, history) && heldDrafts === snapshot()
   const current = (): [Portfolio, History] => [
     document.present,
     { past: document.past, future: document.future },
@@ -143,6 +165,7 @@ export function createPersistenceSession(
   const standDown = (): void => {
     if (status.phase === 'off') return
     saver?.cancel()
+    cancelDrafts()
     enabled = false
     offered = undefined
     held = undefined
@@ -155,10 +178,12 @@ export function createPersistenceSession(
     if (!loadPersistEnabled(storage)) return standDown()
     const attempt = edit
     status = { revision: attempt, phase: 'saving' }
-    const outcome = writeState(storage, base, portfolio, history)
+    const drafts = snapshot()
+    const outcome = writeState(storage, base, portfolio, history, drafts)
     if (outcome.outcome === 'written') {
       base = outcome.stamp
       held = { portfolio, past: outcome.history.past, future: outcome.history.future }
+      heldDrafts = drafts
       status =
         attempt === edit
           ? { revision: attempt, phase: 'saved' }
@@ -172,6 +197,18 @@ export function createPersistenceSession(
   }
   // Fire-time guards also protect timers armed before an opt-out.
   const saver = storage ? debounce(transition(write), SAVE_DELAY_MS, schedule) : undefined
+  let maxWait: Cancel | undefined
+  const cancelDrafts = (): void => {
+    draftSaver.cancel()
+    maxWait?.()
+    maxWait = undefined
+  }
+  const checkpoint = transition(() => {
+    cancelDrafts()
+    saver?.cancel()
+    if (status.phase !== 'conflict' && !isStored(...current())) write(...current())
+  })
+  const draftSaver = debounce(checkpoint, DRAFT_IDLE_MS, schedule)
 
   const rebase = (storageNow: KeyValueStorage): StoredState | undefined => {
     const found = readStored(storageNow)
@@ -208,7 +245,10 @@ export function createPersistenceSession(
       if (!enabled && status.phase !== 'error' && status.phase !== 'off') return undefined
       // Input must not hide an error or conflict that requires a choice.
       return status.phase === 'saved' && input.pending
-        ? { revision: status.revision, phase: 'pending' }
+        ? {
+            revision: status.revision,
+            phase: heldDrafts === snapshot() && heldDrafts.length > 0 ? 'draftSaved' : 'pending',
+          }
         : status
     },
     toggle: transition((next: boolean) => {
@@ -217,6 +257,7 @@ export function createPersistenceSession(
         // Preference first; roll it back if erasing the document fails.
         if (!savePersistEnabled(storage, false)) return refuse()
         saver?.cancel()
+        cancelDrafts()
         if (!clearStored(storage)) {
           if (!savePersistEnabled(storage, true)) enabled = false
           return refuse()
@@ -230,13 +271,16 @@ export function createPersistenceSession(
       }
       const found = rebase(storage)
       if (found === undefined) return
-      if (found.state === 'restored') offered = found.portfolio
-      else armAndWrite(storage)
+      if (found.state === 'restored') {
+        offered = found.portfolio
+        offeredDrafts = found.drafts ?? []
+      } else armAndWrite(storage)
     }),
     restore: transition(() => {
       const portfolio = offered
       if (portfolio === undefined || !storage) return
       document.replace(portfolio)
+      input.reset?.(offeredDrafts)
       armAndWrite(storage)
     }),
     keepOpen: transition(() => {
@@ -251,6 +295,7 @@ export function createPersistenceSession(
       const found = rebase(storage)
       if (found === undefined) return
       if (found.state === 'restored') document.replace(found.portfolio)
+      input.reset?.(found.state === 'restored' ? found.drafts : [])
       write(...current())
     }),
     keepMine: transition(() => {
@@ -261,6 +306,18 @@ export function createPersistenceSession(
 
   return {
     control,
+    scheduleDrafts: transition(() => {
+      if (!enabled || blocked() || !storage || status.phase === 'conflict') return
+      if (heldDrafts === snapshot()) return
+      edit += 1
+      draftSaver.run()
+      maxWait ??= schedule(checkpoint, DRAFT_MAX_WAIT_MS)
+    }),
+    checkpoint,
+    dispose: () => {
+      saver?.cancel()
+      cancelDrafts()
+    },
     scheduleSave: transition((portfolio: Portfolio, history: History) => {
       if (!enabled || blocked()) return
       if (isStored(portfolio, history)) {
@@ -278,6 +335,7 @@ export function createPersistenceSession(
       input.commitAll()
       const [portfolio, history] = current()
       saver?.cancel()
+      cancelDrafts()
       if (isStored(portfolio, history)) return
       if (!sameState(before, portfolio, history)) edit += 1
       write(portfolio, history)
@@ -288,6 +346,7 @@ export function createPersistenceSession(
       if (storedStamp(storage) === base) return
       held = undefined
       saver?.cancel()
+      cancelDrafts()
       status = { revision: edit, phase: 'conflict' }
     }),
     get blocked() {

@@ -24,10 +24,10 @@
    *    ones: take theirs (undoable) or keep this one. No silent merge.
    *
    * And one phase that needs nobody but says what « saved » would hide:
-   * `pending`, the field holding input the document has not recorded yet
-   * (`drafts.ts`). It is quiet on purpose — leaving the field records it, and
-   * the closing page commits it — but it does not read « saved », because
-   * that sentence would be true of the document and false of the work.
+   * `pending` awaits a raw checkpoint; `draftSaved` confirms that checkpoint
+   * without claiming that the input is a validated document edit. Leaving a
+   * field still records one event. Draft downloads rescue unvalidated text
+   * when local writes fail; normal portfolio exports contain only the model.
    *
    * Pure view: the host supplies the state and the two decisions; the download
    * is a Blob the browser saves, like the export panel's.
@@ -40,18 +40,20 @@
   import { te } from '../i18n'
   import { Button } from '../commons/ui/button'
   import type { SaveState } from '../contracts'
+  import type { DraftSnapshot } from '@project-review/core/services/persistence'
 
   interface Props {
     /** The document itself — what « download a copy » hands over. */
     readonly portfolio: Portfolio
     readonly save: SaveState
+    readonly drafts?: readonly DraftSnapshot[]
     /** Conflict, first answer: load what the other tab saved (undoable). */
     readonly takeStored: () => void
     /** Conflict, second answer: this document replaces the stored one. */
     readonly keepMine: () => void
   }
 
-  let { portfolio, save, takeStored, keepMine }: Props = $props()
+  let { portfolio, save, drafts = [], takeStored, keepMine }: Props = $props()
 
   const language = $derived(portfolio.settings.language)
   /** The phase leaves the document in this tab alone — same consequence, same
@@ -78,12 +80,14 @@
   const message = 'text-[12px] leading-[1.5] font-semibold'
 
   function downloadCopy(): void {
-    const url = URL.createObjectURL(
-      new Blob([serializePortfolio(portfolio)], { type: 'application/json' }),
-    )
+    download(serializePortfolio(portfolio), portfolioFileName(portfolio.review.reviewDate))
+  }
+
+  function download(text: string, name: string): void {
+    const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }))
     const link = document.createElement('a')
     link.href = url
-    link.download = portfolioFileName(portfolio.review.reviewDate)
+    link.download = name
     link.click()
     URL.revokeObjectURL(url)
   }
@@ -117,6 +121,17 @@
     </Button>
     <Button variant="outline" size="sm" class="max-lg:min-h-11" onclick={keepMine}>
       {te('editor.save.keepMine', language)}
+    </Button>
+  {/if}
+  {#if (unsaved || save.phase === 'conflict') && drafts.length > 0}
+    <Button
+      variant="outline"
+      size="sm"
+      class="max-lg:min-h-11"
+      onclick={() =>
+        download(JSON.stringify({ format: 1, drafts }, null, 2), 'project-review-drafts.json')}
+    >
+      {te('editor.save.downloadDrafts', language)}
     </Button>
   {/if}
 </section>

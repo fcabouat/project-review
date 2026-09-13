@@ -14,6 +14,9 @@ test('both landing pages link ready-to-watch decks and thumbnails in their own l
   ]) {
     const html = read(path)
     assert.ok(html.includes(`?sample&amp;lang=${lang}`))
+    assert.ok(html.includes(`class="btn btn-solid" href="demo/project-review.html?lang=${lang}"`))
+    assert.ok(html.includes(lang === 'fr' ? 'Utiliser en ligne' : 'Use online'))
+    assert.ok(html.includes('download="project-review.html"'))
     for (const style of ['flat', 'institutional', 'modern']) {
       const file = `examples/${lang}-${style}.html`
       assert.ok(html.includes(`href="${file}"`))

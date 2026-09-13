@@ -509,8 +509,12 @@ export const EDITOR_CATALOG = {
     en: 'Saved in this browser',
   },
   'editor.save.pending': {
-    fr: `Saisie en cours, pas encore enregistrée${NBSP}: quittez le champ pour la valider.`,
-    en: 'Typing not recorded yet: leave the field to enter it.',
+    fr: 'Saisie en cours, sauvegarde du brouillon en attente. Quittez le champ pour valider.',
+    en: 'Typing in progress, draft save pending. Leave the field to validate.',
+  },
+  'editor.save.draftSaved': {
+    fr: 'Brouillons sauvegardés dans ce navigateur. Retrouvez-les dans leurs champs ; quittez un champ pour le valider.',
+    en: 'Drafts saved in this browser. Return to their fields to resume; leave a field to validate it.',
   },
   'editor.save.error': {
     fr: `Échec de l'enregistrement local${NBSP}: ce document n'existe que dans cet onglet. Téléchargez-en une copie.`,
@@ -525,6 +529,7 @@ export const EDITOR_CATALOG = {
     en: 'Local saving was switched off in this browser: this document exists only in this tab. Download a copy of it, or switch saving back on under Settings ▸ Data.',
   },
   'editor.save.download': { fr: 'Télécharger une copie', en: 'Download a copy' },
+  'editor.save.downloadDrafts': { fr: 'Télécharger les brouillons', en: 'Download drafts' },
   'editor.save.conflict': {
     fr: `Un autre onglet a enregistré une version différente${NBSP}; rien n'a été écrasé. Choisissez laquelle garder.`,
     en: 'Another tab saved a different version; nothing was overwritten. Choose which one to keep.',
