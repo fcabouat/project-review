@@ -112,7 +112,21 @@ export async function checkGitflow({ github, context, core }) {
     const next = version.split('.').map(Number)
     const previous = baseline.version.split('.').map(Number)
     const different = next.findIndex((part, i) => part !== previous[i])
-    if (different < 0 || next[different] < previous[different])
+    if (different < 0) {
+      // Resume an untagged delivery after a failed publication, never reopen
+      // a published version or bypass the original delivery's provenance.
+      const original = await mergedDelivery(github, repo, pr.base.sha)
+      if (original.head.ref !== pr.head.ref)
+        throw new Error('Resume publication from the original delivery branch.')
+      let tagged = false
+      try {
+        await github.rest.git.getRef({ ...repo, ref: `tags/v${version}` })
+        tagged = true
+      } catch (error) {
+        if (error.status !== 404) throw error
+      }
+      if (tagged) throw new Error('This version is already tagged; prepare a new version.')
+    } else if (next[different] < previous[different])
       throw new Error('Release version must increase relative to main.')
   }
   if (mode === 'backport') {
