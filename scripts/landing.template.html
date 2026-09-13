@@ -106,6 +106,13 @@
       .btn-solid:hover {
         background: #e8eaf6;
       }
+      .btn-accent {
+        color: #fff;
+        background: var(--accent);
+      }
+      .btn-accent:hover {
+        background: var(--accent-dark);
+      }
       .btn-ghost {
         border: 1.5px solid rgba(255, 255, 255, 0.65);
         color: #fff;
@@ -419,7 +426,9 @@
             <h1>%H1%</h1>
             <p class="sub">%HERO_SUB%</p>
             <div class="cta">
-              <a class="btn btn-solid" href="demo/project-review.html?lang=%LANG%">%CTA_USE%</a>
+              <a class="btn btn-solid" href="demo/project-review.html?sample&amp;lang=%LANG%"
+                >%CTA_USE%</a
+              >
               <a
                 class="btn btn-ghost"
                 href="demo/project-review.html"
@@ -429,8 +438,8 @@
             </div>
             <div class="hero-note">%HERO_NOTE%</div>
             <div class="hero-note">
-              <a href="demo/project-review.html?sample&amp;lang=%LANG%">%SAMPLE_OPEN%</a> ·
-              %SAMPLES_LABEL% <a href="demo/sample-portfolio.en.json" download>%SAMPLES_EN%</a> ·
+              <a href="#online-security">%USE_LIMITS%</a> · %SAMPLES_LABEL%
+              <a href="demo/sample-portfolio.en.json" download>%SAMPLES_EN%</a> ·
               <a href="demo/sample-portfolio.fr.json" download>%SAMPLES_FR%</a> ·
               <a href="demo/THIRD-PARTY-LICENSES.txt">%THIRD_PARTY_LICENSES%</a>
             </div>
@@ -452,6 +461,16 @@
           <div><b>%P4B%</b><span>%P4S%</span></div>
         </div>
       </div>
+
+      <section id="online-security" aria-labelledby="online-security-title">
+        <div class="wrap">
+          <div class="sec-kicker">%SECURITY_KICKER%</div>
+          <h2 id="online-security-title">%SECURITY_TITLE%</h2>
+          <p class="lede">%SECURITY_WARNING%</p>
+          <p><a href="%GUIDE_HREF%#online-security">%SECURITY_DETAILS%</a></p>
+          <a class="btn btn-accent" href="demo/project-review.html?lang=%LANG%">%OPEN_EDITOR%</a>
+        </div>
+      </section>
 
       <section id="examples">
         <div class="wrap">
@@ -601,7 +620,10 @@
           <h2>%F_H2%</h2>
           <p class="lede">%F_LEDE%</p>
           <div class="cta" style="justify-content: center">
-            <a class="btn btn-solid" href="demo/project-review.html?lang=%LANG%">%F_USE%</a>
+            <a class="btn btn-solid" href="demo/project-review.html?sample&amp;lang=%LANG%"
+              >%F_USE%</a
+            >
+            <a class="btn btn-ghost" href="#online-security">%USE_LIMITS%</a>
             <a class="btn btn-ghost" href="https://github.com/fcabouat/project-review">%F_STAR%</a>
           </div>
         </div>

@@ -756,6 +756,29 @@ async function main() {
       (await rowDate.inputValue()) === '2026-0',
       'invalid date: raw input survives reload without entering the portfolio',
     )
+    const startDate = midPage.getByRole('textbox', { name: 'Début', exact: true })
+    const initialStart = await startDate.inputValue()
+    await startDate.fill('2026-')
+    await startDate.press('Tab')
+    await midPage.waitForTimeout(1700)
+    await midPage.getByRole('button', { name: '+ Jalon', exact: true }).click()
+    await midPage.waitForTimeout(700)
+    check(
+      (await rowDate.inputValue()) === '2026-0' && (await startDate.inputValue()) === '2026-',
+      'adding a milestone preserves saved drafts in existing rows and unrelated project fields',
+    )
+    await midPage
+      .getByRole('button', { name: /Annuler/ })
+      .first()
+      .click()
+    await midPage.reload()
+    await openMilestones()
+    check(
+      (await rowDate.inputValue()) === '2026-0' && (await startDate.inputValue()) === '2026-',
+      'undoing the added row and reloading preserves both unfinished dates',
+    )
+    await startDate.fill(initialStart)
+    await startDate.press('Tab')
     await rowDate.fill(validDate)
     await rowDate.press('Tab')
 
@@ -793,6 +816,22 @@ async function main() {
       check(
         (await fields[first].inputValue()) === values[first] && (await taken()) === undefined,
         'outcome: the incomplete half survives reload without becoming a domain outcome',
+      )
+      await midPage.getByRole('button', { name: /Ajouter une décision/ }).click()
+      await settle(midPage)
+      check(
+        (await fields[first].inputValue()) === values[first],
+        'outcome: adding another decision preserves the incomplete half',
+      )
+      await midPage
+        .getByRole('button', { name: /Annuler/ })
+        .first()
+        .click()
+      await midPage.reload()
+      await openDecisions()
+      check(
+        (await fields[first].inputValue()) === values[first] && (await taken()) === undefined,
+        'outcome: undoing the added decision and reloading preserves the raw half',
       )
       await fields[1 - first].fill(values[1 - first])
       await midPage.reload() // last input stays focused until pagehide

@@ -13,8 +13,10 @@ de langue à tout moment. Le guide anglais est [user-guide.md](user-guide.md).
 
 Deux façons de lancer l'application :
 
-- **Utiliser en ligne.** [Ouvrez l'éditeur complet sur GitHub Pages](https://fcabouat.github.io/project-review/demo/project-review.html?lang=fr).
-  C'est la même application, pas une démo limitée. Les portefeuilles restent dans votre navigateur.
+- **Démo en ligne.** [Découvrez l'éditeur avec des données fictives](https://fcabouat.github.io/project-review/demo/project-review.html?sample&lang=fr).
+  Le travail déjà enregistré reste prioritaire.
+- **Utiliser en ligne.** Consultez les [limites de sécurité](#online-security)
+  avant de saisir vos propres données dans cet éditeur complet.
 - **Version autonome, hors ligne.** Téléchargez `project-review.html` et double-cliquez
   dessus. L'application tourne en `file://` — pas de serveur, pas de réseau,
   pas de compte.
@@ -217,11 +219,35 @@ La fusion est une seule entrée d'historique : **Ctrl+Z** la défait en bloc.
 
 ## Données & confidentialité
 
-Tout reste dans le navigateur. Pas de serveur, pas de compte ; rien ne quitte
-la machine, et aucun tiers n'est jamais contacté — polices comprises. Les
-seules requêtes possibles vont au déploiement de l'application lui-même, pour
-une police que vous avez choisi d'y servir (voir **Police** ci-dessus) ;
-ouverte depuis un fichier, l'application n'en fait aucune.
+L'application ne transmet pas le contenu des portefeuilles à un serveur et
+n'utilise ni compte ni télémétrie applicative. En ligne, l'hébergeur reçoit les
+requêtes nécessaires au chargement des fichiers, des exemples demandés et des
+éventuelles polices déployées. GitHub Pages journalise notamment les adresses IP
+des visiteurs pour la sécurité : [documentation GitHub](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages#data-collection).
+Le fichier autonome ouvert hors ligne n'a pas besoin de ces requêtes.
+
+<a id="online-security"></a>
+
+### Utilisation en ligne : avertissement de sécurité
+
+Les pages sous `fcabouat.github.io` partagent une même origine navigateur,
+même si elles appartiennent à des dépôts différents. Un script compromis sur
+un autre site de cette origine pourrait lire le portefeuille, l'historique et
+les brouillons dans le même profil navigateur. **Cela ne rend pas les données
+publiques**, mais le stockage local n'isole pas ces sites entre eux.
+[Fonctionnement du stockage navigateur](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
+
+Ne saisissez pas de données confidentielles sur ce déploiement partagé.
+Préférez le fichier hors ligne ou un hébergement de confiance sur une origine
+dédiée à l'application, séparée des autres applications et catalogues de documentation.
+Changer uniquement le chemin ou la clé de stockage ne suffit pas. Le fichier
+hors ligne dépend lui aussi de la sécurité du poste et du navigateur. Gardez
+des sauvegardes JSON.
+
+[Ouvrir l'éditeur en ligne](https://fcabouat.github.io/project-review/demo/project-review.html?lang=fr)
+pour des données non confidentielles.
+
+### Sauvegarde et récupération
 
 - **Sauvegarde locale (localStorage)** — active par défaut. La base, les brouillons et
   l'historique annuler/rétablir sont enregistrés ENSEMBLE, sous une seule clé :

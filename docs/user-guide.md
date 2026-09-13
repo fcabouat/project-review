@@ -12,8 +12,10 @@ time. The French version of this guide is [user-guide.fr.md](user-guide.fr.md).
 
 Two ways to run the app:
 
-- **Use online.** [Open the full editor on GitHub Pages](https://fcabouat.github.io/project-review/demo/project-review.html?lang=en).
-  This is the same application, not a limited demo. Portfolios stay in your browser.
+- **Live demo.** [Explore the editor with fictional data](https://fcabouat.github.io/project-review/demo/project-review.html?sample&lang=en).
+  Existing saved work takes precedence.
+- **Use online.** Read the [security limits](#online-security)
+  before entering your own data in the full editor.
 - **Standalone, offline.** Download `project-review.html` and double-click it. The app
   runs from `file://` — no server, no network, no account.
 
@@ -198,11 +200,32 @@ The merge is a single history entry: **Ctrl+Z** undoes it whole.
 
 ## Data & privacy
 
-Everything stays in the browser. There is no server and no account; nothing
-leaves the machine, and no third party is ever contacted — fonts included. The
-only requests the app can make go to its own deployment, for a font you chose
-to serve from it (see **Font** above); opened from a file, it makes none at
-all.
+The app does not upload portfolio contents to a server and uses no account or
+application telemetry. Online, the host receives requests to load files,
+requested examples and any deployed fonts. GitHub Pages logs visitor IP
+addresses for security: [GitHub documentation](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages#data-collection).
+The standalone file opened offline does not need these requests.
+
+<a id="online-security"></a>
+
+### Online use: security warning
+
+Pages under `fcabouat.github.io` share a browser origin, even across different
+repositories. A compromised script on another site of that origin could read
+your portfolio, history and drafts in the same browser profile. **This does
+not make the data public**, but local storage does not isolate these sites.
+[Browser storage behavior](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
+
+Do not enter confidential data on this shared deployment. Prefer the offline
+file or a trusted deployment on an origin dedicated to the app, separate from
+other applications and documentation catalogs. Changing only the path or storage
+key is not sufficient. The offline file also relies on your device and browser
+security. Keep JSON backups.
+
+[Open the online editor](https://fcabouat.github.io/project-review/demo/project-review.html?lang=en)
+for non-confidential data.
+
+### Saving and recovery
 
 - **Local save (localStorage)** — on by default. The database, raw drafts and
   undo/redo history are saved TOGETHER, under a single key, so an undo can
