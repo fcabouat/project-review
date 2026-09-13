@@ -10,6 +10,7 @@
 
 ### Patch Changes
 
+- Fix missing-tag detection and allow guarded retries of an untagged release after publication failure.
 - 6162799: Keep demo and imported document languages consistent. Add six ready-to-view example decks (three themes, French and English), with README and project-site links. Add persisted linear or vertical-section slideshow navigation. Prepare releases through Changesets on Gitflow release branches.
 - c38e89b: Preserve unrelated drafts and remap surviving milestone and decision rows after additions or deletions, including undo/redo. Lead with the live demo and explain shared-origin security and hosting privacy limits before online use.
 - @project-review/components@0.2.0

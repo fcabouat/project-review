@@ -41,8 +41,16 @@ function fixture(options = {}) {
   }
   const github = {
     rest: {
+      git: {
+        getRef: async () => {
+          if (options.tagged) return { data: { object: { sha: 'published' } } }
+          throw Object.assign(new Error('Missing tag'), { status: options.tagError ?? 404 })
+        },
+      },
       repos: {
-        listPullRequestsAssociatedWithCommit: async () => ({ data: options.noPr ? [] : [pr] }),
+        listPullRequestsAssociatedWithCommit: async ({ commit_sha }) => ({
+          data: options.noPr ? [] : [{ ...pr, merge_commit_sha: commit_sha }],
+        }),
         getCommit: async () => ({
           data: {
             parents: options.squash ? [{ sha: 'base' }] : [{ sha: 'base' }, { sha: 'head' }],
@@ -53,7 +61,8 @@ function fixture(options = {}) {
             return { data: options.pending ? [{ name: 'new.md' }] : [{ name: 'config.json' }] }
           const content = path.endsWith('package.json')
             ? JSON.stringify({
-                version: ref === 'base' ? '0.1.0' : (options.version ?? '0.1.1'),
+                version:
+                  ref === 'base' ? (options.baseVersion ?? '0.1.0') : (options.version ?? '0.1.1'),
                 private: true,
               })
             : '# App\n\n## 0.1.1\n\nNotes\n'
@@ -89,6 +98,30 @@ test('main requires a real delivery PR and a classic merge', async () => {
       /main must receive/,
     )
   }
+})
+
+test('same-version delivery resumes only an untagged classic delivery; other failures stay fatal', async () => {
+  await checkGitflow(fixture({ baseVersion: '0.1.1' }))
+  for (const options of [
+    { tagged: true },
+    { tagError: 403 },
+    { tagError: 422 },
+    { noPr: true },
+    { squash: true },
+  ])
+    await assert.rejects(checkGitflow(fixture({ baseVersion: '0.1.1', ...options })))
+  const other = fixture({ baseVersion: '0.1.1' })
+  other.github.rest.repos.listPullRequestsAssociatedWithCommit = async () => ({
+    data: [
+      {
+        ...other.context.payload.pull_request,
+        merge_commit_sha: 'base',
+        head: { ...other.context.payload.pull_request.head, ref: 'hotfix/0.1.1' },
+      },
+    ],
+  })
+  await assert.rejects(checkGitflow(other), /original delivery/)
+  await assert.rejects(checkGitflow(fixture({ baseVersion: '0.2.0' })), /must increase/)
 })
 
 test('versions and consumed changesets are enforced before shipping and backporting', async () => {
