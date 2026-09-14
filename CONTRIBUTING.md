@@ -21,13 +21,17 @@ finishes, and release/hotfix back-merges from the delivery branch itself. It
 links the versioned `.gitflow/hooks` into Git's effective hooks directory and
 refuses to overwrite an existing hook.
 
+Do not configure `gitflow.release.finish.ff-master`, even to `false`: AVH
+1.12.3 mishandles that key. The initializer removes an old local entry and
+refuses any remaining inherited setting, without editing global/system files.
+The client's unconfigured default already disables fast-forward release finishes.
+
 ## Everyday work
 
 ```sh
 git flow feature start concise-name
 # edit and commit
-git flow feature finish concise-name
-git push origin develop
+git flow feature finish concise-name && git push origin develop
 ```
 
 `bugfix/*` follows the same integration route. When review is needed, publish
@@ -40,10 +44,13 @@ Start from clean, current local `main` and `develop`. Choose the semantic impact
 the hook computes the version from `develop`, not from an arbitrary checkout:
 
 ```sh
-git flow release start patch   # or minor / major
-# optional stabilization commits on release/X.Y.Z
-git flow release finish X.Y.Z
-git push --atomic origin main develop refs/tags/vX.Y.Z
+(
+  set -e
+  git flow release start patch   # or minor / major
+  version=$(node scripts/version.mjs current)
+  git flow release finish "$version"
+  git push --atomic origin main develop "refs/tags/v$version"
+)
 ```
 
 The post-start hook updates all four private package manifests together and
@@ -53,6 +60,10 @@ Gitflow then merges the release into both `main` and `develop` and creates an
 annotated `Project Review vX.Y.Z` tag. The post-finish hook only prints the push
 command; AVH ignores post-hook failures, so publication is always the explicit
 atomic push shown above.
+
+For stabilization work, stop after a successful `start`, commit the changes on
+the reported release branch, then run `finish && push` for that exact version.
+Never push after a failed start or finish, even if an old matching tag exists.
 
 GitHub independently verifies `main`, `develop`, and the tag. The tag run checks
 that all versions match, that the tag is annotated, and that its commit belongs
@@ -67,17 +78,32 @@ the normal Gitflow finish merge.
 
 ## Hotfixes
 
-A hotfix starts from `main`; `patch` is calculated from that branch:
+A hotfix starts from `main`; `patch` is calculated from that branch. Insert
+your fix and commit between start and finish in this guarded sequence:
 
 ```sh
-git flow hotfix start patch
-# edit and commit
-git flow hotfix finish X.Y.Z
-git push --atomic origin main develop refs/tags/vX.Y.Z
+(
+  set -e
+  git flow hotfix start patch
+  # Apply and commit the fix here before continuing.
+  version=$(node scripts/version.mjs current)
+  git flow hotfix finish "$version"
+  git push --atomic origin main develop "refs/tags/v$version"
+)
 ```
 
 The same verification and publication rules apply. Resolve any active release
 before finishing a colliding hotfix.
+
+## After a history rewrite
+
+Prefer a fresh clone. `git fetch --prune` does not remove old local tags or
+local `release/*` branches. In a reused clone, compare `git branch` and
+`git tag` with `git ls-remote --heads --tags origin` before starting a release.
+Preserve any work you need before removing explicitly identified stale local
+references; do not automatically prune published tags. Repair an accidentally
+republished tag only with its exact remote SHA in `--force-with-lease`, without
+force-pushing `main` or `develop`.
 
 ## GitHub repository settings
 

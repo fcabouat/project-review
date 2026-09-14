@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { execFileSync, spawnSync } from 'node:child_process'
+import { spawnSync } from 'node:child_process'
 import {
   cpSync,
   mkdirSync,
@@ -18,9 +18,20 @@ const avh = process.env.GITFLOW_AVH_PATH
 
 test('real git-flow AVH runs local feature, release and hotfix cycles', { skip: !avh }, () => {
   const root = mkdtempSync(join(tmpdir(), 'project-review-gitflow-'))
-  const env = { ...process.env, PATH: `${avh}:${process.env.PATH}` }
-  const run = (...args) =>
-    execFileSync(args.shift(), args, { cwd: root, env, encoding: 'utf8' }).trim()
+  const globalConfig = join(root, 'global.gitconfig')
+  const env = {
+    ...process.env,
+    PATH: `${avh}:${process.env.PATH}`,
+    GIT_CONFIG_NOSYSTEM: '1',
+    GIT_CONFIG_GLOBAL: globalConfig,
+  }
+  const run = (...args) => {
+    const result = spawnSync(args.shift(), args, { cwd: root, env, encoding: 'utf8' })
+    const output = `${result.stdout}\n${result.stderr}`
+    assert.equal(result.status, 0, output)
+    assert.doesNotMatch(output, /FLAGS_ff-master|command not found/)
+    return result.stdout.trim()
+  }
   const fails = (...args) => spawnSync(args.shift(), args, { cwd: root, env, encoding: 'utf8' })
   try {
     mkdirSync(join(root, 'scripts'), { recursive: true })
@@ -44,7 +55,19 @@ test('real git-flow AVH runs local feature, release and hotfix cycles', { skip: 
     run('git', 'add', '.')
     run('git', 'commit', '-m', 'initial')
     run('git', 'switch', '-c', 'develop')
+    run('git', 'config', '--local', 'gitflow.release.finish.ff-master', 'false')
     run('pnpm', 'gitflow:init')
+    assert.equal(
+      fails('git', 'config', '--local', '--get', 'gitflow.release.finish.ff-master').status,
+      1,
+    )
+    run('git', 'config', '--file', globalConfig, 'gitflow.release.finish.ff-master', 'false')
+    const globalBefore = readFileSync(globalConfig, 'utf8')
+    const inheritedRefusal = fails('pnpm', 'gitflow:init')
+    assert.notEqual(inheritedRefusal.status, 0)
+    assert.match(inheritedRefusal.stderr, /inherited\/included configuration/)
+    assert.equal(readFileSync(globalConfig, 'utf8'), globalBefore)
+    run('git', 'config', '--file', globalConfig, '--unset-all', 'gitflow.release.finish.ff-master')
     run('pnpm', 'gitflow:init')
     assert.equal(run('git', 'config', '--get', 'gitflow.branch.master'), 'main')
     assert.equal(run('git', 'config', '--get', 'gitflow.release.finish.nobackmerge'), 'true')
