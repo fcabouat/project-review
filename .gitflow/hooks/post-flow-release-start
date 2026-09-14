@@ -1,0 +1,6 @@
+#!/bin/sh
+# shellcheck source=.gitflow/hooks/gitflow-common.sh
+. "$(dirname "$0")/gitflow-common.sh"
+version=$(bare_version "$1")
+node scripts/version.mjs set release "v$version"
+echo "Version set to $version on $3"

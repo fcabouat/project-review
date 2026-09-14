@@ -1,0 +1,2 @@
+#!/bin/sh
+printf '\nRelease finished locally. Push it explicitly with:\n  git push --atomic origin main develop refs/tags/%s\n' "$1"

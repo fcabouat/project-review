@@ -1,0 +1,7 @@
+#!/bin/sh
+set -eu
+root=$(git rev-parse --show-toplevel)
+version=$(printf '%s\n' "$1" | sed 's/^v//')
+current=$(node "$root/scripts/version.mjs" current)
+[ "$current" = "$version" ] || { echo "package versions are $current; hotfix expects $version" >&2; exit 1; }
+pnpm verify

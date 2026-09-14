@@ -1,0 +1,7 @@
+packages:
+  - app
+  - packages/*
+
+# Only reviewed native tooling may run dependency installation scripts.
+onlyBuiltDependencies:
+  - esbuild

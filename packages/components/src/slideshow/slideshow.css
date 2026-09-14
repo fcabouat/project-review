@@ -1,0 +1,157 @@
+/* ==========================================================================
+   Global rules the slideshow and the print mode need OUTSIDE any component
+   scope — Svelte's scoped styles cannot reach `html`, `body`, reveal's own
+   generated nodes, or the sibling subtree the print mode has to hide.
+
+   Kept tiny on purpose: everything about the LOOK of a slide is in
+   `slides/theme.css` and `slides/print.css`. Nothing here restates a metric.
+   ========================================================================== */
+
+/* ---------- print mode --------------------------------------------------- */
+
+/* Screen reading of `?print`: a plain stack on the neutral ground, so the flat
+   deck is legible before it is printed. No gap in print — see below. */
+.rp-print-root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  padding: 32px 0;
+  background: #ececee;
+}
+
+@media print {
+  /* Zero box of our own around the slides: `print.css` gives each `.slide` its
+     exact 1122 × 793 and its `break-after: page`; any padding, gap or border
+     added here would push a slide over the page edge and bring back the blank
+     page rule of print.css (1122 × 793). */
+  .rp-print-root {
+    display: block;
+    gap: 0;
+    padding: 0;
+    margin: 0;
+    background: #fff;
+  }
+
+  /* Printing from the exit bar: the editor (and the reveal overlay) are still
+     mounted as siblings under `#app`. `SlideshowHost` flags `<html>` while the
+     print dialog is up, and only the flat deck survives on paper. */
+  html.rp-printing #app > *:not(.rp-print-root) {
+    display: none !important;
+  }
+  html.rp-printing,
+  html.rp-printing body {
+    background: #fff;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* ---------- slideshow ---------------------------------------------------- */
+
+/* The stage is a fixed black overlay above the editor, which stays mounted and
+   untouched underneath (closing must return an intact editor). */
+.rp-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  background: #111113;
+  overflow: hidden;
+}
+
+/* A slide template IS a reveal slide (`section.slide`), so the two stylesheets
+   meet on the same element and reveal's own `.reveal .slides>section` and
+   `.reveal .slides>section>section` rules outrank `.slide` (0,1,0). Only the
+   three declarations that actually collide are restated here, at 0,4,1 — the
+   geometry and the flex layout the templates are built on. DESCENDANT selectors
+   on purpose: a slide sits either directly under `.slides` (single) or inside a
+   `section.stack` drawer. Everything else is left to
+   reveal, INCLUDING the `display: none` that hides the slides one is not looking
+   at: that is why `display` is set on `.present` only, never on the base
+   selector. */
+.rp-stage .reveal .slides {
+  text-align: left;
+}
+.rp-stage .reveal .slides section.slide {
+  width: var(--slide-width);
+  height: var(--slide-height);
+  padding: 0;
+  overflow: hidden;
+}
+/* A vertical drawer is only a container: no size, no clipping of its own —
+   reveal adds the `stack` class itself, and the markup writes it too so the
+   rule holds before boot. */
+.rp-stage .reveal .slides section.stack {
+  width: auto;
+  height: auto;
+  overflow: visible;
+}
+/* `!important` earns its place exactly once, here. reveal.js shows and hides
+   slides with an INLINE `style="display: block"` / `display: none`, which no
+   selector can outrank; the slide frame is a flex row (rail + canvas) and would
+   otherwise stack its two columns. Scoped to `.present` so reveal keeps full
+   control of hiding the others. */
+.rp-stage .reveal .slides section.slide.present {
+  display: flex !important;
+}
+/* Overview (Escape/O): reveal shows every slide with an inline `display: block`,
+   which would stack each frame's rail and canvas; the grid transforms position
+   ALL slides, so forcing the flex frame on every one of them is safe there. */
+.rp-stage .reveal.overview .slides section.slide {
+  display: flex !important;
+}
+
+/* reveal chrome tinted to the accent: progress bar and edge arrows. */
+.rp-stage .reveal .progress {
+  color: #312e81;
+}
+.rp-stage .reveal .controls {
+  color: #312e81;
+}
+
+/* The reveal base sheet is loaded (and unloaded) at runtime by `SlideshowHost`;
+   it ships a `.reveal` type scale that must never leak into a slide template. */
+.rp-stage .reveal {
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  font-size: 14.5px;
+  line-height: 1.45;
+  color: var(--txt);
+}
+
+.rp-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffffb0;
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  font-size: 14px;
+}
+
+/* The boot failed: the same overlay, said in full contrast, with the retry
+   right under it — an endless « loading » line is what this replaces. */
+.rp-failed {
+  flex-direction: column;
+  gap: 14px;
+  color: #fff;
+}
+.rp-retry {
+  appearance: none;
+  border: 1px solid #ffffff8c;
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  padding: 10px 18px;
+  min-height: 44px;
+  cursor: pointer;
+}
+.rp-retry:hover {
+  background: #ffffff1a;
+}
+.rp-retry:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}

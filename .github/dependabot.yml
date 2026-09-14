@@ -1,0 +1,45 @@
+# Updates arrive as PULL REQUESTS and wait there: nothing lands without a green
+# CI and a human merge. The settings below are tuned for a project that is
+# maintained rarely — the point is to never have to think about it, while the
+# lock file and the pinned action SHAs stay current.
+#
+# Noise control, in order of effect:
+#   - monthly, the slowest cadence Dependabot offers;
+#   - everything GROUPED, so one month yields one pull request per ecosystem
+#     rather than one per package (majors travel in their own group: a
+#     minor/patch batch is merge-on-green, a major deserves a look);
+#   - low open-PR ceilings, so a month left unmerged does not pile up;
+#   - no reviewers and no assignees, deliberately: GitHub only notifies people
+#     it is told about. Watching settings decide the rest, and they belong to
+#     the account, not to this file.
+version: 2
+updates:
+  - package-ecosystem: npm # pnpm uses the npm ecosystem
+    directory: /
+    target-branch: develop
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 2
+    commit-message:
+      prefix: chore
+    groups:
+      dependencies:
+        patterns: ['*']
+        update-types: [minor, patch]
+      major-dependencies:
+        patterns: ['*']
+        update-types: [major]
+
+  # The workflows pin every action to a full commit SHA, which is immutable —
+  # and therefore never picks up a fix on its own. This is what moves them.
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: develop
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 1
+    commit-message:
+      prefix: chore
+    groups:
+      actions:
+        patterns: ['*']

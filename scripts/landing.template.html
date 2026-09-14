@@ -1,0 +1,656 @@
+<!doctype html>
+<html lang="%LANG%">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>%TITLE%</title>
+    <meta name="description" content="%META_DESC%" />
+    <link rel="stylesheet" href="assets/site-nav.css" />
+    <style>
+      :root {
+        --accent: #303f9f;
+        --accent-dark: #1a237e;
+        --ink: #212121;
+        --ink2: #455a64;
+        /* AA-checked: 4.62:1 on the lightest tinted ground it sits on
+           (the .shot-bar chrome), ≥ 4.9:1 on paper. */
+        --muted: #5e6d78;
+        --paper: #ffffff;
+        --paper-alt: #f5f5f5;
+        --rule: #cfd8dc;
+        --teal: #00897b;
+        --green: #2e7d32;
+        --amber: #ff6f00;
+        --purple: #9c27b0;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font:
+          16px/1.6 Roboto,
+          Inter,
+          system-ui,
+          sans-serif;
+        color: var(--ink);
+        background: var(--paper);
+      }
+      a {
+        color: var(--accent);
+      }
+      .wrap {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+
+      /* ---- hero ------------------------------------------------------------- */
+      .hero {
+        background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+        color: #fff;
+      }
+      .hero-in {
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 56px;
+        align-items: start;
+        padding-block: 72px 84px;
+      }
+      .hero-in > figure {
+        margin-top: 46px;
+      }
+      .kicker {
+        font-size: 12.5px;
+        font-weight: 700;
+        letter-spacing: 0.28em;
+        text-transform: uppercase;
+        opacity: 0.72;
+      }
+      .hero h1 {
+        font-size: 46px;
+        line-height: 1.12;
+        font-weight: 800;
+        letter-spacing: -0.015em;
+        margin: 14px 0 18px;
+      }
+      .hero p.sub {
+        font-size: 18px;
+        line-height: 1.55;
+        opacity: 0.92;
+        max-width: 34em;
+      }
+      .cta {
+        display: flex;
+        gap: 14px;
+        margin-top: 30px;
+        flex-wrap: wrap;
+      }
+      .btn {
+        display: inline-block;
+        font-weight: 700;
+        font-size: 15.5px;
+        text-decoration: none;
+        padding: 13px 26px;
+        border-radius: 3px;
+        letter-spacing: 0.01em;
+      }
+      .btn-solid {
+        background: #fff;
+        color: var(--accent-dark);
+      }
+      .btn-solid:hover {
+        background: #e8eaf6;
+      }
+      .btn-accent {
+        color: #fff;
+        background: var(--accent);
+      }
+      .btn-accent:hover {
+        background: var(--accent-dark);
+      }
+      .btn-ghost {
+        border: 1.5px solid rgba(255, 255, 255, 0.65);
+        color: #fff;
+      }
+      .btn-ghost:hover {
+        border-color: #fff;
+        background: rgba(255, 255, 255, 0.08);
+      }
+      .hero-note {
+        margin-top: 14px;
+        font-size: 13px;
+        opacity: 0.65;
+      }
+      .hero-note a {
+        color: inherit;
+      }
+
+      .shot {
+        background: #fff;
+        border-radius: 6px;
+        overflow: hidden;
+        box-shadow: 0 24px 60px rgba(13, 17, 60, 0.45);
+      }
+      .shot-bar {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        height: 30px;
+        padding: 0 12px;
+        background: #eceff1;
+        border-bottom: 1px solid var(--rule);
+      }
+      .shot-bar i {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #cfd8dc;
+      }
+      .shot-bar span {
+        margin-left: 10px;
+        font-size: 11px;
+        color: var(--muted);
+        font-family: ui-monospace, monospace;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+        flex: 1;
+      }
+      .shot img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
+      /* ---- proof strip ------------------------------------------------------ */
+      .proof {
+        border-bottom: 1px solid var(--rule);
+        background: var(--paper-alt);
+      }
+      .proof-in {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0;
+        padding: 26px 0;
+      }
+      .proof-in div {
+        text-align: center;
+        padding: 0 12px;
+      }
+      .proof-in div + div {
+        border-left: 1px solid var(--rule);
+      }
+      .proof b {
+        display: block;
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--accent);
+      }
+      .proof span {
+        font-size: 12.5px;
+        color: var(--muted);
+      }
+
+      /* ---- sections --------------------------------------------------------- */
+      section {
+        padding: 72px 0;
+      }
+      .sec-kicker {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+      h2 {
+        font-size: 30px;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+        margin: 8px 0 8px;
+      }
+      .lede {
+        color: var(--ink2);
+        max-width: 44em;
+      }
+
+      .security-actions {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px 28px;
+        margin-top: 24px;
+      }
+
+      .grid3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 22px;
+        margin-top: 38px;
+      }
+      .card {
+        border: 1px solid var(--rule);
+        border-top: 3px solid var(--card, var(--accent));
+        border-radius: 4px;
+        padding: 20px 22px;
+        background: #fff;
+      }
+      .card h3 {
+        font-size: 16.5px;
+        font-weight: 700;
+        margin-bottom: 7px;
+      }
+      .card p {
+        font-size: 14px;
+        line-height: 1.55;
+        color: var(--ink2);
+      }
+      .example-card img {
+        width: 100%;
+        height: auto;
+        border: 1px solid var(--rule);
+      }
+      .example-card a {
+        display: block;
+      }
+
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 22px;
+        margin-top: 38px;
+      }
+      .step b {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: #fff;
+        font-size: 18px;
+        margin-bottom: 14px;
+      }
+      .step h3 {
+        font-size: 16.5px;
+        margin-bottom: 6px;
+      }
+      .step p {
+        font-size: 14px;
+        color: var(--ink2);
+      }
+
+      .band {
+        background: var(--paper-alt);
+        border-top: 1px solid var(--rule);
+        border-bottom: 1px solid var(--rule);
+      }
+      .band .shot {
+        box-shadow: 0 18px 44px rgba(13, 17, 60, 0.18);
+        width: 100%;
+        margin: 38px auto 0;
+      }
+
+      .arch {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 48px;
+        align-items: center;
+      }
+      .arch pre {
+        background: #111827;
+        color: #e5e7eb;
+        font:
+          12.5px/1.7 ui-monospace,
+          SFMono-Regular,
+          monospace;
+        padding: 22px 26px;
+        border-radius: 6px;
+        overflow-x: auto;
+      }
+      .arch .hl {
+        color: #a5b4fc;
+      }
+      .arch ul {
+        margin: 18px 0 0 18px;
+        font-size: 14.5px;
+        color: var(--ink2);
+      }
+      .arch li {
+        margin-bottom: 9px;
+      }
+
+      .cta-final {
+        background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+        color: #fff;
+        text-align: center;
+      }
+      .cta-final h2 {
+        color: #fff;
+      }
+      .cta-final .lede {
+        color: rgba(255, 255, 255, 0.85);
+        margin: 0 auto;
+      }
+
+      footer {
+        padding: 30px 0 44px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .foot-in {
+        display: flex;
+        gap: 22px;
+        flex-wrap: wrap;
+      }
+      .foot-in span {
+        margin-right: auto;
+      }
+      footer a {
+        color: var(--ink2);
+      }
+
+      @media (max-width: 880px) {
+        .hero-in {
+          grid-template-columns: 1fr;
+          gap: 38px;
+          padding-block: 52px 58px;
+        }
+        .hero-in > figure {
+          margin-top: 0;
+        }
+        .hero h1 {
+          font-size: 33px;
+        }
+        .proof-in {
+          grid-template-columns: repeat(2, 1fr);
+          row-gap: 22px;
+        }
+        .proof-in div:nth-child(3) {
+          border-left: none;
+        }
+        .grid3,
+        .steps,
+        .arch {
+          grid-template-columns: 1fr;
+        }
+        .security-actions {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+        section {
+          padding: 52px 0;
+        }
+        h2 {
+          font-size: 25px;
+        }
+        .arch pre {
+          font-size: 11px;
+          padding: 16px 14px;
+        }
+      }
+      @media (max-width: 480px) {
+        .proof-in {
+          grid-template-columns: 1fr;
+        }
+        .proof-in div + div {
+          border-left: none;
+          border-top: 1px solid var(--rule);
+          padding-top: 18px;
+        }
+        .cta {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .btn {
+          text-align: center;
+        }
+      }
+      /* Motion is a preference (WCAG 2.3.3): the smooth anchor scroll is the
+         page's one movement — stilled under prefers-reduced-motion. */
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+        *,
+        ::before,
+        ::after {
+          transition-duration: 0.01ms !important;
+          animation-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    %SITE_NAV%
+
+    <main>
+      <div class="hero">
+        <div class="wrap hero-in">
+          <div>
+            <div class="kicker">%KICKER%</div>
+            <h1>%H1%</h1>
+            <p class="sub">%HERO_SUB%</p>
+            <div class="cta">
+              <a class="btn btn-solid" href="demo/project-review.html?sample&amp;lang=%LANG%"
+                >%CTA_USE%</a
+              >
+              <a
+                class="btn btn-ghost"
+                href="demo/project-review.html"
+                download="project-review.html"
+                >%CTA_DL%</a
+              >
+            </div>
+            <div class="hero-note">%HERO_NOTE%</div>
+            <div class="hero-note">
+              <a href="#online-security">%USE_LIMITS%</a> · %SAMPLES_LABEL%
+              <a href="demo/sample-portfolio.en.json" download>%SAMPLES_EN%</a> ·
+              <a href="demo/sample-portfolio.fr.json" download>%SAMPLES_FR%</a> ·
+              <a href="demo/THIRD-PARTY-LICENSES.txt">%THIRD_PARTY_LICENSES%</a>
+            </div>
+          </div>
+          <figure class="shot">
+            <div class="shot-bar">
+              <i></i><i></i><i></i><span>file:///project-review.html</span>
+            </div>
+            <img src="images/%LANG%-slide.png" alt="%ALT1%" width="1280" height="860" />
+          </figure>
+        </div>
+      </div>
+
+      <div class="proof">
+        <div class="wrap proof-in">
+          <div><b>%P1B%</b><span>%P1S%</span></div>
+          <div><b>%P2B%</b><span>%P2S%</span></div>
+          <div><b>%P3B%</b><span>%P3S%</span></div>
+          <div><b>%P4B%</b><span>%P4S%</span></div>
+        </div>
+      </div>
+
+      <section id="online-security" aria-labelledby="online-security-title">
+        <div class="wrap">
+          <div class="sec-kicker">%SECURITY_KICKER%</div>
+          <h2 id="online-security-title">%SECURITY_TITLE%</h2>
+          <p class="lede">%SECURITY_WARNING%</p>
+          <div class="security-actions">
+            <a href="%GUIDE_HREF%#online-security">%SECURITY_DETAILS%</a>
+            <a class="btn btn-accent" href="demo/project-review.html?lang=%LANG%">%OPEN_EDITOR%</a>
+          </div>
+        </div>
+      </section>
+
+      <section id="examples">
+        <div class="wrap">
+          <div class="sec-kicker">%EXAMPLES_KICKER%</div>
+          <h2>%EXAMPLES_TITLE%</h2>
+          <p class="lede">%EXAMPLES_LEDE%</p>
+          <div class="grid3">
+            <article class="card example-card">
+              <a href="examples/%LANG%-flat.html">
+                <img
+                  src="examples/%LANG%-flat.png"
+                  width="1280"
+                  height="720"
+                  loading="lazy"
+                  alt=""
+                />
+                <h3>%EXAMPLE_FLAT% →</h3>
+              </a>
+              <p>%EXAMPLE_MATERIAL%</p>
+            </article>
+            <article class="card example-card">
+              <a href="examples/%LANG%-institutional.html">
+                <img
+                  src="examples/%LANG%-institutional.png"
+                  width="1280"
+                  height="720"
+                  loading="lazy"
+                  alt=""
+                />
+                <h3>%EXAMPLE_INSTITUTIONAL% →</h3>
+              </a>
+              <p>%EXAMPLE_UNIFORM%</p>
+            </article>
+            <article class="card example-card">
+              <a href="examples/%LANG%-modern.html">
+                <img
+                  src="examples/%LANG%-modern.png"
+                  width="1280"
+                  height="720"
+                  loading="lazy"
+                  alt=""
+                />
+                <h3>%EXAMPLE_MODERN% →</h3>
+              </a>
+              <p>%EXAMPLE_TAILWIND%</p>
+            </article>
+          </div>
+          <p><a href="examples/THIRD-PARTY-LICENSES.txt">%THIRD_PARTY_LICENSES%</a></p>
+        </div>
+      </section>
+
+      <section>
+        <div class="wrap">
+          <div class="sec-kicker">%S1_KICKER%</div>
+          <h2>%S1_H2%</h2>
+          <p class="lede">%S1_LEDE%</p>
+          <div class="grid3">
+            <div class="card" style="--card: var(--accent)">
+              <h3>%C1H%</h3>
+              <p>%C1P%</p>
+            </div>
+            <div class="card" style="--card: var(--teal)">
+              <h3>%C2H%</h3>
+              <p>%C2P%</p>
+            </div>
+            <div class="card" style="--card: var(--green)">
+              <h3>%C3H%</h3>
+              <p>%C3P%</p>
+            </div>
+            <div class="card" style="--card: var(--amber)">
+              <h3>%C4H%</h3>
+              <p>%C4P%</p>
+            </div>
+            <div class="card" style="--card: var(--purple)">
+              <h3>%C5H%</h3>
+              <p>%C5P%</p>
+            </div>
+            <div class="card" style="--card: var(--ink2)">
+              <h3>%C6H%</h3>
+              <p>%C6P%</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="band">
+        <div class="wrap">
+          <div class="sec-kicker">%S2_KICKER%</div>
+          <h2>%S2_H2%</h2>
+          <div class="steps">
+            <div class="step">
+              <b>1</b>
+              <h3>%ST1H%</h3>
+              <p>%ST1P%</p>
+            </div>
+            <div class="step">
+              <b>2</b>
+              <h3>%ST2H%</h3>
+              <p>%ST2P%</p>
+            </div>
+            <div class="step">
+              <b>3</b>
+              <h3>%ST3H%</h3>
+              <p>%ST3P%</p>
+            </div>
+          </div>
+          <figure class="shot">
+            <div class="shot-bar">
+              <i></i><i></i><i></i><span>file:///project-review.html#/projects</span>
+            </div>
+            <img src="images/%LANG%-projects.png" alt="%ALT2%" width="1280" height="860" />
+          </figure>
+        </div>
+      </section>
+
+      <section>
+        <div class="wrap arch">
+          <div>
+            <div class="sec-kicker">%S3_KICKER%</div>
+            <h2>%S3_H2%</h2>
+            <ul>
+              <li>%A1%</li>
+              <li>%A2%</li>
+              <li>%A3%</li>
+            </ul>
+            <p style="margin-top: 18px">
+              <a href="overview.html"><strong>%A_LINK%</strong></a>
+            </p>
+          </div>
+          <pre tabindex="0">            ┌─────────────────────────┐
+            │           <span class="hl">app</span>           │  wiring only
+            └────┬───────────────┬────┘
+                 │               │
+   ┌─────────────▼──┐   ┌────────▼────────┐
+   │  <span class="hl">components</span>    │   │ <span class="hl">infrastructure</span>  │
+   │  pure Svelte   │   │ browser adapters│
+   └─────────────┬──┘   └────────┬────────┘
+                 │               │
+            ┌────▼───────────────▼────┐
+            │          <span class="hl">core</span>           │  pure domain
+            └─────────────────────────┘  zero deps</pre>
+        </div>
+      </section>
+
+      <section class="cta-final">
+        <div class="wrap">
+          <h2>%F_H2%</h2>
+          <p class="lede">%F_LEDE%</p>
+          <div class="cta" style="justify-content: center">
+            <a class="btn btn-solid" href="demo/project-review.html?sample&amp;lang=%LANG%"
+              >%F_USE%</a
+            >
+            <a class="btn btn-ghost" href="#online-security">%USE_LIMITS%</a>
+            <a class="btn btn-ghost" href="https://github.com/fcabouat/project-review">%F_STAR%</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap foot-in">
+        <span>%FOOT%</span>
+        <a href="%GUIDE_HREF%">%NAV_GUIDE%</a>
+        <a href="api/index.html">%FOOT_API%</a>
+        <a href="https://github.com/fcabouat/project-review">GitHub</a>
+      </div>
+    </footer>
+  </body>
+</html>

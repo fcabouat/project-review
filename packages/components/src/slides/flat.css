@@ -1,0 +1,844 @@
+/* ==========================================================================
+   "Flat" slide style — second layout family: full Material color planes, ZERO
+   radius, ZERO shadow, separation by color fields and thick ink rules, bare
+   typography, spaced-capitals labels. Structural accent: Material indigo 700
+   (#303F9F).
+
+   Every rule sits under `:root[data-slide-style='flat']` — the attribute is
+   set at runtime by App.svelte from `settings.theme.style`, so switching the
+   setting re-themes the live DOM (editor preview, slideshow, ?print) without
+   a reload. With the attribute at anything else (or absent), this sheet is
+   inert and the other themes render untouched.
+
+   Title, divider and the two sheet compositions are transposed 1:1 from the
+   institutional theme; the remaining templates (dashboards, recap, decisions,
+   archives, previous record, free slide) extrapolate the same grammar:
+   solid accent table headers, no zebra, square wire chips, solid stat tiles.
+   ========================================================================== */
+
+/* Every rule below nests under the ONE style gate: the prefix is written
+   once, native CSS nesting (compiled by the build) restores the full
+   selectors — same specificity, one source for the gate. */
+:root[data-slide-style='flat'] {
+  /* ---------- tokens: the Material remap, on the slide only ----------------- */
+
+  .slide {
+    /* Structural accent: Material indigo 700 (#303F9F), NOT indigo 500 — the
+       category color 'indigo' resolves to #3F51B5 in the material family, and
+       the accent must never collide with a category tint. */
+    --accent: #303f9f;
+    --accent-main: #303f9f;
+    --accent-975: #e8eaf6;
+    --accent-925: #c5cae9;
+
+    /* ink & rules (blue-grey Material; --muted is Blue Grey 600 since the
+       v0.5 AA ink pass — the historic 400 (#78909c) sat at 3.07:1 on
+       --bg-alt, far under the 4.5:1 text threshold) */
+    --txt: #212121;
+    --txt2: #455a64;
+    --muted: #546e7a;
+    --border: #cfd8dc;
+    --border2: #cfd8dc;
+    --bg: #ffffff;
+    --bg-alt: #f5f5f5;
+
+    /* level scale: solid Material tones (white text guaranteed, amber excepted) */
+    --ok: #2e7d32;
+    --ok-bg: #e8f5e9;
+    --vig-txt: #212121;
+    --vig-dot: #f9a825;
+    --vig-bg: #fff8e1;
+    --warn: #ef6c00;
+    --warn-bg: #fff3e0;
+    --err: #c62828;
+    --err-bg: #ffebee;
+    --ne: #90a4ae;
+    --ne-bg: #eceff1;
+
+    /* progress ramp */
+    --av-0: #c62828;
+    --av-1: #ef6c00;
+    --av-34: #f9a825;
+    --av-67: #7cb342;
+    --av-100: #2e7d32;
+    --av-na: #cfd8dc;
+
+    /* on-hold wire chip ink — amber-800: no chrome token carries this value,
+       so it is pinned here as the style's own token (identical literal). */
+    --onhold-ink: #8d6e00;
+  }
+
+  /* ---------- chrome: no rail, kicker in spaced capitals -------------------- */
+
+  .slide .rail {
+    display: none;
+  }
+
+  /* the kicker + heading rule cost vertical room the rail used to pay for:
+     the logo box drops to the sheet scale to give most of it back */
+  .slide .head {
+    height: 48px;
+  }
+  .slide .logo {
+    height: 48px;
+    width: 135px;
+  }
+
+  /* the rail text survives as a kicker line above the heading (same words) */
+  .slide .flat-kicker {
+    flex: none;
+    margin-top: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .slide .flat-kicker + .slide-heading,
+  .slide .flat-kicker + .heading-row {
+    margin-top: 6px;
+  }
+
+  /* headings: bare ink over a thick ink rule — no more accent-colored titles */
+  .slide .slide-heading {
+    color: var(--txt);
+    letter-spacing: -0.015em;
+    border-bottom: 3px solid var(--txt);
+    padding-bottom: 9px;
+  }
+  .slide .heading-row {
+    border-bottom: 3px solid var(--txt);
+    padding-bottom: 9px;
+  }
+  .slide .heading-row .slide-heading {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  /* labels: capitals stay, the tracking widens */
+  .slide .label {
+    font-size: 10.5px;
+    letter-spacing: 0.18em;
+  }
+
+  /* cartouche: same 3 lines, spaced capitals on the first */
+  .slide .ent {
+    line-height: 1.5;
+  }
+  .slide .ent b {
+    font-size: 12.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--txt);
+  }
+  .slide .ent i {
+    color: var(--txt2);
+  }
+  .slide .ent u {
+    color: var(--muted);
+  }
+  /* 12.5 / 12 / 11 px on a category plane: all three are SMALL text, so all
+     three take the FULL derived ink — the grade they used to carry sat under
+     4.5:1 on half the palette. Size and weight keep the hierarchy. */
+  .slide .ent.on-colored-bg b,
+  .slide .ent.on-colored-bg i,
+  .slide .ent.on-colored-bg u {
+    color: var(--plane-ink);
+  }
+
+  /* foot: closed by a net rule — heights compensated so the
+     body keeps its room (17 + 14 becomes 8 + 1 + 8 + 14) */
+  .slide .slide-foot {
+    margin-top: 8px;
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+  }
+
+  /* ---------- primitives: square wire chips --------------------------------- */
+
+  /* the ground is the bare slide, so the ink carries the chip on its own */
+  .slide .pill,
+  .slide .id-chip {
+    border-radius: 0;
+    background: transparent;
+    color: var(--cat-ink);
+    border: 1.5px solid currentColor;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* stage / health / priority atoms: same treatment, tone kept by the text hue */
+  .slide .chip,
+  .slide .health.chip {
+    border-radius: 0;
+    background: transparent;
+    border: 1.5px solid currentColor;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .slide .chip--toScope,
+  .slide .chip--closed {
+    color: var(--txt2);
+  }
+  .slide .chip--onHold {
+    color: var(--onhold-ink);
+  }
+  .slide .health.chip {
+    color: var(--dot-txt);
+  }
+
+  /* cards lose radius and shadow everywhere */
+  .slide .card {
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  /* the recap's text-shape health dot goes square too */
+  .slide .health .dot {
+    border-radius: 0;
+  }
+
+  /* gauges: square track and fill, neutral grey ground */
+  .slide .gauge .bar,
+  .slide .gauge .bar i {
+    border-radius: 0;
+  }
+  .slide .gauge .bar {
+    background: var(--ne-bg);
+  }
+
+  /* ---------- tables: solid accent header, net rules, no zebra -------------- */
+
+  .slide .table th {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .slide .table tbody tr {
+    border-bottom: 1px solid var(--border);
+  }
+  .slide .table tbody tr:nth-child(even) {
+    background: transparent;
+  }
+
+  /* handwriting zones: a net rule, not a dotted one */
+  .slide .write-line {
+    border-bottom: 1px solid var(--muted);
+  }
+
+  /* ---------- portfolio dashboard: solid stat tiles, square bars ------------ */
+
+  .slide .stat {
+    border-radius: 0;
+  }
+  .slide .stat b {
+    font-weight: 800;
+  }
+  .slide .tone--neutral {
+    --ground: var(--ne-bg);
+    --ink: var(--txt2);
+  }
+  .slide .tone--accent {
+    --ground: var(--accent);
+    --ink: #fff;
+  }
+  .slide .tone--alert {
+    --ground: var(--warn);
+    /* Dark ink on the solid orange — the amber gesture of this style (see
+       --vig-txt): white sits at 3.08:1 on --warn, under the text threshold. */
+    --ink: #212121;
+  }
+  .slide .tone--critical {
+    --ground: var(--err);
+    --ink: #fff;
+  }
+  .slide .tone--good {
+    --ground: var(--ok);
+    --ink: #fff;
+  }
+
+  .slide .cat-bar {
+    border-radius: 0;
+  }
+  /* One language everywhere: HOLLOW = not yet — so the hollow
+     outline goes to the pre-project segment, and "done (residuals)" becomes the
+     pale tint; "in progress" stays the full tint. The legend follows. */
+  .slide .cat-bar .sg-av {
+    background: #fff;
+    border: 2px solid var(--tint);
+  }
+  .slide .cat-bar .sg-fi {
+    background: color-mix(in srgb, var(--tint) 25%, #fff);
+    border: 0;
+  }
+  .slide .legend-key {
+    border-radius: 0;
+  }
+  .slide .legend-key--preProject {
+    background: #fff;
+    border: 2px solid var(--txt2);
+  }
+  .slide .legend-key--done {
+    background: color-mix(in srgb, var(--txt2) 25%, #fff);
+    border: 0;
+  }
+
+  /* ---------- health dashboard: square dots/bars, inset as a solid ---------- */
+
+  .slide .health-dot {
+    border-radius: 0;
+  }
+  .slide .health-bar,
+  .slide .health-bar i {
+    border-radius: 0;
+  }
+  .slide .health-bar {
+    background: var(--ne-bg);
+  }
+
+  .slide .callout {
+    --plane: var(--err);
+    border-radius: 0;
+    background: var(--err);
+  }
+  /* The field names itself above; every glyph on it derives from that name. */
+  .slide .callout .label,
+  .slide .callout p,
+  .slide .callout p b,
+  .slide .callout p .dim {
+    color: var(--plane-ink);
+  }
+
+  /* the pending table keeps its thick level marker — a flat gesture already */
+
+  /* ---------- title slide: full indigo field -------------------------------- */
+
+  .slide.slide--flat-title {
+    --plane: var(--accent);
+    flex-direction: column;
+    background: var(--accent);
+    color: var(--plane-ink);
+  }
+  .flat-title-logo {
+    position: absolute;
+    top: 26px;
+    left: 44px;
+    height: 56px;
+    width: 158px;
+    object-fit: contain;
+    object-position: left center;
+    display: block;
+  }
+  .flat-title-cart {
+    position: absolute;
+    top: 26px;
+    right: 44px;
+  }
+  .flat-title-field {
+    flex: 1;
+    min-height: 0;
+    /* the clamped headline still has to be CONTAINED: without it an
+       over-long value pushed the kicker off the top of the page */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 96px;
+  }
+  /* The cover's graded lines take the second level rather than an opacity:
+     the accent is a fixed colour per theme, which is what makes 75 % a
+     measured fact here (5.79:1 or better) and not a guess. */
+  .flat-title-kicker {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--plane-ink-2);
+  }
+  .slide--flat-title h1 {
+    margin-top: 14px;
+    font-size: 64px;
+    font-weight: 800;
+    letter-spacing: -0.015em;
+    line-height: 1.04;
+  }
+  .flat-title-sub {
+    margin-top: 12px;
+    font-size: 19px;
+    color: var(--plane-ink-2);
+  }
+  .flat-title-kpis {
+    flex: none;
+    display: flex;
+    margin: 0 96px 58px;
+    border-top: 1px solid color-mix(in srgb, var(--plane-ink) 35%, transparent);
+  }
+  .flat-title-kpis > div {
+    flex: 1;
+    padding: 22px 0 26px;
+  }
+  .flat-title-kpis b {
+    display: block;
+    font-size: 40px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .flat-title-kpis span {
+    display: block;
+    margin-top: 6px;
+    font-size: 12.5px;
+    color: var(--plane-ink-2);
+  }
+  .flat-title-sign {
+    position: absolute;
+    left: 96px;
+    bottom: 26px;
+    font-size: 12.5px;
+    color: var(--plane-ink-2);
+  }
+  .flat-title-contact {
+    display: block;
+    margin-top: 2px;
+    font-size: 11px;
+    color: var(--plane-ink-2);
+  }
+
+  /* ---------- divider: bottom-anchored plate, no rail ----------------------- */
+
+  .slide.slide--flat-divider {
+    display: flex;
+    flex-direction: column;
+  }
+  .flat-divider-plate {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 0 96px 84px;
+  }
+  /* Decorative watermark, `aria-hidden` on the element (SlideDivider.svelte):
+     the rank of the divider, which nothing else in the deck refers to. */
+  .flat-divider-num {
+    font-size: 200px;
+    font-weight: 800;
+    line-height: 0.8;
+    letter-spacing: -0.04em;
+    color: color-mix(in srgb, var(--plane-ink) 32%, transparent);
+  }
+  .flat-divider-plate h2 {
+    margin-top: 8px;
+    font-size: 56px;
+    font-weight: 800;
+    letter-spacing: -0.015em;
+    line-height: 1.05;
+  }
+  .flat-divider-count {
+    margin-top: 8px;
+    font-size: 15px;
+  }
+  .flat-divider-list {
+    list-style: none;
+    margin: 26px 0 0;
+    padding: 0;
+    border-top: 1px solid color-mix(in srgb, var(--plane-ink) 40%, transparent);
+    max-width: 640px;
+  }
+  .flat-divider-list li {
+    padding: 10px 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--plane-ink) 40%, transparent);
+    font-size: 15px;
+    line-height: 1.35;
+    display: flex;
+    gap: 14px;
+  }
+  .flat-divider-list li b {
+    font-weight: 800;
+    min-width: 44px;
+    flex: none;
+  }
+  /* 6 projects and beyond: same rows, two columns (transposed from the institutional
+     divider rule) */
+  .flat-divider-list--compact {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 34px;
+    max-width: 1000px;
+  }
+  .flat-divider-list li.flat-divider-more {
+    font-size: 13px;
+    font-style: italic;
+    grid-column: 1 / -1;
+  }
+
+  /* ---------- project sheet ------------------------------------------------- */
+  /* header = full-width category color plane, body below: the frame stacks */
+
+  .slide.slide--sheet {
+    flex-direction: column;
+  }
+  .flat-head {
+    flex: none;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) fit-content(32%);
+    column-gap: 20px;
+    background: var(--cat, var(--accent));
+    color: var(--plane-ink);
+    padding: 22px 44px 16px;
+  }
+  .flat-head .flat-brand {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: start;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .flat-head .flat-logo {
+    flex: none;
+    width: 105px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 5px 8px;
+    border: 1px solid color-mix(in srgb, var(--plane-ink) 45%, transparent);
+    border-radius: 5px;
+  }
+  .flat-head .flat-logo img {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    object-position: left center;
+  }
+  .flat-head .flat-kicker {
+    grid-column: 1;
+    grid-row: 1;
+    margin-top: 0;
+    color: var(--plane-ink);
+  }
+  .flat-head h2 {
+    grid-column: 1;
+    grid-row: 2;
+    min-width: 0;
+    margin-top: 6px;
+    font-size: 29px;
+    line-height: 35px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+  .flat-headrow {
+    grid-column: 1 / -1;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+  /* chips on the plane: white wire; the health chip is the FULL one */
+  .flat-head .chip {
+    color: var(--plane-ink);
+    border-color: color-mix(in srgb, var(--plane-ink) 75%, transparent);
+    background: transparent;
+  }
+  /* the one chip that reverses: white ground, so it takes the readable ink */
+  .flat-head .health.chip {
+    background: #fff;
+    border-color: #fff;
+    color: var(--cat-ink);
+  }
+  .flat-head .health.chip .dot {
+    display: none;
+  }
+  .flat-head .flat-meta,
+  .flat-head .flat-meta b {
+    font-size: 12.5px;
+    color: var(--plane-ink);
+  }
+  .flat-head .flat-meta b {
+    font-weight: 700;
+  }
+
+  /* white body under the plane */
+  .slide--sheet .canvas {
+    padding: 16px 44px 12px;
+  }
+  .slide .sheet-body {
+    margin-top: 0;
+  }
+  .slide--sheet .slide-foot {
+    margin-top: 4px;
+  }
+
+  /* row A: bare typography, goal + facts over one thick ink rule */
+  .slide .row-a {
+    gap: 40px;
+    max-height: 116px;
+    border-bottom: 3px solid var(--txt);
+    padding-bottom: 11px;
+  }
+  .slide .goal {
+    background: transparent;
+    border-left: 0;
+    border-radius: 0;
+    padding: 0;
+  }
+  .slide .goal p {
+    margin-top: 5px;
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--txt);
+  }
+  .slide .goal .label {
+    color: var(--muted);
+  }
+  /* the facts block flattens into a 2 × 2 grid — `display: contents`
+     dissolves the row wrapper, the budget takes the fourth cell */
+  .slide .row-a .facts {
+    width: 392px;
+    background: transparent;
+    border-left: 0;
+    border-radius: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 24px;
+    align-content: start;
+  }
+  .slide .facts .facts-row {
+    display: contents;
+  }
+  .slide .facts .fact {
+    padding: 0;
+    border-left: 0;
+  }
+  .slide .facts .label {
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+  }
+  .slide .facts .value {
+    margin-top: 2px;
+    font-size: 15px;
+    font-weight: 800;
+  }
+  .slide .facts .track {
+    margin-top: 6px;
+  }
+  .slide .facts .budget {
+    margin-top: 0;
+    padding: 0;
+    border-top: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+  .slide .facts .budget-text {
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--txt2);
+  }
+
+  /* row B: three bare columns, headings underlined in the category color ------ */
+  .slide .row-b {
+    gap: 32px;
+  }
+  .slide .narrative-card {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    padding: 0;
+  }
+  .slide .narrative-card .ch {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    color: var(--txt);
+    padding-bottom: 7px;
+    border-bottom: 3px solid var(--cat, var(--accent));
+  }
+  .slide .narrative-card .disc {
+    display: none;
+  }
+  .slide .narrative-card .line.bullet {
+    padding-left: 16px;
+  }
+  .slide .narrative-card .line.bullet::before {
+    border-radius: 0;
+    width: 6px;
+    height: 6px;
+    background: var(--cat, var(--accent));
+    left: 2px;
+    top: 9px;
+  }
+
+  /* row C: solid level planes, white (or dark, on amber) text ----------------- */
+  .slide .row-c {
+    gap: 16px;
+  }
+  .slide .row-c .risks,
+  .slide .row-c .decision {
+    border-radius: 0;
+    border-left: 0;
+    padding: 11px 18px;
+  }
+  /* Each field NAMES the colour it paints; the ink derives from that name
+     (theme.css). The dark ink on the orange alert field, hand-picked before,
+     now falls out of the same rule — and so would any level token retuned
+     later, with nothing to re-check by hand. */
+  .slide .row-c .risks--onTrack {
+    --plane: var(--ok);
+    background: var(--ok);
+  }
+  .slide .row-c .risks--watch {
+    --plane: var(--vig-dot);
+    background: var(--vig-dot);
+  }
+  .slide .row-c .risks--alert {
+    --plane: var(--warn);
+    background: var(--warn);
+  }
+  .slide .row-c .risks--critical {
+    --plane: var(--err);
+    background: var(--err);
+  }
+  .slide .row-c .risks--neutral {
+    background: var(--bg-alt);
+  }
+  .slide .row-c .risks--onTrack,
+  .slide .row-c .risks--watch,
+  .slide .row-c .risks--alert,
+  .slide .row-c .risks--critical,
+  .slide .row-c .risks--onTrack .label,
+  .slide .row-c .risks--watch .label,
+  .slide .row-c .risks--alert .label,
+  .slide .row-c .risks--critical .label,
+  .slide .row-c .risks--onTrack p,
+  .slide .row-c .risks--watch p,
+  .slide .row-c .risks--alert p,
+  .slide .row-c .risks--critical p {
+    color: var(--plane-ink);
+  }
+  .slide .row-c .decision {
+    --plane: var(--accent);
+    background: var(--accent);
+  }
+  .slide .row-c .decision .label {
+    color: var(--plane-ink-2);
+  }
+  .slide .row-c .decision p {
+    color: var(--plane-ink);
+  }
+  .slide .row-c .decision-owner {
+    color: var(--plane-ink-2);
+  }
+  .slide .row-c .decision--none {
+    background: var(--bg-alt);
+  }
+  .slide .row-c .decision--none .label {
+    color: var(--muted);
+  }
+  .slide .row-c .decision--none p {
+    color: var(--muted);
+  }
+
+  /* timeline: thick ink axis, SQUARE milestones ------------------------------ */
+  .slide .tl {
+    border-top: 0;
+  }
+  .slide .tl-axis {
+    height: 2px;
+    background: var(--txt);
+  }
+  .slide .tl-cursor {
+    width: 3px;
+    margin-left: -1.5px;
+  }
+  .slide .tl-dot {
+    border-radius: 0;
+    width: 8px;
+    height: 8px;
+    margin-left: -4px;
+    top: 37px;
+    border-width: 2px;
+  }
+  .slide .tl-lab {
+    color: var(--txt);
+    font-weight: 800;
+    font-size: 11.5px;
+  }
+  /* legend markers follow the squares */
+  .slide .timeline-legend .past,
+  .slide .timeline-legend .upcoming,
+  .slide .tlg-d,
+  .slide .tlg-o {
+    border-radius: 0;
+  }
+  .slide .timeline-legend .upcoming,
+  .slide .tlg-o {
+    border-width: 2px;
+  }
+  .slide .timeline-legend .cursor {
+    width: 3px;
+  }
+
+  /* ---------- free slide: bare typography, square markers -------------------- */
+
+  .slide .freeform-card {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+  }
+  .slide .freeform-card .line.bullet::before {
+    border-radius: 0;
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
+    top: 0.5em;
+  }
+}
+
+/* ---------- A4: the same grammar on the printed page ---------------------- */
+
+@media print {
+  :root[data-slide-style='flat'] {
+    /* title & divider: the flow compositions absorb the 1122 × 793 box; only
+    the outer gutters follow the A4 margins of `print.css` (96 → 86, 44 → 40) */
+    .flat-title-field {
+      padding: 0 86px;
+    }
+    .flat-title-kpis {
+      margin: 0 86px 54px;
+    }
+    .flat-title-sign {
+      left: 86px;
+    }
+    .flat-title-logo {
+      left: 40px;
+      top: 30px;
+    }
+    .flat-title-cart {
+      right: 40px;
+      top: 30px;
+    }
+    .flat-divider-plate {
+      padding: 0 86px 78px;
+    }
+    .flat-head {
+      padding: 22px 40px 16px;
+    }
+    .slide--sheet .canvas {
+      padding: 16px 40px 12px;
+    }
+    /* facts grid: 392 px would eat the narrower A4 canvas */
+    .slide .row-a .facts {
+      width: 360px;
+    }
+  }
+}

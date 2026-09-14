@@ -1,0 +1,607 @@
+/* ==========================================================================
+   Slide theme — the THEMED side of the 16:9 deck (1280 × 720).
+
+   The layout of the templates lives in their utility classes (screen values,
+   `print:` variants for the A4 transposition). This sheet keeps what the
+   utilities do not carry:
+     - the geometry tokens the utilities reference (--slide-*, --title-column);
+     - colors, fonts and surfaces (everything a theme may restate);
+     - the reaches into the atoms' interiors (cartouche, chips, text lines),
+       which a parent's class attribute cannot address;
+     - selector-driven state (zebra rows, level tones, `.late`, `.dim`).
+
+   This sheet IS the `institutional` family — the base every other style
+   restyles. `flat.css` restates both structure and colors under
+   `[data-slide-style='flat']`, `modern.css` restates colors and surfaces
+   under `[data-slide-style='modern']` — as UNLAYERED author CSS both win over
+   the templates' layered utilities, which is exactly the override a style
+   swap needs. Anything written here that a style may want to take back must
+   therefore stay reachable: a literal colour left in a rule (the goal
+   paragraph's ink was one) is a value no theme can retune.
+   ========================================================================== */
+
+:root {
+  /* Inter by default; `settings.theme.font` overrides it at runtime
+     (`applyFont`) — this stylesheet itself fetches no web font. */
+  --font: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  /* golden-ratio grid: 27 · 44 · 71 · 115 … */
+  --slide-width: 1280px;
+  --slide-height: 720px;
+  --slide-rail: 71px;
+  --slide-margin: 44px;
+  --slide-gutter: 27px;
+  --slide-step: 17px;
+  /* title slide: white column 489 (the blue block takes the remaining 791) */
+  --title-column: 489px;
+}
+
+/* ---------- frame -------------------------------------------------------- */
+
+.slide {
+  background: var(--bg);
+  font-family: var(--font);
+  color: var(--txt);
+  /* Canvas delineation wherever the slide is not the full screen (editor
+     preview, Storybook, letterboxed decks): an outline, not a border — the
+     slide is border-box and a border would eat 1px of the 1280×720 grid;
+     the outline paints outside it. Both themes define --border2. */
+  outline: 1px solid var(--border2);
+}
+
+/* vertical bar — the sheet takes the color of its category */
+.rail {
+  background: var(--accent);
+}
+.slide--sheet .rail {
+  background: var(--cat, var(--accent));
+}
+.rail-text {
+  color: var(--plane-ink);
+}
+
+.slide-heading {
+  color: var(--accent);
+}
+.heading-note {
+  color: var(--muted);
+}
+.slide-foot {
+  color: var(--muted);
+}
+
+/* ---------- primitives --------------------------------------------------- */
+
+.label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.label--accent {
+  color: var(--accent);
+}
+.dim {
+  color: var(--muted);
+}
+.none {
+  font-style: italic;
+  color: var(--muted);
+}
+
+/* THE READABLE INK OF A CATEGORY TINT — ONE derivation, no second table.
+   `tailwind` and `material` carry the names of colour systems anyone can look
+   up, so not one hex in `palettes.css` is retuned for contrast. What is
+   derived is the INK, and only where a tint carries TEXT rather than filling a
+   surface: every FILL — rail, divider plane, bars, rules, dots, rings, and the
+   12 % chip ground right below — keeps the palette's exact value.
+
+   THE RULE, in one factor. k = 0.5 / max(l, 0.5) scales BOTH the lightness and
+   the chroma in OKLCH: a straight contraction towards black, hue untouched.
+   Three consequences, and they are the whole reason it is written this way:
+     - a tint already at or under L 0.5 has k = 1 and comes through byte for
+       byte (uniform is built at L 0.55 and under, so most of it never moves);
+     - contracting rather than lowering L alone keeps the result INSIDE the
+       sRGB gamut, so no chroma is clipped and no hue drifts — a capped-L amber
+       would have clipped its way to brick;
+     - L 0.5 is the point where all twelve of the three families AND the grey
+       sentinel clear 4.5:1 on both grounds a tinted glyph sits on, white and
+       their own 12 % tint (measured floor 4.70:1).
+   `max()` keeps the divisor off zero, so the derivation is total: black stays
+   black, and a palette a portfolio carries cannot break it either.
+
+   The rule reaches the descendants, not just `.slide`: a table row re-scopes
+   `--cat` line by line, and each line derives its own ink from it. */
+.slide,
+.slide * {
+  --cat-ink: oklch(from var(--cat, var(--accent)) min(l, 0.5) calc(c * 0.5 / max(l, 0.5)) h);
+}
+
+/* THE INK ON A COLOURED PLANE — the other half of the same idea, and the one
+   the tinted-text pass deliberately left. `--cat-ink` answers "what colour
+   writes ON WHITE"; this answers "what colour writes ON THE TINT ITSELF",
+   where the ground is the hue and the glyph has nowhere to hide.
+
+   THE PLANE NAMES ITSELF. `--plane` is whatever colour the surface actually
+   paints — the category tint by default, a level field where a band declares
+   one (`--err`, `--ok`, `--warn`…). It is declared on `.slide` and INHERITED,
+   so a band re-declares it once and every glyph inside re-derives from it.
+
+   THE RULE, in one line, and it is the WCAG computation itself: the origin
+   colour is read in `srgb-linear`, where r/g/b are linear-light, so
+   0.2126r + 0.7152g + 0.0722b IS the relative luminance. Below the crossover
+   the ink is white, above it black; the `* 100000` turns the comparison into a
+   step and `clamp()` snaps it to 0 or 1 on all three channels at once.
+
+   WHY THE CROSSOVER IS 0.1791. White clears 4.5:1 up to L 0.1833, black from
+   L 0.175; the two curves cross at L 0.1791, where both stand at 4.58:1. So
+   ONE of black and white always clears the text threshold, whatever the hue —
+   there is no ground this derivation cannot write on, which is why nothing
+   below needs a per-palette exception. Measured in Chrome over the 48 grounds
+   the deck can paint (36 palette hues, the grey sentinel, the three theme
+   accents, the eight level fields): floor 4.60:1, worst case Material blue.
+
+   THE SECOND LEVEL, and its LIMIT. `--plane-ink-2` is the same ink at 75 %
+   over the plane, for the graded lines the compositions are built on. On the
+   three theme accents — fixed colours, so the figure is a fact — it holds
+   5.79:1 or better. On a CATEGORY tint it falls to 3.22:1: that is the LARGE
+   text threshold, not the text one, so on a tint it may only carry large text.
+   Small text on a tint takes the full ink; its hierarchy comes from size and
+   weight, which the compositions already carry.
+
+   The `@supports` gate keeps the fallback honest rather than clever: a browser
+   without relative colour syntax gets the historic white, which is what it
+   rendered before — never an unset colour on a coloured plane. */
+.slide {
+  --plane: var(--cat, var(--accent));
+}
+.slide,
+.slide * {
+  --plane-ink: #fff;
+  --plane-ink-2: rgba(255, 255, 255, 0.75);
+}
+@supports (color: color(from red srgb-linear r g b)) {
+  .slide,
+  .slide * {
+    --plane-ink: color(
+      from var(--plane) srgb-linear
+        clamp(0, (0.1791 - (0.2126 * r + 0.7152 * g + 0.0722 * b)) * 100000, 1)
+        clamp(0, (0.1791 - (0.2126 * r + 0.7152 * g + 0.0722 * b)) * 100000, 1)
+        clamp(0, (0.1791 - (0.2126 * r + 0.7152 * g + 0.0722 * b)) * 100000, 1)
+    );
+    --plane-ink-2: color-mix(in srgb, var(--plane-ink) 75%, transparent);
+  }
+}
+
+/* category pill and id chip: the readable ink on the EXACT tint at 12 % over white */
+.pill,
+.id-chip {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cat, var(--accent)) 12%, #fff);
+  color: var(--cat-ink);
+  /* fallback: stable metrics, then a hairline in the text hue */
+  border: 1px solid transparent;
+  border-color: color-mix(in srgb, currentColor 25%, transparent);
+}
+
+.card {
+  background: #fff;
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* ---------- tables ------------------------------------------------------- */
+
+.table th {
+  --plane: var(--accent);
+  background: var(--accent);
+  color: var(--plane-ink);
+}
+.table td {
+  color: var(--txt2);
+}
+.table tbody tr:nth-child(even) {
+  background: var(--bg-alt);
+}
+.table .num {
+  color: var(--txt);
+}
+.table .name {
+  color: var(--txt);
+}
+
+/* ---------- portfolio dashboard ------------------------------------------ */
+
+.category-name {
+  color: var(--txt);
+}
+.category-count {
+  color: var(--txt2);
+}
+.category-row .cat-bar {
+  margin-left: 5px;
+}
+.legend-key--inProgress {
+  background: var(--txt2);
+}
+.legend-key--preProject {
+  background: color-mix(in srgb, var(--txt2) 25%, #fff);
+}
+.legend-key--done {
+  background: #fff;
+  border: 1.5px solid var(--txt2);
+}
+
+/* ---------- health dashboard --------------------------------------------- */
+
+.health-dot {
+  background: var(--tone);
+}
+.health-label {
+  color: var(--txt);
+}
+.health-count {
+  color: var(--txt);
+}
+.health-bar {
+  background: #ededed;
+}
+.health-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--tone);
+}
+.level--onTrack {
+  --tone: var(--ok);
+}
+.level--watch {
+  --tone: var(--vig-dot);
+}
+.level--alert {
+  --tone: var(--warn);
+}
+.level--critical {
+  --tone: var(--err);
+}
+.level--notAssessed {
+  --tone: var(--ne);
+}
+
+.callout {
+  background: var(--err-bg);
+}
+.callout .label {
+  font-size: 11px;
+  color: var(--err);
+}
+.callout p {
+  color: var(--txt2);
+}
+.callout p b {
+  font-weight: 700;
+  color: var(--err);
+}
+
+.table--pending tbody tr {
+  background: none;
+  border-bottom: 1px solid var(--border2);
+}
+.table--pending td {
+  border-left: 3px solid transparent;
+}
+.table--pending td + td {
+  border-left: 0;
+}
+.table--pending tr.level--alert td:first-child {
+  border-left-color: var(--warn);
+}
+.table--pending tr.level--critical td:first-child {
+  border-left-color: var(--err);
+}
+.table--pending .name {
+  color: var(--txt);
+}
+.table--pending .who {
+  color: var(--muted);
+}
+.more-row td {
+  font-size: 12px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* ---------- recap -------------------------------------------------------- */
+
+.table--recap .milestone {
+  color: var(--txt);
+}
+.table--recap .milestone.late,
+.table--recap .milestone.late .dim {
+  color: var(--err);
+  font-weight: 600;
+}
+.decision-mark {
+  color: var(--accent);
+}
+
+/* ---------- archives ----------------------------------------------------- */
+
+.note {
+  color: var(--muted);
+}
+
+/* ---------- decisions (today's table) + record of the previous review ----- */
+
+.table--decisions .question {
+  color: var(--txt2);
+}
+.table--decisions .who {
+  color: var(--txt2);
+}
+.project-cell .name {
+  color: var(--txt);
+}
+.write-line {
+  border-bottom: 1px dotted #b9b9b9;
+}
+.table--record .question {
+  color: var(--muted);
+}
+.table--record .taken {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--txt);
+  line-height: 1.3;
+}
+/* the outcome is entered text, rendered by TextLine: the record gives it the
+   weight of an answer (the chain outranks the atom's scoped rule) */
+.slide .table--record .taken .line {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* ---------- title slide -------------------------------------------------- */
+
+/* THE ONE FRAME THAT USED TO OVERLAP ITS NEIGHBOUR. Every other slide is
+   `overflow: hidden` and CLIPS what does not fit; the cover's headline sits
+   above absolutely-positioned blocks, so a long one did not clip — it ran over
+   the indicator row and the signature. Measured: 72 characters reach the
+   indicators in `institutional` and `modern` (the audit reported 240, which is
+   the `flat` figure — the other two give way three times earlier).
+   Three lines is what the composition holds between the top inset and the
+   indicators (3 x 59 px + the sub-line, inside 259 px), so the headline is
+   clamped there and the slide degrades the way every other one does: it
+   truncates in its own frame. The editor says so at the same figure
+   (`TEXT_CAPACITY.reviewTitle`, core's model/budget.ts). */
+.slide h1 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+}
+
+.title-left {
+  background: #fff;
+}
+.title-vertical {
+  color: var(--accent);
+}
+.title-right {
+  --plane: var(--accent);
+  background: var(--accent);
+  color: var(--plane-ink);
+}
+/* The graded lines of the cover: the second level, which the accent — a fixed
+   colour per theme — carries at 5.79:1 or better (theme.css, the derivation). */
+.title-sub {
+  color: var(--plane-ink-2);
+}
+.title-sign {
+  color: var(--plane-ink-2);
+}
+.title-contact {
+  color: var(--plane-ink-2);
+}
+.kpi {
+  border-top: 1px solid color-mix(in srgb, var(--plane-ink) 28%, transparent);
+}
+.kpi span {
+  color: var(--plane-ink-2);
+}
+
+/* ---------- dividers ----------------------------------------------------- */
+
+/* The one plane the PALETTE paints, so every glyph on it takes the derived
+   ink: on the lighter tints of the two borrowed families that ink is dark, and
+   that is the point — the hue is a ground here, not a glyph. The count, the
+   list and its ids are small text and take the FULL ink; their hierarchy comes
+   from size and weight, which is where it belonged. */
+.slide--divider {
+  background: var(--cat, var(--accent));
+  color: var(--plane-ink);
+}
+/* Decorative: the divider's rank as a watermark, `aria-hidden` on the element
+   (SlideDivider.svelte) — the category name and count next to it say
+   everything the slide carries, and no other slide refers to the number. */
+.divider-numeral {
+  color: color-mix(in srgb, var(--plane-ink) 12%, transparent);
+}
+.divider-numeral::before,
+.flat-divider-num::before {
+  content: var(--numeral, '');
+}
+.divider-count {
+  color: var(--plane-ink);
+}
+.divider-list {
+  border-bottom: 1px solid color-mix(in srgb, var(--plane-ink) 28%, transparent);
+}
+.divider-list li {
+  color: var(--plane-ink);
+  border-top: 1px solid color-mix(in srgb, var(--plane-ink) 28%, transparent);
+}
+.divider-list li b {
+  color: var(--plane-ink);
+}
+.divider-list li.divider-more {
+  color: var(--plane-ink);
+}
+
+/* ---------- project sheet — bands composition ---------------------------- */
+
+.sheet-title h2 {
+  color: var(--accent);
+}
+.sheet-meta {
+  color: var(--muted);
+}
+.sheet-meta b {
+  font-weight: 600;
+  color: var(--txt2);
+}
+
+.goal {
+  background: var(--accent-975);
+  border-left: 4px solid var(--accent);
+  border-radius: 4px;
+}
+.goal p {
+  color: #312e81;
+}
+/* the facts block carries its own metrics (atom); the row owns its width —
+   an atom-root reach no template class attribute can express */
+.row-a .facts {
+  width: 338px;
+  flex: none;
+}
+
+.narrative-card {
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  background: #fff;
+}
+/* the bullets are centered in the leftover height of the card — the
+   heading stays pinned to the top, the list floats on `margin: auto 0` */
+.narrative-card .col {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.slide .narrative-card .bul {
+  margin: auto 0;
+  padding: 4px 0 1px;
+}
+/* the sheet tightens the atom's bullets to its own metrics (12 px / 1.3);
+   the extra `.slide` raises specificity above the component's scoped rule */
+.slide .narrative-card .line {
+  font-size: 12px;
+  line-height: 1.3;
+  padding: 2px 0 2px 13px;
+}
+.slide .narrative-card .line::before {
+  top: 9px;
+}
+
+/* the decision band: label re-toned inline, box in the accent tint */
+.decision {
+  border-radius: 4px;
+  background: var(--accent-975);
+  border-left: 4px solid var(--accent);
+}
+.decision .label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+  color: var(--accent);
+}
+.decision p {
+  color: var(--accent);
+}
+.decision-owner {
+  color: color-mix(in srgb, var(--accent) 75%, transparent);
+}
+.decision--none {
+  background: var(--bg-alt);
+  border-left-color: #9ca3af;
+}
+.decision--none .label {
+  color: var(--muted);
+}
+.decision--none p {
+  font-weight: 400;
+  font-style: italic;
+  color: var(--muted);
+}
+
+/* the timeline closes the sheet: it takes its own height, never the leftovers
+   of the narrative row (`.block` is the MilestoneTimeline atom's root) */
+.sheet-body > .block {
+  flex: none;
+  margin-top: 4px;
+}
+
+/* timeline legend, in the slide foot */
+.timeline-legend i {
+  display: inline-block;
+  margin-right: 5px;
+}
+.timeline-legend .cursor {
+  width: 2px;
+  height: 10px;
+  background: var(--err);
+  vertical-align: -2px;
+}
+.timeline-legend .past {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cat, var(--accent));
+  vertical-align: -1px;
+}
+.timeline-legend .upcoming {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid var(--cat, var(--accent));
+  vertical-align: -1px;
+}
+
+/* ---------- free slide --------------------------------------------------- */
+
+/* the free slide reads at arm's length: 17 px bullets, 17 gutter. The chained
+   `.line.bullet` raises specificity above the TextLine atom's scoped rule. */
+.slide .freeform-card .line.bullet {
+  padding: 0 0 0 14px;
+  margin-bottom: var(--slide-step);
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--txt2);
+}
+.slide .freeform-card .line.bullet:last-child {
+  margin-bottom: 0;
+}
+.slide .freeform-card .line.bullet::before {
+  top: 0.52em;
+  background: #b6b6b6;
+}
+
+/* ---------- body modifier grammar ---------------------------------------- */
+/* the three modes SlideChrome's bodyClass ADT can name */
+.slide-body--centered {
+  justify-content: center;
+}
+.slide-body--split {
+  flex-direction: row;
+  gap: var(--slide-margin);
+}
+.slide-body--tight {
+  margin-top: 14px;
+}

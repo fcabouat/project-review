@@ -1,0 +1,24 @@
+{
+  "ignoreExportsUsedInFile": true,
+  "workspaces": {
+    ".": {
+      "project": ["*.ts", "*.js"]
+    },
+    "packages/core": {
+      "entry": ["src/model/*.ts", "src/values/*.ts", "tests/**/*.test.ts"],
+      "project": ["src/**/*.ts", "tests/**/*.ts"]
+    },
+    "packages/components": {
+      "entry": ["stories/**/*.stories.svelte", "tests/**/*.test.ts"],
+      "project": ["src/**", "stories/**", "tests/**"]
+    },
+    "packages/infrastructure": {
+      "entry": ["tests/**/*.test.ts"],
+      "project": ["src/**", "tests/**"]
+    },
+    "app": {
+      "entry": ["tests/**/*.test.ts", "tests-smoke/*.mjs"],
+      "project": ["src/**", "tests/**", "tests-smoke/**", "scripts/**"]
+    }
+  }
+}
