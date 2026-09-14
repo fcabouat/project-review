@@ -1,9 +1,26 @@
-import { execFileSync } from 'node:child_process'
+import { execFileSync, spawnSync } from 'node:child_process'
 import { existsSync, lstatSync, mkdirSync, readlinkSync, symlinkSync } from 'node:fs'
 import { dirname, isAbsolute, relative, resolve } from 'node:path'
 
 const git = (...args) => execFileSync('git', args, { encoding: 'utf8' }).trim()
 const root = git('rev-parse', '--show-toplevel')
+
+// AVH 1.12.3 evaluates this hyphenated key as an invalid shell variable,
+// even when configured false. Its unconfigured default is already false.
+const brokenKey = 'gitflow.release.finish.ff-master'
+const removed = spawnSync('git', ['config', '--local', '--unset-all', brokenKey])
+if (removed.status !== 0 && removed.status !== 5) {
+  throw new Error(`Unable to remove the local ${brokenKey} setting`)
+}
+const inherited = spawnSync('git', ['config', '--show-origin', '--get-all', brokenKey], {
+  encoding: 'utf8',
+})
+if (inherited.status === 0) {
+  throw new Error(
+    `Remove ${brokenKey} from its inherited/included configuration first:\n${inherited.stdout}`,
+  )
+}
+if (inherited.status !== 1) throw new Error(`Unable to inspect ${brokenKey}`)
 
 try {
   const version = git('flow', 'version')
