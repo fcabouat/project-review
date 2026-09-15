@@ -573,6 +573,14 @@
   border: 1.5px solid var(--cat, var(--accent));
   vertical-align: -1px;
 }
+.timeline-legend .overdue {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid var(--err);
+  vertical-align: -1px;
+}
 
 /* ---------- free slide --------------------------------------------------- */
 
