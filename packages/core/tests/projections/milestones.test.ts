@@ -37,3 +37,16 @@ describe('nextMilestone — entry order carries no meaning', () => {
     expect(nextMilestone(decreasing)?.label).toBe('Tôt')
   })
 })
+
+describe('milestoneState — review-relative status', () => {
+  const reviewDate = d('2026-09-15')
+
+  it.each([
+    [{ label: 'Done late', date: d('2026-09-01'), done: true }, 'done'],
+    [{ label: 'Late', date: d('2026-09-14'), done: false }, 'overdue'],
+    [{ label: 'Today', date: reviewDate, done: false }, 'upcoming'],
+    [{ label: 'Future', date: d('2026-09-16'), done: false }, 'upcoming'],
+  ] as const)('%s is %s', (milestone, expected) => {
+    expect(milestoneState(milestone, reviewDate)).toBe(expected)
+  })
+})

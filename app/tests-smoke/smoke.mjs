@@ -7,6 +7,7 @@
 import { access, mkdtemp, readFile, rm } from 'node:fs/promises'
 import { serve } from './server.mjs'
 import { checkImportSelection } from './import-selection.mjs'
+import { checkTimeline } from './timeline.mjs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -106,6 +107,7 @@ async function main() {
   const downloads = await mkdtemp(join(tmpdir(), 'project-review-smoke-'))
 
   try {
+    await checkTimeline(browser, HTTP_ORIGIN, ROOT)
     /* ---- 1. file://: empty boots, and ?sample reports a load error ---- */
     await emptyBoot(browser, 'fr-FR', 'fr', 'Projets')
     await emptyBoot(browser, 'en-US', 'en', 'Projects')

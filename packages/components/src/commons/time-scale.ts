@@ -1,75 +1,55 @@
-/**
- * Timeline geometry — pure presentation (positions in %), no domain: no
- * business rule here, only the projection of a date onto an axis.
- * LINEAR scale in time, bounded to [8 %, 92 %]: the margins let the extreme
- * labels breathe without clipping them at the frame edge.
- */
+/** Pure presentation geometry for chronologically sorted milestone dates. */
+const LEFT = 12
+const RIGHT = 88
+const MIN_GAP = 14
 
-/** Position (%) of the earliest date — the left breathing margin. */
-export const LEFT_BOUND = 8
-/** Position (%) of the latest date — mirror of {@link LEFT_BOUND}. */
-export const RIGHT_BOUND = 92
+const day = (date: string): number => Date.parse(`${date}T00:00:00Z`) / 86_400_000
 
 /**
- * Days elapsed since the epoch, from an ISO date YYYY-MM-DD (UTC: no time
- * zone). Total: a malformed date folds to day 0 rather than NaN, so downstream
- * arithmetic stays finite — the parse upstream makes that case theoretical.
+ * Blend the true time scale toward evenly spaced points only as much as needed
+ * to guarantee a readable minimum gap. Six milestones fit without a packing
+ * engine. Dates on the same day keep input order and get separate markers.
+ * The review cursor follows the SAME adjusted scale, interpolating between
+ * distinct dates (the midpoint of a same-day group represents that date).
+ * Dates are validated ISO dates, sorted by the caller.
  */
-export function absoluteDay(iso: string): number {
-  const [y, m, d] = iso.split('-')
-  const n = Date.UTC(Number(y), Number(m) - 1, Number(d))
-  return Number.isNaN(n) ? 0 : n / 86_400_000
-}
-
-/** Axis window in {@link absoluteDay} units (days, not dates or percents). */
-export interface Scale {
-  readonly min: number
-  readonly max: number
-}
-
-/**
- * Window spanning the given dates, in any order. `undefined` for an empty
- * list — "no timeline at all", which callers must distinguish from the
- * one-date degenerate scale (span 0, everything centred by `positionPct`).
- */
-export function scaleOf(isoDates: readonly string[]): Scale | undefined {
-  if (isoDates.length === 0) return undefined
-  const days = isoDates.map(absoluteDay)
-  return { min: Math.min(...days), max: Math.max(...days) }
-}
-
-/** Position in % within [8, 92]; degenerate scale (a single date) → middle. */
-export function positionPct(iso: string, s: Scale): number {
-  const span = s.max - s.min
-  if (span <= 0) return (LEFT_BOUND + RIGHT_BOUND) / 2
-  const r = (absoluteDay(iso) - s.min) / span
-  return LEFT_BOUND + r * (RIGHT_BOUND - LEFT_BOUND)
-}
-
-/** The review cursor is only drawn if it falls inside the milestone window. */
-export function withinScale(iso: string, s: Scale): boolean {
-  const d = absoluteDay(iso)
-  return d >= s.min && d <= s.max
-}
-
-/**
- * Staggering: decided by geometry, not by a setting. As soon as two neighbouring
- * points are less than 12 % apart, their labels overlap — so we alternate them
- * above / below the axis.
- */
-export const MIN_GAP_PCT = 12
-
-/**
- * `true` when any two CONSECUTIVE positions sit closer than
- * {@link MIN_GAP_PCT}. Callers pass positions in axis order (milestones come
- * date-sorted); one crowded pair flips the WHOLE timeline to alternating
- * labels — mixing staggered and aligned labels on one axis would look broken.
- */
-export function needsStagger(positions: readonly number[]): boolean {
-  for (let i = 1; i < positions.length; i += 1) {
-    const a = positions[i - 1]
-    const b = positions[i]
-    if (a !== undefined && b !== undefined && b - a < MIN_GAP_PCT) return true
+export function timelineLayout(dates: readonly string[], reviewDate: string) {
+  if (dates.length === 0) return { positions: [], staggered: false, adjusted: false }
+  const days = dates.map(day)
+  const first = days[0]!
+  const last = days[days.length - 1]!
+  const span = last - first
+  const linear = days.map((d) => (span === 0 ? 50 : LEFT + ((d - first) / span) * (RIGHT - LEFT)))
+  const step = dates.length === 1 ? 0 : (RIGHT - LEFT) / (dates.length - 1)
+  const gap = Math.min(MIN_GAP, step)
+  let blend = 0
+  for (let i = 1; i < linear.length; i += 1) {
+    const actualGap = linear[i]! - linear[i - 1]!
+    if (actualGap < gap) blend = Math.max(blend, (gap - actualGap) / (step - actualGap))
   }
-  return false
+  const positions = linear.map((p, i) => p * (1 - blend) + (LEFT + i * step) * blend)
+  const staggered = positions.some((p, i) => i > 0 && p - positions[i - 1]! < 26)
+
+  const groups: { date: number; left: number; count: number }[] = []
+  days.forEach((date, i) => {
+    const previous = groups.at(-1)
+    if (previous?.date === date) {
+      previous.left += positions[i]!
+      previous.count += 1
+    } else groups.push({ date, left: positions[i]!, count: 1 })
+  })
+  groups.forEach((g) => (g.left /= g.count))
+  const review = day(reviewDate)
+  let cursor: number | undefined
+  for (let i = 0; i < groups.length; i += 1) {
+    const current = groups[i]!
+    const next = groups[i + 1]
+    if (review === current.date) cursor = current.left
+    else if (next && review > current.date && review < next.date) {
+      cursor =
+        current.left +
+        ((review - current.date) / (next.date - current.date)) * (next.left - current.left)
+    }
+  }
+  return { positions, staggered, adjusted: blend > 0, cursor }
 }
