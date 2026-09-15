@@ -624,6 +624,10 @@ export const EDITOR_CATALOG = {
   'editor.sheet.milestoneDate': { fr: 'Date', en: 'Date' },
   'editor.sheet.milestoneDisplay': { fr: 'Affichage', en: 'Display' },
   'editor.sheet.milestoneDone': { fr: 'Fait', en: 'Done' },
+  'editor.sheet.milestoneDoneHint': {
+    fr: 'Un jalon non coché avant la date de revue est en retard.',
+    en: 'An unchecked milestone before the review date is overdue.',
+  },
   'editor.sheet.addMilestone': { fr: '+ Jalon', en: '+ Milestone' },
   'editor.sheet.milestonesFull': { fr: 'Six jalons maximum.', en: 'Six milestones at most.' },
   'editor.sheet.milestonesSorted': {

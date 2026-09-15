@@ -765,7 +765,7 @@
     width: 8px;
     height: 8px;
     margin-left: -4px;
-    top: 37px;
+    top: calc(var(--tl-axis) - 3px);
     border-width: 2px;
   }
   .slide .tl-lab {
@@ -776,7 +776,9 @@
   /* legend markers follow the squares */
   .slide .timeline-legend .past,
   .slide .timeline-legend .upcoming,
+  .slide .timeline-legend .overdue,
   .slide .tlg-d,
+  .slide .tlg-l,
   .slide .tlg-o {
     border-radius: 0;
   }

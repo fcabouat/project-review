@@ -166,26 +166,19 @@
     font-size: 11.5px;
   }
 
-  /* timeline — a little taller than in 16:9, the A4 has the room */
+  /* Keep the atom's label lanes and axis geometry in print too. */
   .slide .tl {
-    height: 76px;
-    padding-top: 0;
     border-top: 0;
   }
-  .slide .tl.tl--alt {
-    height: 78px;
-  }
   .slide .tl-axis {
-    top: 38px;
     height: 1px;
   }
   .slide .tl-cursor {
-    top: 26px;
     width: 1.5px;
     margin-left: -0.75px;
   }
   .slide .tl-dot {
-    top: 33px;
+    top: calc(var(--tl-axis) - 5px);
     width: 11px;
     height: 11px;
     margin-left: -5.5px;
@@ -194,23 +187,9 @@
   .slide .tl-lab {
     font-size: 11.5px;
     font-weight: 600;
-    top: 9px;
   }
   .slide .tl-date {
     font-size: 10px;
-    top: 49px;
-  }
-  .slide .tl--alt .tl-pt.up .tl-lab {
-    top: 0;
-  }
-  .slide .tl--alt .tl-pt.up .tl-date {
-    top: 15px;
-  }
-  .slide .tl--alt .tl-pt.dn .tl-lab {
-    top: 47px;
-  }
-  .slide .tl--alt .tl-pt.dn .tl-date {
-    top: 62px;
   }
 
   /* ---------- free slide (text-line atom reach) --------------------------- */

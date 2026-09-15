@@ -194,9 +194,11 @@
           date: formatShortDate(portfolio.review.reviewDate),
         })}
         &nbsp;·&nbsp;
-        <i class="past"></i>{t('timeline.past', language)}
+        <i class="past"></i>{t('timeline.done', language)}
         &nbsp;·&nbsp;
         <i class="upcoming"></i>{t('timeline.upcoming', language)}
+        &nbsp;·&nbsp;
+        <i class="overdue"></i>{t('timeline.overdue', language)}
       </span>
     {/snippet}
   </SlideChrome>

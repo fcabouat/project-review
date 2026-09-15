@@ -166,6 +166,9 @@
         <span class="text-center">{te('editor.sheet.milestoneDone', language)}</span>
         <span></span>
       </div>
+      <p class="text-muted-foreground py-1 text-[11.5px]">
+        {te('editor.sheet.milestoneDoneHint', language)}
+      </p>
       {#each sortedMilestones as entry (entry.index)}
         <div class="{MROW} border-border border-b px-0.5 py-[7px] last:border-b-0">
           {#each ['label', 'date', 'display'] as const as field (field)}
