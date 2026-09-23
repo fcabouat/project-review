@@ -8,6 +8,7 @@ import { access, mkdtemp, readFile, rm } from 'node:fs/promises'
 import { serve } from './server.mjs'
 import { checkImportSelection } from './import-selection.mjs'
 import { checkTimeline } from './timeline.mjs'
+import { checkIdentities, checkSummaryLeads } from './identities.mjs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -117,6 +118,8 @@ async function main() {
 
   try {
     await checkTimeline(browser, HTTP_ORIGIN, ROOT)
+    await checkIdentities(browser, HTTP_APP)
+    await checkSummaryLeads(browser, HTTP_APP)
     /* ---- 1. file://: empty boots, and ?sample reports a load error ---- */
     await emptyBoot(browser, 'fr-FR', 'fr', 'Projets')
     await emptyBoot(browser, 'en-US', 'en', 'Projects')
