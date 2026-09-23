@@ -111,7 +111,10 @@ function sizeDelta(
  * (a recolour, a move). Optional on purpose: without it the label falls back to
  * the id, so the history stays readable even for something since deleted.
  */
-export type NameLookup = (kind: 'category' | 'freeSlide', id: string) => string | undefined
+export type NameLookup = (
+  kind: 'category' | 'freeSlide' | 'project',
+  id: string,
+) => string | undefined
 
 /**
  * Business label of an event. TOTAL: an unknown key surfaces as itself rather
@@ -119,7 +122,8 @@ export type NameLookup = (kind: 'category' | 'freeSlide', id: string) => string 
  */
 export function eventLabel(event: DomainEvent, language: Language, nameOf?: NameLookup): string {
   const byType = `editor.event.${event.type}`
-  const named = (kind: 'category' | 'freeSlide', id: string): string => nameOf?.(kind, id) ?? id
+  const named = (kind: 'category' | 'freeSlide' | 'project', id: string): string =>
+    nameOf?.(kind, id) ?? id
 
   switch (event.type) {
     case 'ReviewFieldChanged': {
@@ -162,7 +166,7 @@ export function eventLabel(event: DomainEvent, language: Language, nameOf?: Name
     case 'ProjectFieldChanged': {
       const field: ProjectScalarField = event.field
       return transition(
-        event.id,
+        named('project', event.id),
         te(`editor.field.${field}`, language),
         formatValue(field, event.before, language),
         formatValue(field, event.after, language),
@@ -200,13 +204,10 @@ export function eventLabel(event: DomainEvent, language: Language, nameOf?: Name
 
     case 'ProjectCreated':
     case 'ProjectDeleted':
-      return te(`editor.event.${event.type}`, language, { id: event.project.id })
+      return te(`editor.event.${event.type}`, language, { id: displayLabel(event.project.name) })
 
     case 'ProjectMoved':
-      return te(`editor.event.${event.type}`, language, { id: event.id })
-
-    case 'ProjectRenumbered':
-      return te(`editor.event.${event.type}`, language, { before: event.oldId, after: event.newId })
+      return te(`editor.event.${event.type}`, language, { id: named('project', event.id) })
 
     case 'ProjectListChanged': {
       // The three narrative lists have their core-catalog label already: `sheet.done`…
@@ -217,7 +218,7 @@ export function eventLabel(event: DomainEvent, language: Language, nameOf?: Name
           ? 'editor.event.listEdited'
           : 'editor.event.listResized'
       return te(key, language, {
-        id: event.id,
+        id: named('project', event.id),
         list,
         n: event.before.length,
         m: event.after.length,
@@ -225,10 +226,22 @@ export function eventLabel(event: DomainEvent, language: Language, nameOf?: Name
     }
 
     case 'ProjectDecisionsChanged':
-      return sizeDelta('decisions', event.before.length, event.after.length, event.id, language)
+      return sizeDelta(
+        'decisions',
+        event.before.length,
+        event.after.length,
+        named('project', event.id),
+        language,
+      )
 
     case 'ProjectMilestonesChanged':
-      return sizeDelta('milestones', event.before.length, event.after.length, event.id, language)
+      return sizeDelta(
+        'milestones',
+        event.before.length,
+        event.after.length,
+        named('project', event.id),
+        language,
+      )
 
     case 'FreeSlideCreated':
     case 'FreeSlideDeleted':

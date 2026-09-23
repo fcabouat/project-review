@@ -40,8 +40,7 @@ export const CATALOG_EN = {
   'recap.title': 'Where do projects stand?',
   'recap.page': 'page {page} of {total}',
   'recap.next': '{n} projects tracked on page {page}',
-  'recap.columns':
-    'ID · Project · Category · Stage · Health · Progress · Next milestone · Decision',
+  'recap.columns': 'Project · Category · Stage · Health · Progress · Next milestone · Decision',
   'divider.count': '{n} projects tracked — {m} sheets',
   'sheet.goal': 'Goal',
   'sheet.start': 'Start',
@@ -72,7 +71,7 @@ export const CATALOG_EN = {
   'timeline.adjusted': 'Spacing adjusted for readability',
   'archives.title': 'Archived projects',
   'archives.note': 'Closing note',
-  'archives.columns': 'ID · Project · Category · Stage · Actual end · Closing note',
+  'archives.columns': 'Project · Category · Stage · Actual end · Closing note',
   'archives.reminder':
     'Reminder: a project stays tracked while residuals remain; "Closed" = nothing left to do.',
   'decisions.title': 'Decisions',

@@ -48,7 +48,8 @@ entrée d'historique — Ctrl+Z l'annule. Le lien facultatif « Découvrir avec 
 restaure tout le fichier ; **Panacher — choisir quoi importer** affiche
 d'abord un aperçu : choisissez les blocs revue/langue/identité (logo
 compris)/thème/affichage, puis les catégories, projets et slides libres
-individuellement. Un identifiant sélectionné existant est remplacé ; rien de
+individuellement. Une identité connue conserve la version locale : son remplacement
+ou l'ajout d'une copie indépendante demande un choix explicite. Rien de
 non sélectionné n'est supprimé. Un profil d'apparence ne contient que
 paramètres et catégories et se mélange uniquement.
 
@@ -69,7 +70,7 @@ Ensuite :
   projet appartient à une catégorie.
 
 Chaque vue est une adresse : `#/review`, `#/projects`, `#/settings`,
-`#/history` — et `#/sheet/P-01` pour une fiche projet. Les entrées de la barre
+`#/history` — et `#/sheet/<identifiant-technique>` pour une fiche projet. Les entrées de la barre
 latérale sont de vrais liens, les boutons précédent/suivant du navigateur
 retracent la navigation, et l'URL d'une fiche se met en favori ou se partage
 comme lien profond, même en `file://`.
@@ -93,7 +94,7 @@ fiche a cinq onglets : **Cadre & état**, **Récit**, **Décisions**,
   après 1,5 seconde de pause, ou après 10 secondes de frappe continue, sans ajouter
   d'étape d'annulation. Après rechargement, retrouvez-les dans les mêmes champs.
   Le document et les diaporamas exportés changent seulement après validation.
-  Les filtres de recherche et les dialogues de confirmation (comme la renumérotation)
+  Les filtres de recherche et les dialogues de confirmation (comme la suppression)
   restent des états d'interface temporaires.
   Vérifiez l'état de sauvegarde et conservez des copies JSON.
 - Annuler/rétablir conserve jusqu'à 500 actions, avec un plafond mémoire
@@ -151,7 +152,7 @@ autonome. L'impression et la numérotation des pages restent identiques.
 
 <img src="images/fr-navigation.png" width="420" alt="Paramètres du diaporama : navigation Par sections ou Linéaire">
 
-En l'absence de `settings.navigation` dans un portefeuille v3, la navigation
+En l'absence de `settings.navigation` dans un portefeuille v4, la navigation
 par sections est utilisée par défaut.
 
 <img src="images/fr-slide.png" width="720" alt="Une fiche projet du diaporama, style flat">
@@ -217,12 +218,35 @@ copie de l'application, et les fichiers voyagent comme vous voulez
    quoi importer**. Rien n'est sélectionné implicitement : choisissez les
    catégories et projets désirés, ainsi que les blocs revue, langue, identité,
    thème ou affichage. Les blocs non cochés préservent revue, identité,
-   présentation et slides libres ; un identifiant sélectionné existant est
-   remplacé sur place, un nouveau est ajouté, et rien n'est supprimé.
+   présentation et slides libres. Une identité inconnue est ajoutée. Une identité
+   connue inchangée est ignorée ; si son contenu diffère, comparez les changements
+   puis conservez la version locale, prenez le projet importé en entier ou ajoutez
+   une copie indépendante. Aucun rapprochement ne repose sur le titre ou la référence métier.
+   Choisissez les catégories nécessaires ou rattachez-les à vos catégories locales.
+   Le remplacement d'une catégorie modifie aussi l'apparence des projets locaux qui l'utilisent.
+   Aucun élément n'est supprimé et aucune fusion champ par champ n'est effectuée.
 
 <img src="images/fr-import-merge.png" width="720" alt="Le panachage : choix des projets à importer, conflits et récapitulatif avant validation">
 
 Le panachage est une seule entrée d'historique : **Ctrl+Z** le défait en bloc.
+
+### Identités et références
+
+Un nouveau projet reçoit un identifiant technique aléatoire, stable et non modifiable.
+Il est conservé dans les exports et consultable/copiable dans **Options → Identifiant technique**.
+La **référence métier** est facultative : vide, elle ne réserve aucune colonne ni aucun
+emplacement dans les slides. Elle ne sert jamais à identifier une mise à jour.
+Le porteur est affiché dans la liste et sous le titre dans les récapitulatifs ; ceux-ci
+sont limités à 10 projets par page lorsqu'ils comportent des porteurs, même si une
+densité supérieure est demandée.
+
+Le format courant est **v4**. Avant de passer d'une ancienne version à celle-ci,
+exportez votre portefeuille. Les JSON v3 nécessitent une conversion externe ponctuelle ;
+ils ne sont pas migrés automatiquement, pas plus que l'historique et les brouillons.
+Une ancienne sauvegarde navigateur non lisible reste récupérable, elle n'est pas effacée silencieusement.
+Après conversion, partagez le même fichier v4 : convertir séparément deux anciennes copies
+leur donnerait des identités distinctes.
+
 Un profil d'apparence (`project-review-appearance.json`) exporte uniquement les
 paramètres et catégories ; importez-le par Panacher, jamais par Remplacer.
 

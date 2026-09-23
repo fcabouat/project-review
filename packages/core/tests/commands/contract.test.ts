@@ -95,7 +95,6 @@ describe('what a command produces, the file format reads back', () => {
     const slide = { id: 's', anchor: { type: 'closing' }, title: '', blocks: [[]] }
     const commands = [
       { type: 'CreateProject', project: { ...NEW_PROJECT, id: bad }, index: 0 },
-      { type: 'RenumberProject', id: p.projects[0]!.id, newId: bad },
       { type: 'ChangeProjectField', id: p.projects[0]!.id, field: 'categoryId', after: bad },
       { type: 'CreateCategory', category: { id: bad, name: 'x', color: 'blue' }, index: 0 },
       { type: 'CreateFreeSlide', slide: { ...slide, id: bad }, index: 0 },
@@ -515,10 +514,6 @@ describe('projects — the central aggregate rules', () => {
       { type: 'CreateProject', project: project({ done: forged([1, 2]) }), index: 0 },
     ],
     [
-      'a renumbering targets a non-empty id (emptyId)',
-      { type: 'RenumberProject', id: forged('P-01'), newId: forged('') },
-    ],
-    [
       'progress is an integer 0–100, high end (invalidProgress)',
       { type: 'ChangeProjectField', id: 'P-01', field: 'progress', after: forged(101) },
     ],
@@ -712,7 +707,7 @@ describe('free slides — the hand-written slide rules', () => {
       decide(two, {
         type: 'ChangeFreeSlide',
         id: 'opening',
-        after: slide({ id: forged('free-9') }),
+        after: slide({ id: forged('opening'), title: 'New title' }),
       }),
     ).toBeDefined()
   })
@@ -792,11 +787,11 @@ describe('totality — a malformed payload is refused, never thrown on', () => {
     { type: 'ChangeFreeSlide', id: 'opening', after: forged(undefined) },
     { type: 'ChangeFreeSlide', id: 'opening', after: forged({ id: 'x', anchor: undefined }) },
     { type: 'ReplacePortfolio', portfolio: forged(undefined) },
-    { type: 'ReplacePortfolio', portfolio: forged({ version: 3, review: undefined }) },
+    { type: 'ReplacePortfolio', portfolio: forged({ version: 4, review: undefined }) },
     {
       type: 'ReplacePortfolio',
       portfolio: forged({
-        version: 3,
+        version: 4,
         review: { title: 'x', reviewDate: '2026-01-01' },
         settings: undefined,
       }),

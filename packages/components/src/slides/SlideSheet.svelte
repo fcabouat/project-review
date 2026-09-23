@@ -84,7 +84,10 @@
     {#snippet heading()}
       {#if flat}
         <!-- flat: the id moves from the meta line up to the kicker -->
-        <div class="flat-kicker">{categoryName(category, language)} · {project.id}</div>
+        <div class="flat-kicker">
+          {categoryName(category, language)}{#if project.reference}
+            · {project.reference}{/if}
+        </div>
         <h2>{project.name}</h2>
         <div class="flat-headrow">
           <StageChip {project} {language} />
@@ -117,9 +120,10 @@
         <div
           class="sheet-meta mt-1.5 flex-none text-[13px] leading-[18px] print:text-[12.5px] print:leading-[17px]"
         >
-          {project.id}{#each meta as item (item.key)}{' · '}{fieldLabel(item.key, language)}<b
-              >{item.value}</b
-            >{/each}
+          {#if project.reference}{project.reference}{/if}{#each meta as item, i (item.key)}{#if project.reference || i > 0}{' · '}{/if}{fieldLabel(
+              item.key,
+              language,
+            )}<b>{item.value}</b>{/each}
         </div>
       {/if}
     {/snippet}

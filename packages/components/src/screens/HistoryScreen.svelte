@@ -37,10 +37,12 @@
 
   const language = $derived(portfolio.settings.language)
   /** Current names for the aggregates an event only knows by id. */
-  const nameOf = $derived((kind: 'category' | 'freeSlide', id: string) =>
-    kind === 'category'
-      ? portfolio.categories.find((c) => c.id === id)?.name
-      : portfolio.freeSlides.find((s) => s.id === id)?.title,
+  const nameOf = $derived((kind: 'category' | 'freeSlide' | 'project', id: string) =>
+    kind === 'project'
+      ? portfolio.projects.find((p) => p.id === id)?.name
+      : kind === 'category'
+        ? portfolio.categories.find((c) => c.id === id)?.name
+        : portfolio.freeSlides.find((s) => s.id === id)?.title,
   )
   /** `future` is stored in redo order: reversed, it reads as "most recent first". */
   const undone = $derived([...future].reverse())

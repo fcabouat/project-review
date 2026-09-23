@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "portfolio.schema.json",
   "title": "Portfolio — project review",
-  "description": "Closed v3 portfolio shape. The application additionally checks calendar dates, per-collection id uniqueness, ascending font-weight ranges, unique font family/weight/style slots after defaults, summed font data-URI size (2 000 000 characters), total categories/projects/free slides (2000), and normalized document size (10 000 000 characters). Nested collections are each limited to 2000 items. These semantic and total-size checks remain the strict parser's responsibility.",
+  "description": "Closed v4 portfolio shape. The application additionally checks calendar dates, per-collection id uniqueness, ascending font-weight ranges, unique font family/weight/style slots after defaults, summed font data-URI size (2 000 000 characters), total categories/projects/free slides (2000), and normalized document size (10 000 000 characters). Nested collections are each limited to 2000 items. These semantic and total-size checks remain the strict parser's responsibility.",
   "type": "object",
   "additionalProperties": false,
   "required": ["version", "review", "settings", "categories", "projects", "freeSlides"],
@@ -96,7 +96,7 @@
   },
   "properties": {
     "version": {
-      "const": 3
+      "const": 4
     },
     "review": {
       "type": "object",
@@ -440,6 +440,9 @@
             "$ref": "#/definitions/isoDate"
           },
           "author": {
+            "type": "string"
+          },
+          "reference": {
             "type": "string"
           }
         }

@@ -1,8 +1,7 @@
 /**
  * Pins the id-uniqueness invariant `src/events/apply.ts` TRUSTS but does not
- * police (it is guaranteed upstream by the strict parse, deterministic minting
- * and `decide`'s renumber refusal): a seeded property test drives `apply` the
- * way the views do — fresh ids on creation, free ids on renumbering — and
+ * police (it is guaranteed upstream by the strict parse and command contract):
+ * a seeded property test drives `apply` with fresh ids on creation and
  * asserts after EVERY step that ids stay unique per collection.
  */
 
@@ -55,7 +54,7 @@ const makeSlide = (id: FreeSlideId): FreeSlide => ({
 /* ------------------------------------------------------------------ */
 
 const randomEvent = (rng: Rng, p: Portfolio): DomainEvent => {
-  // Candidate moves; deletions and renumbering only when a target exists.
+  // Candidate moves; deletions only when a target exists.
   const moves: (() => DomainEvent)[] = [
     () => ({
       type: 'CategoryCreated',
@@ -96,13 +95,6 @@ const randomEvent = (rng: Rng, p: Portfolio): DomainEvent => {
       if (project === undefined) throw new Error('unreachable')
       return { type: 'ProjectDeleted', project, index: i }
     })
-    // Renumbering to a FREE id — the only renumbering the app can dispatch
-    // (SheetView refuses a taken id before dispatching).
-    moves.push(() => ({
-      type: 'ProjectRenumbered',
-      oldId: pick(rng, p.projects).id,
-      newId: projectId(freshId('P'))!,
-    }))
   }
   if (p.freeSlides.length > 0)
     moves.push(() => {
@@ -136,21 +128,5 @@ describe('id uniqueness per collection — property', () => {
         expectUniqueIds(p)
       }
     }
-  })
-
-  it('ProjectRenumbered to a taken id: apply alone duplicates (guard lives in decide)', () => {
-    // Observed behaviour, documented as it is: `apply` routes by `oldId` and
-    // never checks the arrival id, so renumbering P-02 to P-01 yields TWO
-    // projects named P-01. In the app this event is unreachable — `decide`
-    // refuses the RenumberProject intent when the id is taken (nothing is
-    // recorded; the sheet screen alerts) — and the invariant header of the
-    // events barrel states why it must stay so: duplicates would break
-    // `apply ∘ invert`.
-    const after = apply(testPortfolio(), {
-      type: 'ProjectRenumbered',
-      oldId: projectId('P-02')!,
-      newId: projectId('P-01')!,
-    })
-    expect(after.projects.map((x) => x.id)).toStrictEqual(['P-01', 'P-01', 'P-03'])
   })
 })

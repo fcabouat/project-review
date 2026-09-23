@@ -31,7 +31,6 @@ import type {
   CreateProject,
   DeleteProject,
   MoveProject,
-  RenumberProject,
 } from './project'
 import type { ChangeFreeSlide, CreateFreeSlide, DeleteFreeSlide, MoveFreeSlide } from './free-slide'
 import type { MergeProjects, ReplacePortfolio } from './portfolio'
@@ -57,7 +56,6 @@ export type Command =
   | CreateProject
   | DeleteProject
   | MoveProject
-  | RenumberProject
   | ChangeProjectField
   | ChangeProjectList
   | ChangeProjectMilestones
@@ -86,7 +84,6 @@ const _EVENT_FOR = {
   CreateProject: 'ProjectCreated',
   DeleteProject: 'ProjectDeleted',
   MoveProject: 'ProjectMoved',
-  RenumberProject: 'ProjectRenumbered',
   ChangeProjectField: 'ProjectFieldChanged',
   ChangeProjectList: 'ProjectListChanged',
   ChangeProjectMilestones: 'ProjectMilestonesChanged',

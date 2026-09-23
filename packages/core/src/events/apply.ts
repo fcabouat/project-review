@@ -104,12 +104,6 @@ export const apply = (p: Portfolio, e: DomainEvent): Portfolio => {
     case 'ProjectMoved':
       return { ...p, projects: moveById(p.projects, e.id, e.to) }
 
-    case 'ProjectRenumbered':
-      return {
-        ...p,
-        projects: updateById(p.projects, e.oldId, (pr) => ({ ...pr, id: e.newId })),
-      }
-
     case 'ProjectFieldChanged':
       return {
         ...p,

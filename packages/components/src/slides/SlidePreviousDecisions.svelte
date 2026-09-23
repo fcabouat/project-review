@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ProjectLabel from '../commons/ProjectLabel.svelte'
   /** One page of decisions settled since the previous review. */
   import type { Portfolio } from '@project-review/core/model/portfolio'
   import type { DecisionRef } from '@project-review/core/projections/slide'
@@ -99,12 +100,8 @@
         <tr class="h-[68px] print:h-[66px]" style:--cat={row.color}>
           <td class={TD}>
             <span class="project-cell block text-xs leading-[1.25] print:text-[11.5px]">
-              <span
-                class="id-chip float-left mr-[7px] inline-flex h-[15px] items-center px-[5px] text-[10.5px] font-bold tracking-[0.02em] whitespace-nowrap print:h-3.5 print:text-[10px]"
-                >{row.project.id}</span
-              >
               <span class="name text-xs leading-[1.25] font-semibold print:text-[11.5px]"
-                >{row.project.name}</span
+                ><ProjectLabel project={row.project} {language} /></span
               >
             </span>
           </td>

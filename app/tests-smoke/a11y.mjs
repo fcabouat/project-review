@@ -66,7 +66,7 @@ async function editorPass(browser, base, mode) {
   for (const [hash, surface] of [
     ['#/review', 'review'],
     ['#/projects', 'projects'],
-    ['#/sheet/P-01', 'sheet'],
+    [`#/sheet/${sample.projects[0].id}`, 'sheet'],
     ['#/settings', 'settings'],
     ['#/history', 'history'],
     ['#/about', 'about'],
@@ -171,7 +171,7 @@ async function recoveryPass(browser, base, mode) {
   )
   await context.addInitScript(
     (raw) => localStorage.setItem('project-review/state', raw),
-    '{"format":1,"revision":7,"portfolio":{"version":3,"review":{"title":"Revue du 3 mars"},' +
+    '{"format":1,"revision":7,"portfolio":{"version":4,"review":{"title":"Revue du 3 mars"},' +
       '"was":"a portfolio"},"history":{"past":[],"future":[]}}',
   )
   const page = await context.newPage()

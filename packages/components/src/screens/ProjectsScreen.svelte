@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { newId } from '../editor/new-id'
   /**
    * Projects screen — the portfolio table, grouped by category, with the
    * instant fuzzy search. Destructive confirmation runs in the vendored
@@ -35,7 +36,7 @@
   import HealthDot from '../commons/HealthDot.svelte'
   import { catColor } from '../commons/cat-color'
   import { t } from '@project-review/core/services/i18n'
-  import { nextProjectId } from '@project-review/core/values/ids'
+  import { projectId } from '@project-review/core/values/ids'
   import { NO_CATEGORY } from '@project-review/core/values/ids'
   import { BAND_COLOR } from '../commons/band-color'
   import { categoryName } from '../slides/labels'
@@ -63,7 +64,7 @@
   const language = $derived(portfolio.settings.language)
 
   const matching = $derived(
-    fuzzyFilter(portfolio.projects, query, (p) => [p.id, p.name, p.lead, p.sponsor]),
+    fuzzyFilter(portfolio.projects, query, (p) => [p.reference, p.name, p.lead, p.sponsor]),
   )
   const matchingIds = $derived(new Set(matching.map((p) => p.id)))
 
@@ -128,7 +129,7 @@
 
   function addProject(): void {
     const project: Project = {
-      id: nextProjectId(portfolio.projects),
+      id: projectId(newId())!,
       name: te('editor.projects.newName', language),
       categoryId: portfolio.categories[0]?.id ?? NO_CATEGORY,
       stage: 'toScope',
@@ -163,7 +164,7 @@
           disabled={readOnly}
           class="text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-ring inline-flex size-[22px] cursor-pointer items-center justify-center rounded-md text-sm focus-visible:outline-2"
           title={te('editor.menu.actions', language)}
-          aria-label="{te('editor.menu.actions', language)} {project.id}">⋯</DropdownMenu.Trigger
+          aria-label="{te('editor.menu.actions', language)} {project.name}">⋯</DropdownMenu.Trigger
         >
         <DropdownMenu.Content align="start">
           <DropdownMenu.Item
@@ -186,11 +187,12 @@
         size="icon-xs"
         class="text-muted-foreground"
         title={te('editor.projects.edit', language)}
-        aria-label="{te('editor.projects.edit', language)} {project.id}"
+        aria-label="{te('editor.projects.edit', language)} {project.name}"
         onclick={() => open(project.id)}>✎</Button
       >
     </span>
-    <span class="text-(--txt2) text-[12.5px] font-bold tabular-nums">{project.id}</span>
+    <span class="text-(--txt2) text-[12.5px] font-bold tabular-nums">{project.reference ?? ''}</span
+    >
     <span class="text-foreground min-w-0 truncate text-[13.5px]" title={project.name}
       >{project.name}</span
     >
@@ -421,7 +423,7 @@
       <AlertDialog.Header>
         <AlertDialog.Title>{te('editor.projects.delete', language)}</AlertDialog.Title>
         <AlertDialog.Description>
-          {te('editor.menu.deleteConfirm', language, { id: doomed.id })}
+          {te('editor.menu.deleteConfirm', language, { id: doomed.name })}
         </AlertDialog.Description>
       </AlertDialog.Header>
       <AlertDialog.Footer>

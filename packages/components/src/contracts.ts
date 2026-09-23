@@ -13,7 +13,7 @@ import type { DomainEvent } from '@project-review/core/events'
 /**
  * The one edit channel of every view: a command in, the recorded event out —
  * or `undefined` for a refused/trivial command (see `decide`'s contract),
- * which is exactly what a view needs to react to (e.g. a refused renumbering,
+ * which is exactly what a view needs to react to (e.g. a missing target,
  * or the merge report read off the recorded event).
  */
 export type Dispatch = (command: Command) => DomainEvent | undefined

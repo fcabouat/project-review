@@ -167,7 +167,6 @@
   function invalidateDrafts(event: DomainEvent | undefined): void {
     if (event?.type === 'PortfolioReplaced' || event?.type === 'ProjectsMerged') clearDrafts()
     if (event?.type === 'ProjectDeleted') clearDrafts(['project', event.project.id])
-    if (event?.type === 'ProjectRenumbered') clearDrafts(['project', event.oldId])
     if (event?.type === 'CategoryDeleted') clearDrafts(['category', event.category.id])
     if (event?.type === 'FreeSlideDeleted') clearDrafts(['slide', event.slide.id])
     // These collections have positional rows, not permanent row IDs.

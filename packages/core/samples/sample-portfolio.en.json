@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "review": {
     "title": "Project review",
     "subtitle": "Monthly review",
@@ -73,7 +73,8 @@
   ],
   "projects": [
     {
-      "id": "P-01",
+      "id": "fc7cae4e-ec36-43f6-8912-11929b927f22",
+      "reference": "P-01",
       "name": "Graphics workstation refresh",
       "categoryId": "poste",
       "priority": "P2",
@@ -133,7 +134,8 @@
       "author": "M. OKONKWO"
     },
     {
-      "id": "P-02",
+      "id": "0b99710d-40da-45d2-b834-2322c502dc19",
+      "reference": "P-02",
       "name": "Unified endpoint management (MDM) — wave 2",
       "categoryId": "poste",
       "priority": "P1",
@@ -186,7 +188,8 @@
       "author": "S. LINDQVIST"
     },
     {
-      "id": "P-03",
+      "id": "7c9a960c-35fa-4536-bca0-1219da3ff7ff",
+      "reference": "P-03",
       "name": "Hybrid meeting rooms",
       "categoryId": "poste",
       "stage": "residuals",
@@ -230,7 +233,8 @@
       "author": "A. FERREIRA"
     },
     {
-      "id": "P-04",
+      "id": "c355a76f-e7bb-4160-b86d-34f6722ddf4c",
+      "reference": "P-04",
       "name": "Off-site backup of the software forge",
       "categoryId": "infra",
       "priority": "P1",
@@ -282,7 +286,8 @@
       "author": "R. KOVAČ"
     },
     {
-      "id": "P-05",
+      "id": "791536e0-b53b-4c31-9cea-4bf5cae714a7",
+      "reference": "P-05",
       "name": "Server room cooling",
       "categoryId": "infra",
       "priority": "P2",
@@ -318,7 +323,8 @@
       "author": "R. KOVAČ"
     },
     {
-      "id": "P-06",
+      "id": "1aeb6667-44ab-4208-adcb-86f1ac6c36d1",
+      "reference": "P-06",
       "name": "Bordeaux studio network link upgrade",
       "categoryId": "infra",
       "priority": "P2",
@@ -364,7 +370,8 @@
       "author": "T. NGUYEN"
     },
     {
-      "id": "P-07",
+      "id": "9dae82f0-fed2-433c-a362-c6523d0a15a0",
+      "reference": "P-07",
       "name": "Email migration to the collaboration suite",
       "categoryId": "services",
       "priority": "P2",
@@ -405,7 +412,8 @@
       "author": "C. HADDAD"
     },
     {
-      "id": "P-08",
+      "id": "e085ce75-73a2-4660-9ef3-0ea6a2ab7450",
+      "reference": "P-08",
       "name": "Request portal and service catalogue",
       "categoryId": "services",
       "stage": "toScope",
@@ -426,7 +434,8 @@
       "updatedOn": "2026-07-02"
     },
     {
-      "id": "P-09",
+      "id": "cc8be79c-8b99-4e23-8ac5-9b06245e0908",
+      "reference": "P-09",
       "name": "Fixed telephony move to VoIP",
       "categoryId": "telephonie",
       "priority": "P1",
@@ -503,7 +512,8 @@
       "author": "L. TREMBLAY"
     },
     {
-      "id": "P-10",
+      "id": "57cc5a07-9adb-45e6-abbe-b959f6bebfbe",
+      "reference": "P-10",
       "name": "Phone reception revamp",
       "categoryId": "telephonie",
       "priority": "P3",
@@ -535,7 +545,8 @@
       "updatedOn": "2026-08-20"
     },
     {
-      "id": "P-11",
+      "id": "c5974788-9937-4250-8039-710e6a682005",
+      "reference": "P-11",
       "name": "Production tracking tool migration to SaaS",
       "categoryId": "applications",
       "priority": "P2",
@@ -581,7 +592,8 @@
       "author": "E. MORETTI"
     },
     {
-      "id": "P-12",
+      "id": "4df8103d-1fd7-40c5-871d-bca53a486c77",
+      "reference": "P-12",
       "name": "Multi-factor authentication rollout",
       "categoryId": "ssi",
       "priority": "P1",
@@ -627,7 +639,8 @@
       "author": "N. VIRTANEN"
     },
     {
-      "id": "P-13",
+      "id": "6abbf071-bcbe-48a3-a54d-c2ee3b95f592",
+      "reference": "P-13",
       "name": "Internal AI assistant pilot",
       "categoryId": "ia",
       "priority": "P2",
@@ -676,7 +689,8 @@
       "author": "S. LINDQVIST"
     },
     {
-      "id": "P-17",
+      "id": "7a6519a3-15e0-41a5-a40f-d81c956be9bf",
+      "reference": "P-17",
       "name": "Industrialisation of the project review",
       "categoryId": "organisation",
       "priority": "P3",
@@ -717,7 +731,8 @@
       "author": "K. TANAKA"
     },
     {
-      "id": "P-18",
+      "id": "f31414d8-9dc4-4baa-a83e-e910fed1678e",
+      "reference": "P-18",
       "name": "Joiner / leaver process",
       "categoryId": "organisation",
       "priority": "P2",
@@ -760,7 +775,8 @@
       "author": "A. FERREIRA"
     },
     {
-      "id": "P-19",
+      "id": "c7c6bc6b-0443-4126-8772-cd87134c7efc",
+      "reference": "P-19",
       "name": "Asset and licence inventory",
       "categoryId": "organisation",
       "priority": "P3",
@@ -790,7 +806,8 @@
       "author": "T. NGUYEN"
     },
     {
-      "id": "P-20",
+      "id": "e0c2ee28-65ab-4ed1-a8aa-1b104d5a3c6d",
+      "reference": "P-20",
       "name": "Operations documentation base",
       "categoryId": "organisation",
       "priority": "P3",
@@ -825,7 +842,8 @@
       "author": "A. FERREIRA"
     },
     {
-      "id": "P-14",
+      "id": "787dc698-01c3-48d1-bab0-78d370c5be47",
+      "reference": "P-14",
       "name": "Merger of the two buildings' reception desks",
       "categoryId": "organisation",
       "stage": "closed",
@@ -852,7 +870,8 @@
       "updatedOn": "2026-07-02"
     },
     {
-      "id": "P-15",
+      "id": "dc227370-bd52-41ac-8d8d-e4df94f156d5",
+      "reference": "P-15",
       "name": "Virtualisation of the build servers",
       "categoryId": "infra",
       "stage": "closed",
@@ -870,7 +889,8 @@
       "updatedOn": "2026-01-06"
     },
     {
-      "id": "P-16",
+      "id": "fcda5370-6a84-4206-9deb-4e4457460bf5",
+      "reference": "P-16",
       "name": "Intranet overhaul",
       "categoryId": "services",
       "stage": "abandoned",

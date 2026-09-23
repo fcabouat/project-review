@@ -14,9 +14,7 @@
  *    weighed at two different moments — the SHAPE of the value before the
  *    event is built (contract.ts, checked first), the SIZE of the document
  *    after it is (see {@link verdict});
- *  - INAPPLICABLE — the target id resolves to nothing (or, for a renumber,
- *    the requested id is already taken: recording it would break the
- *    uniqueness invariant of `collections.ts`);
+ *  - INAPPLICABLE — the target id resolves to nothing;
  *  - TRIVIAL — a scalar intent whose `after` already is the current value
  *    (moves included: same position), so applying it would change nothing and
  *    undoing it would be a lie in the history.
@@ -112,14 +110,6 @@ const complete = (p: Portfolio, c: Command): DomainEvent | undefined => {
       const from = indexOf(p.projects, c.id)
       if (from === undefined || from === c.to) return undefined
       return { type: 'ProjectMoved', id: c.id, from, to: c.to }
-    }
-
-    case 'RenumberProject': {
-      if (c.newId === c.id) return undefined
-      if (indexOf(p.projects, c.id) === undefined) return undefined
-      // A taken id is refused here so the uniqueness invariant holds by construction.
-      if (indexOf(p.projects, c.newId) !== undefined) return undefined
-      return { type: 'ProjectRenumbered', oldId: c.id, newId: c.newId }
     }
 
     case 'ChangeProjectField': {

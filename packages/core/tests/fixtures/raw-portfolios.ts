@@ -26,7 +26,7 @@ export const rawProject = (over: Record<string, unknown> = {}): Record<string, u
 
 /** A complete, contract-valid raw portfolio; spread overrides on top. */
 export const rawPortfolio = (over: Record<string, unknown> = {}): Record<string, unknown> => ({
-  version: 3,
+  version: 4,
   review: { title: 't', reviewDate: '2026-01-01' },
   settings: {
     identity: { org: 'a', unit: 'b' },

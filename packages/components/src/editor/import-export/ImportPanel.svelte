@@ -1,5 +1,7 @@
 <script lang="ts">
   import { untrack } from 'svelte'
+  import { newId } from '../new-id'
+  import { categoryId } from '@project-review/core/values/ids'
   import { SvelteSet } from 'svelte/reactivity'
   import type { Portfolio } from '@project-review/core/model/portfolio'
   import type { ParseError } from '@project-review/core/services/parse'
@@ -13,6 +15,7 @@
     type ImportBlock,
     type ImportCollection,
     type ImportSelection,
+    type ImportResolution,
   } from '@project-review/core/services/portfolio-import'
   import {
     readImportJson,
@@ -41,7 +44,7 @@
     readonly prefillMode?: 'replace' | 'merge'
   }
   let { portfolio, dispatch, close, prefill, prefillMode }: Props = $props()
-  let mode = $state<'replace' | 'merge'>(untrack(() => prefillMode ?? 'replace'))
+  let mode = $state<'replace' | 'merge'>(untrack(() => prefillMode ?? 'merge'))
   let text = $state('')
   let dragging = $state(false)
   let result = $state<ImportReading | undefined>()
@@ -135,12 +138,48 @@
     }
     selected = { ...selected, [key]: [...next] }
   }
+  function resolveItem(collection: ImportCollection, id: string, action: string): void {
+    const rest = (selected.resolutions ?? []).filter(
+      (r) => r.collection !== collection || r.id !== id,
+    )
+    const choice: ImportResolution[] =
+      action === 'replace'
+        ? [{ collection, id, action }]
+        : action === 'copy'
+          ? [{ collection, id, action, copyId: newId() }]
+          : []
+    selected = { ...selected, resolutions: [...rest, ...choice] }
+  }
+  function linkCategory(sourceId: string, targetId: string): void {
+    const rest = (selected.categoryLinks ?? []).filter((r) => r.sourceId !== sourceId)
+    const target = categoryId(targetId)
+    selected = {
+      ...selected,
+      categoryLinks: target ? [...rest, { sourceId, targetId: target }] : rest,
+    }
+  }
   function itemState(
     key: ImportCollection,
     item: { readonly id: string },
   ): 'added' | 'replaced' | 'same' {
     const current = portfolio[key].find((x) => x.id === item.id)
     return current === undefined ? 'added' : sameImportValue(current, item) ? 'same' : 'replaced'
+  }
+  function differences(
+    key: ImportCollection,
+    item: { readonly id: string },
+  ): { field: string; before: string; after: string }[] {
+    const current = portfolio[key].find((x) => x.id === item.id)
+    if (!current) return []
+    const before = current as unknown as Record<string, unknown>
+    const after = item as unknown as Record<string, unknown>
+    return [...new Set([...Object.keys(before), ...Object.keys(after)])]
+      .filter((field) => !sameImportValue(before[field], after[field]))
+      .map((field) => ({
+        field,
+        before: JSON.stringify(before[field], null, 2) ?? '—',
+        after: JSON.stringify(after[field], null, 2) ?? '—',
+      }))
   }
   const errorMessage = (error: ParseError): string =>
     te(`editor.error.${error.code}`, language, error.params)
@@ -268,12 +307,12 @@
         class="flex flex-col gap-2"
       >
         <label class="flex items-start gap-2 text-sm">
-          <RadioGroup.Item value="replace" disabled={source.kind === 'appearance'} />
-          <span>{te('editor.io.mode.replace', language)}</span>
-        </label>
-        <label class="flex items-start gap-2 text-sm">
           <RadioGroup.Item value="merge" />
           <span>{te('editor.io.mode.merge', language)}</span>
+        </label>
+        <label class="flex items-start gap-2 text-sm">
+          <RadioGroup.Item value="replace" disabled={source.kind === 'appearance'} />
+          <span>{te('editor.io.mode.replace', language)}</span>
         </label>
       </RadioGroup.Root>
       {#if source.kind === 'appearance'}
@@ -317,18 +356,97 @@
             <div class="mt-2 max-h-48 space-y-2 overflow-auto">
               {#each items as item (item.id)}
                 {@const status = itemState(key, item)}
-                <label class="flex items-start gap-2 text-sm">
-                  <Checkbox
-                    checked={selected[key].includes(item.id)}
-                    onCheckedChange={(on) => collectionChecked(key, [item.id], on)}
-                  />
-                  <span class="min-w-0 break-words">
-                    <b>{item.id}</b> · {'name' in item ? item.name : item.title}
-                    <span class="text-muted-foreground text-xs">
-                      — {te(`editor.io.item.${status}`, language)}</span
+                <div class="space-y-1 rounded border border-border p-2 text-sm">
+                  <label class="flex items-start gap-2">
+                    <Checkbox
+                      checked={selected[key].includes(item.id)}
+                      onCheckedChange={(on) => collectionChecked(key, [item.id], on)}
+                    />
+                    <span class="min-w-0 break-words">
+                      <b>{'name' in item ? item.name : item.title}</b>
+                      <span class="text-muted-foreground text-xs">
+                        — {te(
+                          status === 'replaced' ? 'editor.io.conflict' : `editor.io.item.${status}`,
+                          language,
+                        )}</span
+                      >
+                    </span>
+                  </label>
+                  <details class="text-xs text-muted-foreground">
+                    <summary>{te('editor.identity.title', language)}</summary><code
+                      class="select-all break-all">{item.id}</code
                     >
-                  </span>
-                </label>
+                  </details>
+                  {#if status === 'replaced'}
+                    <details class="text-xs">
+                      <summary>{te('editor.io.compare', language)}</summary>
+                      {#each differences(key, item) as diff (diff.field)}
+                        <div class="mt-2">
+                          <b>{diff.field}</b>
+                          <div class="grid gap-2 sm:grid-cols-2">
+                            <div>
+                              <span>{te('editor.io.local', language)}</span>
+                              <pre
+                                class="max-h-40 overflow-auto whitespace-pre-wrap break-words">{diff.before}</pre>
+                            </div>
+                            <div>
+                              <span>{te('editor.io.incoming', language)}</span>
+                              <pre
+                                class="max-h-40 overflow-auto whitespace-pre-wrap break-words">{diff.after}</pre>
+                            </div>
+                          </div>
+                        </div>
+                      {/each}
+                    </details>
+                  {/if}
+                  {#if selected[key].includes(item.id)}
+                    {#if status !== 'added' || key !== 'categories'}
+                      <select
+                        class="border-input bg-background w-full rounded border p-1.5"
+                        aria-label={te('editor.io.actionFor', language, {
+                          name: 'name' in item ? item.name : item.title,
+                        })}
+                        value={selected.resolutions?.find(
+                          (r) => r.collection === key && r.id === item.id,
+                        )?.action ?? 'keep'}
+                        onchange={(e) => resolveItem(key, item.id, e.currentTarget.value)}
+                      >
+                        <option value="keep"
+                          >{te(
+                            status === 'added'
+                              ? 'editor.io.add'
+                              : status === 'same'
+                                ? 'editor.io.alreadyPresent'
+                                : 'editor.io.keepLocal',
+                            language,
+                          )}</option
+                        >
+                        {#if status === 'replaced'}<option value="replace"
+                            >{te('editor.io.takeIncoming', language)}</option
+                          >{/if}
+                        {#if key !== 'categories'}<option value="copy"
+                            >{te('editor.io.addCopy', language)}</option
+                          >{/if}
+                      </select>
+                    {/if}
+                    {#if key === 'categories'}
+                      <select
+                        class="border-input bg-background w-full rounded border p-1.5"
+                        aria-label={te('editor.io.categoryTarget', language, {
+                          name: 'name' in item ? item.name : '',
+                        })}
+                        value={selected.categoryLinks?.find((r) => r.sourceId === item.id)
+                          ?.targetId ?? ''}
+                        onchange={(e) => linkCategory(item.id, e.currentTarget.value)}
+                      >
+                        <option value="">{te('editor.io.sourceCategory', language)}</option>
+                        {#each portfolio.categories.filter((c) => c.id !== item.id) as target (target.id)}<option
+                            value={target.id}>{target.name}</option
+                          >{/each}
+                      </select>
+                    {/if}
+                  {/if}
+                </div>
               {/each}
             </div>
           {/if}

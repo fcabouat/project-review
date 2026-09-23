@@ -43,8 +43,7 @@ export const CATALOG_FR = {
   'recap.title': `Où en sont les projets${NBSP}?`,
   'recap.page': 'page {page} / {total}',
   'recap.next': '{n} projets suivis en page {page}',
-  'recap.columns':
-    'ID · Projet · Catégorie · Étape · Santé · Avancement · Prochain jalon · Décision',
+  'recap.columns': 'Projet · Catégorie · Étape · Santé · Avancement · Prochain jalon · Décision',
   'divider.count': '{n} projets suivis — {m} fiches',
   'sheet.goal': 'Objectif',
   'sheet.start': 'Début',
@@ -75,7 +74,7 @@ export const CATALOG_FR = {
   'timeline.adjusted': 'Espacement adapté pour la lisibilité',
   'archives.title': 'Projets archivés',
   'archives.note': 'Note de clôture',
-  'archives.columns': 'ID · Projet · Catégorie · Étape · Fin réelle · Note de clôture',
+  'archives.columns': 'Projet · Catégorie · Étape · Fin réelle · Note de clôture',
   'archives.reminder': `Rappel${NBSP}: un projet reste suivi tant qu'il garde un reliquat${NBSP}; «${NBSP}Clos${NBSP}» = plus rien à faire.`,
   'decisions.title': 'Décisions',
   'decisions.today': "À trancher aujourd'hui",

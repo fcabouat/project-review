@@ -1,6 +1,7 @@
 import type { Portfolio } from '../model/portfolio'
 import type { AppearanceProfile, ImportSource } from '../model/appearance-profile'
 import { NO_CATEGORY } from '../values/ids'
+import type { CategoryId } from '../values/ids'
 
 /** A reusable appearance file carries no review, projects or free slides. */
 export const appearanceProfile = (p: Portfolio): AppearanceProfile => ({
@@ -17,11 +18,20 @@ export const IMPORT_BLOCKS = ['review', 'language', 'identity', 'theme', 'displa
 export type ImportBlock = (typeof IMPORT_BLOCKS)[number]
 export const IMPORT_COLLECTIONS = ['categories', 'projects', 'freeSlides'] as const
 export type ImportCollection = (typeof IMPORT_COLLECTIONS)[number]
+export interface ImportResolution {
+  readonly collection: ImportCollection
+  readonly id: string
+  readonly action: 'replace' | 'copy'
+  /** Minted once at the application boundary, reused by preview and confirmation. */
+  readonly copyId?: string
+}
 export interface ImportSelection {
   readonly blocks: readonly ImportBlock[]
   readonly categories: readonly string[]
   readonly projects: readonly string[]
   readonly freeSlides: readonly string[]
+  readonly resolutions?: readonly ImportResolution[]
+  readonly categoryLinks?: readonly { readonly sourceId: string; readonly targetId: CategoryId }[]
 }
 
 /** Nothing is selected implicitly when mixing a full portfolio. */
@@ -36,13 +46,26 @@ function upsert<T extends { readonly id: string }>(
   present: readonly T[],
   incoming: readonly T[],
   ids: readonly string[],
+  resolutions: readonly ImportResolution[],
 ): readonly T[] {
   const selected = new Set(ids)
-  const arrivals = new Map(incoming.filter((x) => selected.has(x.id)).map((x) => [x.id, x]))
   const known = new Set(present.map((x) => x.id))
+  const arrivals = new Map<string, T>()
+  const copies: T[] = []
+  for (const item of incoming) {
+    if (!selected.has(item.id)) continue
+    const choice = resolutions.find((r) => r.id === item.id)
+    if (choice?.action === 'copy' && choice.copyId) {
+      // Do not deduplicate copies: a malformed plan must fail the final portfolio contract.
+      copies.push({ ...item, id: choice.copyId })
+    } else if (!known.has(item.id) || choice?.action === 'replace') {
+      arrivals.set(item.id, item)
+    }
+  }
   return [
     ...present.map((x) => arrivals.get(x.id) ?? x),
     ...[...arrivals.values()].filter((x) => !known.has(x.id)),
+    ...copies,
   ]
 }
 
@@ -55,6 +78,15 @@ export function mixPortfolio(
   const incoming = source.portfolio
   const has = (block: ImportBlock): boolean => selected.blocks.includes(block)
   const full = source.kind === 'portfolio'
+  const choices = (key: ImportCollection) =>
+    (selected.resolutions ?? []).filter((r) => r.collection === key)
+  const category = (id: CategoryId): CategoryId =>
+    selected.categories.includes(id)
+      ? (selected.categoryLinks?.find((r) => r.sourceId === id)?.targetId ?? id)
+      : id
+  const categoryIds = selected.categories.filter(
+    (id) => !selected.categoryLinks?.some((r) => r.sourceId === id),
+  )
   return {
     ...p,
     review: full && has('review') ? incoming.review : p.review,
@@ -71,10 +103,28 @@ export function mixPortfolio(
           }
         : {}),
     },
-    categories: upsert(p.categories, incoming.categories, selected.categories),
-    projects: full ? upsert(p.projects, incoming.projects, selected.projects) : p.projects,
+    categories: upsert(p.categories, incoming.categories, categoryIds, choices('categories')),
+    projects: full
+      ? upsert(
+          p.projects,
+          incoming.projects.map((x) => ({ ...x, categoryId: category(x.categoryId) })),
+          selected.projects,
+          choices('projects'),
+        )
+      : p.projects,
     freeSlides: full
-      ? upsert(p.freeSlides, incoming.freeSlides, selected.freeSlides)
+      ? upsert(
+          p.freeSlides,
+          incoming.freeSlides.map((x) => ({
+            ...x,
+            anchor:
+              x.anchor.type === 'beforeCategory'
+                ? { ...x.anchor, categoryId: category(x.anchor.categoryId) }
+                : x.anchor,
+          })),
+          selected.freeSlides,
+          choices('freeSlides'),
+        )
       : p.freeSlides,
   }
 }

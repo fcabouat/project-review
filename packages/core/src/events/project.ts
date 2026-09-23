@@ -1,11 +1,10 @@
 /**
  * Project events — the editable-field vocabulary of the central aggregate and
  * its eight events: whole-project creation/deletion/move, the one-scalar edit,
- * the three wholesale list replacements, and the dedicated renumbering.
+ * and the three wholesale list replacements.
  */
 import type { Project } from '../model/project'
 import type { Decision, Milestone } from '../model/project'
-import type { ProjectId } from '../values/ids'
 import type { CoversExactly } from '../values/refine'
 
 /** `Project` fields editable one by one: everything but the id and the lists. */
@@ -17,6 +16,7 @@ export type ProjectScalarField = Exclude<
 /** Runtime mirror of {@link ProjectScalarField}, in sheet-form order — same
  * compile-time coverage pin as `REVIEW_FIELDS` (review.ts). */
 export const PROJECT_SCALAR_FIELDS = [
+  'reference',
   'name',
   'categoryId',
   'priority',
@@ -74,14 +74,6 @@ export interface ProjectMoved {
   readonly id: string
   readonly from: number
   readonly to: number
-}
-
-/** The only way to change a project id. Both ends are refined ids:
- * the inverse re-uses `newId` as the id it routes on. */
-export interface ProjectRenumbered {
-  readonly type: 'ProjectRenumbered'
-  readonly oldId: ProjectId
-  readonly newId: ProjectId
 }
 
 /** One scalar field of a project (one variant per field, typed values). */

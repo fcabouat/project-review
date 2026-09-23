@@ -93,15 +93,15 @@ describe('fuzzyFilter over the real sample data set', () => {
   const result = parsePortfolio(rawSample)
   if (!result.ok) throw new Error(JSON.stringify(result.errors))
   const projects = result.portfolio.projects
-  const fieldsOf = (p: (typeof projects)[number]) => [p.id, p.name, p.lead]
+  const fieldsOf = (p: (typeof projects)[number]) => [p.reference, p.name, p.lead]
 
   it('« reseau » singles out P-06 despite the missing accent (plan criterion)', () => {
     const found = fuzzyFilter(projects, 'reseau', fieldsOf)
-    expect(found.map((p) => p.id)).toContain('P-06')
+    expect(found.map((p) => p.reference)).toContain('P-06')
   })
 
-  it('finds a project by its id', () => {
-    expect(fuzzyFilter(projects, 'P-04', fieldsOf).map((p) => p.id)).toEqual(['P-04'])
+  it('finds a project by its optional business reference', () => {
+    expect(fuzzyFilter(projects, 'P-04', fieldsOf).map((p) => p.reference)).toEqual(['P-04'])
   })
 
   it('returns everything, in portfolio order, for an empty query', () => {

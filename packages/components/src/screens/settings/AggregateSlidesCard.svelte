@@ -98,4 +98,5 @@
       >
     </span>
   </div>
+  <p class="text-muted-foreground mt-2 text-xs">{te('editor.setting.recapRowsHint', language)}</p>
 </section>

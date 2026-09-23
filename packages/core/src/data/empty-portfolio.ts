@@ -32,7 +32,7 @@ const DEFAULT_TITLE: Record<Language, string> = {
  */
 export function emptyPortfolio(language: Language, reviewDate: IsoDate): Portfolio {
   return {
-    version: 3,
+    version: 4,
     review: { title: DEFAULT_TITLE[language], reviewDate },
     settings: {
       language,

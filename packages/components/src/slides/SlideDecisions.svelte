@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ProjectLabel from '../commons/ProjectLabel.svelte'
   /**
    * Decisions: today's table, calibrated for
    * handwriting — the two right-hand columns are 52 px writing zones.
@@ -99,12 +100,8 @@
         <tr class="h-16 print:h-[66px]" style:--cat={row.color}>
           <td class={TD}>
             <span class="project-cell block text-xs leading-[1.25] print:text-[11.5px]">
-              <span
-                class="id-chip float-left mr-[7px] inline-flex h-[15px] items-center px-[5px] text-[10.5px] font-bold tracking-[0.02em] whitespace-nowrap print:h-3.5 print:text-[10px]"
-                >{row.project.id}</span
-              >
               <span class="name text-xs leading-[1.25] font-semibold print:text-[11.5px]"
-                >{row.project.name}</span
+                ><ProjectLabel project={row.project} {language} /></span
               >
             </span>
           </td>

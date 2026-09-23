@@ -102,6 +102,7 @@ export function parseProjects(x: unknown, errors: Errors): readonly Project[] {
 
     projects.push({
       id: idStr(o['id'], seen, `${path}.id`, errors) as ProjectId,
+      reference: optStr(o['reference'], `${path}.reference`, errors),
       name: str(o['name'], `${path}.name`, errors) ?? '',
       categoryId: categoryId as CategoryId,
       priority: enumVal(o['priority'], PRIORITIES, `${path}.priority`, errors),

@@ -109,7 +109,12 @@
 )}
   <ul class={listClass}>
     {#each shown as project (project.id)}
-      <li class={itemClass}><b class={itemBoldClass}>{project.id}</b>{project.name}</li>
+      <li class={itemClass}>
+        {#if project.reference}<b class={itemBoldClass}>{project.reference}</b
+          >{/if}{project.name}{#if project.lead}<span class="block text-[0.85em] font-normal"
+            >{project.lead}</span
+          >{/if}
+      </li>
     {/each}
     {#if hidden > 0}
       <li class={moreClass}>{t('d2.more', language, { n: hidden })}</li>

@@ -115,7 +115,7 @@ try {
             `${language}-${style}: generated labels`,
           )
           assert.ok(
-            text.includes(sample.projects.find((p) => p.id === 'P-02').goal),
+            text.includes(sample.projects.find((p) => p.reference === 'P-02').goal),
             'sample content matches',
           )
           await deck.screenshot({ path: resolve(out, `${language}-${style}.png`) })

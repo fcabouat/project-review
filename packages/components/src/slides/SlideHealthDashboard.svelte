@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ProjectLabel from '../commons/ProjectLabel.svelte'
   /**
    * Health dashboard "For today's session": health
    * column 302 px with the overdue-milestone inset stuck to it, then the
@@ -123,7 +124,9 @@
         <div class="label">{t('d2.overdueMilestones', language, { n: overdue.length })}</div>
         {#each overdue.slice(0, MAX_OVERDUE) as item (`${item.project.id}:${item.index}`)}
           <p class="mt-[5px] flex gap-1 text-[13px] leading-[1.35] print:text-[12.5px]">
-            <b class="flex-none">{item.project.id}</b>
+            <b class="max-w-[45%] truncate"
+              >{item.project.reference ? `${item.project.reference} · ` : ''}{item.project.name}</b
+            >
             <span class="min-w-0 flex-1 truncate" title={displayLabel(item.milestone.label)}
               >{displayLabel(item.milestone.label)}</span
             >
@@ -147,8 +150,7 @@
     <div class="label label--accent">{t('d2.decisions', language)}</div>
     <table class="table table--pending mt-3 w-full table-fixed">
       <colgroup>
-        <col style:width="70px" />
-        <col style:width="220px" />
+        <col style:width="290px" />
         <col style:width="118px" />
         <col />
       </colgroup>
@@ -160,14 +162,8 @@
             class="level--{row.project.health ?? 'notAssessed'} print:h-11"
             style:--cat={row.color}
           >
-            <td class="{TD} text-[13px] print:text-[12.5px]"
-              ><span
-                class="id-chip inline-flex h-[21px] items-center px-2 text-[11.5px] font-bold tracking-[0.02em] whitespace-nowrap print:h-5 print:px-[7px] print:text-[11px]"
-                >{row.project.id}</span
-              ></td
-            >
             <td class="name {TD} text-[13px] leading-[1.28] font-semibold print:text-[12.5px]"
-              >{row.project.name}</td
+              ><ProjectLabel project={row.project} {language} /></td
             >
             <td class="who {TD} text-xs leading-[1.25] print:text-[11.5px]"
               >{row.decision.decider ?? ''}</td

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { newId } from '../../editor/new-id'
   /** Categories card: create, rename, recolor, reorder, preview and delete categories. */
   import type { Portfolio } from '@project-review/core/model/portfolio'
   import type { Category } from '@project-review/core/model/category'
@@ -6,7 +7,7 @@
   import { catColor } from '../../commons/cat-color'
   import type { GroupRef } from '@project-review/core/projections'
   import { deck, groupKey, projectsOfCategory } from '@project-review/core/projections'
-  import { nextCategoryId } from '@project-review/core/values/ids'
+  import { categoryId } from '@project-review/core/values/ids'
   import { te } from '../../i18n'
   import FieldText from '../../editor/FieldText.svelte'
   import Icon from '../../commons/Icon.svelte'
@@ -70,7 +71,7 @@
     const used = new Set(portfolio.categories.map((c) => c.color))
     const color = COLORS.find((c) => !used.has(c)) ?? 'taupe'
     const category: Category = {
-      id: nextCategoryId(portfolio.categories),
+      id: categoryId(newId())!,
       name: te('editor.settings.newCategory', language),
       color,
     }
