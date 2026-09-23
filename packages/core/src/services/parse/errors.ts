@@ -16,7 +16,7 @@ export const PARSE_ERROR_CODES = [
   'unknownKey',
   /** A value of the wrong JSON type — `params.expected` names the right one. */
   'wrongType',
-  /** `version` present but not the literal 3. */
+  /** `version` present but not the literal 4. */
   'invalidVersion',
   /** A date that is not a calendar-valid YYYY-MM-DD string. */
   'invalidDate',

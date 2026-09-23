@@ -25,6 +25,7 @@ export async function checkImportSelection(browser, appUrl, check) {
     const page = await context.newPage()
     await page.goto(appUrl + '?lang=fr')
     await openImport(page, sample)
+    await page.getByRole('radio', { name: 'Remplacer tout le portefeuille', exact: true }).check()
     await page.getByRole('button', { name: /Remplacer le portefeuille/ }).click()
     const before = await readSaved(page)
     const incoming = structuredClone(sample)
@@ -41,7 +42,7 @@ export async function checkImportSelection(browser, appUrl, check) {
       await page.getByRole('button', { name: /Appliquer la sélection/ }).isDisabled(),
       'mix: nothing selected implicitly',
     )
-    await page.getByRole('checkbox', { name: /nouvelle · Nouvelle catégorie/ }).check()
+    await page.getByRole('checkbox', { name: /Nouvelle catégorie/ }).check()
     const categoriesOnly = await applySelection(page)
     check(
       same(categoriesOnly.projects, before.projects) &&
@@ -57,7 +58,10 @@ export async function checkImportSelection(browser, appUrl, check) {
     await openImport(page, incoming)
     await page.getByRole('radio', { name: /Panacher/ }).check()
     await page.getByRole('checkbox', { name: /Habillage/ }).check()
-    await page.getByRole('checkbox', { name: /poste · Catégorie renommée/ }).check()
+    await page.getByRole('checkbox', { name: /Catégorie renommée/ }).check()
+    await page
+      .getByRole('combobox', { name: 'Action pour Catégorie renommée' })
+      .selectOption('replace')
     check(
       await page
         .getByRole('region', { name: 'Récapitulatif avant validation' })

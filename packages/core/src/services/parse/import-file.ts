@@ -32,7 +32,7 @@ export function readImportJson(text: string): ImportReading {
     fail(errors, 'version', 'invalidEnum', { allowed: '1' })
   }
   const result = parsePortfolio({
-    version: 3,
+    version: 4,
     review: { title: '', reviewDate: '2000-01-01' },
     settings: raw['settings'],
     categories: raw['categories'],

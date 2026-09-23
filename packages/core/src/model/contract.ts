@@ -157,6 +157,7 @@ export const PROJECT_KEYS = {
     'sheet',
   ],
   optional: [
+    'reference',
     'priority',
     'health',
     'progress',
@@ -321,6 +322,7 @@ export const validMilestone = (m: Milestone): boolean =>
 export const validProject = (p: Project): boolean =>
   ownKeysOnly(p, PROJECT_KEYS) &&
   isId(p.id) &&
+  absentOr(p.reference, isText) &&
   isText(p.name) &&
   isText(p.categoryId) &&
   isCategoryReference(p.categoryId) &&
@@ -459,7 +461,7 @@ export const validSettings = (s: Settings): boolean =>
  */
 export const validPortfolioShape = (p: Portfolio): boolean =>
   ownKeysOnly(p, PORTFOLIO_KEYS) &&
-  p.version === 3 &&
+  p.version === 4 &&
   validReview(p.review) &&
   validSettings(p.settings) &&
   isDenseList(p.categories) &&

@@ -56,9 +56,6 @@ export const invert = (e: DomainEvent): DomainEvent => {
     case 'ProjectDeleted':
       return { type: 'ProjectCreated', project: e.project, index: e.index }
 
-    case 'ProjectRenumbered':
-      return { type: 'ProjectRenumbered', oldId: e.newId, newId: e.oldId }
-
     case 'FreeSlideCreated':
       return { type: 'FreeSlideDeleted', slide: e.slide, index: e.index }
 

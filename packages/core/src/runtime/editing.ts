@@ -59,7 +59,7 @@ export const hydrate = (portfolio: Portfolio, log?: History): RuntimeState => ({
  * Decides the command against `present`; when `decide` yields an event,
  * applies it and records it. An INAPPLICABLE or TRIVIAL command is a SILENT
  * no-op: nothing enters the log, nothing can be undone that never happened —
- * the caller reads `event: undefined` to react (e.g. a refused renumbering).
+ * the caller reads `event: undefined` to react (e.g. a command targeting a missing project).
  */
 export const execute = (state: RuntimeState, command: Command): ExecuteResult => {
   const event = decide(state.present, command)

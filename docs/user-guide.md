@@ -43,8 +43,9 @@ import is a single history entry — Ctrl+Z undoes it. The optional example-data
 link (`?sample`) opens the same set in read-only mode. **Replace the portfolio**
 restores a complete file; **Mix — choose what to import** previews changes and lets you
 select review/language/identity (including logo)/theme/display blocks and then
-categories, projects and free slides individually. Selected matching IDs are
-replaced; unselected items are never deleted. Appearance profiles contain only
+categories, projects and free slides individually. Known identities keep the local
+version unless you explicitly choose replacement or an independent copy.
+Unselected items are never deleted. Appearance profiles contain only
 settings and categories and can only be mixed.
 
 <!-- Every picture in this guide is remade by one command, never by hand:
@@ -63,7 +64,7 @@ From there:
   project belongs to one category.
 
 Every view is an address: `#/review`, `#/projects`, `#/settings`,
-`#/history` — and `#/sheet/P-01` for a project sheet. The sidebar entries are
+`#/history` — and `#/sheet/<technical-id>` for a project sheet. The sidebar entries are
 real links, the browser's back and forward buttons walk your navigation, and a
 sheet's URL can be bookmarked or shared as a deep link, even from `file://`.
 
@@ -85,7 +86,7 @@ has five tabs: **Frame & status**, **Narrative**, **Decisions**,
   separately after 1.5 seconds idle, or after 10 seconds of continuous typing.
   These checkpoints add no undo steps. Reopen the same fields after reloading
   to resume editing; the model and slide exports change only on validation.
-  Search filters and confirmation dialogs (such as renumbering) stay temporary UI state.
+  Search filters and confirmation dialogs (such as deletion) stay temporary UI state.
   Check the save status and keep JSON backups.
 - Undo/redo keeps up to 500 actions, additionally limited by a memory budget:
   **Ctrl+Z** / **Ctrl+Y**, or the top-bar arrows. Older entries are discarded.
@@ -136,7 +137,7 @@ in the standalone HTML export. Printing and page numbering are unchanged.
 
 <img src="images/en-navigation.png" width="420" alt="Slideshow settings with By section and Linear navigation choices">
 
-When `settings.navigation` is absent from a v3 portfolio, section navigation
+When `settings.navigation` is absent from a v4 portfolio, section navigation
 is used by default.
 
 <img src="images/en-slide.png" width="720" alt="A project sheet slide in the flat style">
@@ -197,8 +198,26 @@ application, and the files travel however you like (mail, file share…).
 3. **Mix.** Import the returned file and choose **Mix — choose what to import**.
    Nothing is selected implicitly: choose desired categories and projects, plus
    any review, language, identity, theme or display blocks. Unchecked blocks
-   preserve review, identity, presentation and free slides; selected matching
-   IDs replace in place, new IDs are added, and nothing is deleted.
+   preserve review, identity, presentation and free slides. Unknown identities are
+   added. Identical known items are skipped; differing ones offer a comparison
+   and an explicit choice: keep local, take the entire incoming item or add an
+   independent copy. Names and business references never establish a match.
+   Select required categories or map them to local categories. Replacing a category
+   also affects local projects using it. Nothing is deleted and no field-level merge occurs.
+
+### Identities and references
+
+New projects receive a random, stable, read-only technical identity. Exports preserve it;
+inspect and copy it under **Options → Technical identity**. The business reference is
+optional and reserves no column or slide space when absent. It never identifies updates.
+Project leads appear in the list and below titles in summaries. Recap pages with leads
+are capped at 10 projects, even when a higher density is requested.
+
+The current file format is **v4**. Export your portfolio before upgrading from an older
+application. v3 files require a one-off external conversion; browser history and drafts
+are not automatically migrated. Unreadable browser saves remain recoverable rather than
+being silently erased. After conversion, share the same v4 file: converting separate old
+copies would give them different identities.
 
 <img src="images/en-import-merge.png" width="720" alt="The import mode choice: replace or merge, with the counted preview and the list of replaced projects">
 

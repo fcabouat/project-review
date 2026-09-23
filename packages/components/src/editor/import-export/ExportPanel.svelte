@@ -149,7 +149,11 @@
                 checked={!excluded.has(x.id)}
                 onCheckedChange={(on) => setChecked([x.id], on)}
               />
-              <span>{x.id} · {x.name}</span>
+              <span
+                >{#if x.reference}{x.reference} ·
+                {/if}{x.name}{#if x.lead}
+                  — {x.lead}{/if}</span
+              >
             </label>
           {/each}
         </div>

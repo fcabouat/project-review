@@ -31,6 +31,36 @@ const NBSP = ' '
 /** Closed editor keys; each entry supplies every supported language. */
 export const EDITOR_CATALOG = {
   'editor.date.picker': { fr: 'Calendrier — {field}', en: 'Calendar — {field}' },
+  'editor.field.reference': {
+    fr: 'Référence métier (facultative)',
+    en: 'Business reference (optional)',
+  },
+  'editor.identity.title': { fr: 'Identifiant technique', en: 'Technical identity' },
+  'editor.identity.hint': {
+    fr: 'Stable et non modifiable. Conservé dans les exports pour reconnaître ce projet lors des imports. Sélectionnez-le pour le copier.',
+    en: 'Stable and read-only. Preserved in exports to identify this project during imports. Select it to copy.',
+  },
+  'editor.io.conflict': {
+    fr: 'Même identité, contenu différent',
+    en: 'Same identity, different content',
+  },
+  'editor.io.add': { fr: 'Ajouter', en: 'Add' },
+  'editor.io.alreadyPresent': { fr: 'Déjà présent — ignorer', en: 'Already present — skip' },
+  'editor.io.keepLocal': { fr: 'Conserver la version locale', en: 'Keep local version' },
+  'editor.io.takeIncoming': {
+    fr: 'Prendre la version importée (remplacement complet)',
+    en: 'Take incoming version (whole item replacement)',
+  },
+  'editor.io.addCopy': { fr: 'Ajouter une copie indépendante', en: 'Add an independent copy' },
+  'editor.io.actionFor': { fr: 'Action pour {name}', en: 'Action for {name}' },
+  'editor.io.categoryTarget': { fr: 'Rattachement de {name}', en: 'Map category {name}' },
+  'editor.io.sourceCategory': {
+    fr: 'Conserver le rattachement à la catégorie source',
+    en: 'Keep the source category association',
+  },
+  'editor.io.compare': { fr: 'Comparer les changements', en: 'Compare changes' },
+  'editor.io.local': { fr: 'Version locale', en: 'Local version' },
+  'editor.io.incoming': { fr: 'Version importée', en: 'Incoming version' },
   /* ------------------------------- shell -------------------------------- */
   'editor.nav.portfolio': { fr: 'Portefeuille', en: 'Portfolio' },
   'editor.nav.review': { fr: 'Revue', en: 'Review' },
@@ -197,6 +227,10 @@ export const EDITOR_CATALOG = {
   'editor.setting.archives': { fr: 'Archives', en: 'Archives' },
   'editor.setting.decisions': { fr: 'Décisions', en: 'Decisions' },
   'editor.setting.recapRows': { fr: 'Lignes par page', en: 'Rows per page' },
+  'editor.setting.recapRowsHint': {
+    fr: 'Maximum 10 par page si les projets affichent un porteur.',
+    en: 'At most 10 per page when projects display a lead.',
+  },
 
   /* --------------------------- shared values ----------------------------- */
   'editor.value.yes': { fr: 'oui', en: 'yes' },
@@ -247,8 +281,8 @@ export const EDITOR_CATALOG = {
 
   /* -------------------------- projects screen ---------------------------- */
   'editor.projects.searchPlaceholder': {
-    fr: 'Rechercher un projet par id, nom… (recherche floue)',
-    en: 'Search a project by id, name… (fuzzy search)',
+    fr: 'Rechercher par nom, référence, porteur…',
+    en: 'Search by name, reference, lead…',
   },
   'editor.projects.searchLabel': { fr: 'Rechercher un projet', en: 'Search a project' },
   'editor.projects.total': { fr: '{n} projets', en: '{n} projects' },
@@ -565,20 +599,6 @@ export const EDITOR_CATALOG = {
     en: 'Changes applied continuously — Ctrl+Z to undo',
   },
   'editor.sheet.missing': { fr: 'Projet introuvable.', en: 'Project not found.' },
-  'editor.sheet.idLocked': {
-    fr: `Identifiant stable — modifiable uniquement via «${NBSP}Renuméroter${NBSP}»`,
-    en: 'Stable identifier — changed only through "Renumber"',
-  },
-  'editor.sheet.renumber': { fr: 'Renuméroter', en: 'Renumber' },
-  'editor.sheet.renumberPrompt': {
-    fr: `Nouvel identifiant pour «${NBSP}{id}${NBSP}»${NBSP}?`,
-    en: 'New identifier for "{id}"?',
-  },
-  'editor.sheet.renumberTaken': {
-    fr: `L'identifiant «${NBSP}{id}${NBSP}» est déjà pris.`,
-    en: 'Identifier "{id}" is already taken.',
-  },
-
   'editor.tab.state': { fr: 'Cadre & état', en: 'Frame & status' },
   'editor.tab.narrative': { fr: 'Récit', en: 'Narrative' },
   'editor.tab.decisions': { fr: 'Décisions', en: 'Decisions' },
@@ -775,8 +795,8 @@ export const EDITOR_CATALOG = {
   },
   'editor.error.wrongType': { fr: '{expected} attendu', en: '{expected} expected' },
   'editor.error.invalidVersion': {
-    fr: `version «${NBSP}{value}${NBSP}» — 3 attendue`,
-    en: 'version "{value}" — 3 expected',
+    fr: `version «${NBSP}{value}${NBSP}» — 4 attendue. Les fichiers v3 doivent être convertis avant import.`,
+    en: 'version "{value}" — 4 expected. Convert v3 files before importing.',
   },
   'editor.error.invalidDate': {
     fr: `«${NBSP}{value}${NBSP}» invalide (date calendaire AAAA-MM-JJ attendue)`,
@@ -952,8 +972,8 @@ export const EDITOR_CATALOG = {
     en: 'This profile contains no projects or free slides and cannot replace your portfolio.',
   },
   'editor.io.mixHint': {
-    fr: 'Seuls les éléments cochés sont importés. Un même identifiant remplace l’élément existant ; rien n’est supprimé. Décochez les blocs d’apparence pour conserver votre habillage.',
-    en: 'Only selected items are imported. A matching ID replaces the existing item; nothing is deleted. Leave appearance blocks unchecked to keep your styling.',
+    fr: 'Seuls les éléments cochés sont importés. Une identité connue conserve votre version, sauf choix explicite de remplacement ou de copie. Sélectionnez les catégories nécessaires ou rattachez-les aux vôtres. La revue et l’habillage restent inchangés tant que leurs blocs sont décochés. Remplacer une catégorie affecte aussi les projets locaux qui l’utilisent.',
+    en: 'Only selected items are imported. A known identity keeps your version unless you explicitly replace it or add a copy. Select needed categories or map them to yours. Review and appearance remain unchanged while their blocks are unchecked. Replacing a category also affects local projects using it.',
   },
   'editor.io.blocks': { fr: 'Blocs à reprendre', en: 'Settings to import' },
   'editor.io.block.review': { fr: 'Revue (titre et dates)', en: 'Review (title and dates)' },
@@ -1113,10 +1133,6 @@ export const EDITOR_CATALOG = {
   'editor.event.ProjectCreated': { fr: '{id} · projet créé', en: '{id} · project created' },
   'editor.event.ProjectDeleted': { fr: '{id} · projet supprimé', en: '{id} · project deleted' },
   'editor.event.ProjectMoved': { fr: '{id} · projet déplacé', en: '{id} · project moved' },
-  'editor.event.ProjectRenumbered': {
-    fr: '{before} ▸ {after} · renuméroté',
-    en: '{before} ▸ {after} · renumbered',
-  },
   'editor.event.FreeSlideCreated': {
     fr: 'Slide libre «{sp}{title}{sp}» ajoutée',
     en: 'Free slide "{title}" added',

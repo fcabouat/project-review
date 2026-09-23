@@ -71,4 +71,9 @@
     </div>
   </div>
   <p class="text-muted-foreground mt-3.5 text-[11.5px]">{sheetReason}</p>
+  <details class="text-muted-foreground mt-4 text-xs">
+    <summary class="cursor-pointer">{te('editor.identity.title', language)}</summary>
+    <code class="mt-2 block select-all break-all">{project.id}</code>
+    <p class="mt-2">{te('editor.identity.hint', language)}</p>
+  </details>
 </section>

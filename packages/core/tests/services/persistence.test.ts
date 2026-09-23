@@ -211,7 +211,7 @@ describe('the log rides inside the envelope', () => {
       { type: 'PortfolioReplaced', before: testPortfolio(), after },
     ]
 
-    seed(storage, wholeEnvelope(1, { past: replaced({ version: 3, forged: true }), future: [] }))
+    seed(storage, wholeEnvelope(1, { past: replaced({ version: 4, forged: true }), future: [] }))
     expect(restored(storage)!.history).toStrictEqual(emptyHistory)
 
     // Same guard on the future stack (an undone import is still an import),

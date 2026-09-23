@@ -7,11 +7,7 @@
  * "non-empty Unicode string"; uniqueness per collection is the parse's and the
  * allocators' concern, not the type's.
  *
- * Allocation is a pure counter + uniqueness scan — deterministic (same input,
- * same id) and collision-free whatever ids the parse or older sessions minted:
- * the scan starts at `existing.length + 1` and walks up to the first free
- * number. No `Date.now()` id: it would be neither reproducible under test nor
- * collision-free.
+ * Identity generation belongs to the application boundary, never to this pure module.
  *
  * PURE module: no clock, no dependency beyond the wrapper type.
  */
@@ -55,30 +51,3 @@ export const freeSlideId = (s: string): FreeSlideId | undefined =>
  * keep serialising it as `""`, exactly as the import contract reads it.
  */
 export const NO_CATEGORY = '' as CategoryId
-
-/* ------------------------------------------------------------------ */
-/* Allocation                                                          */
-/* ------------------------------------------------------------------ */
-
-/** Ids themselves, or the identified elements — callers hold the collection
- * and should not have to project it first. */
-export type Existing = readonly (string | { readonly id: string })[]
-
-const nextFree = (existing: Existing, idFor: (n: number) => string): string => {
-  const used = new Set(existing.map((x) => (typeof x === 'string' ? x : x.id)))
-  let n = existing.length + 1
-  while (used.has(idFor(n))) n += 1
-  return idFor(n)
-}
-
-/** Next free-slide id: `free-N` with the first free N. */
-export const nextFreeSlideId = (existing: Existing): FreeSlideId =>
-  nextFree(existing, (n) => `free-${n}`) as FreeSlideId
-
-/** Next project id: `P-NN` (two digits) with the first free N. */
-export const nextProjectId = (existing: Existing): ProjectId =>
-  nextFree(existing, (n) => `P-${String(n).padStart(2, '0')}`) as ProjectId
-
-/** Next category id: `category-N` with the first free N. */
-export const nextCategoryId = (existing: Existing): CategoryId =>
-  nextFree(existing, (n) => `category-${n}`) as CategoryId

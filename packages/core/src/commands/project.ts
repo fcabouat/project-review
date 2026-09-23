@@ -3,7 +3,6 @@
  * value and, for a creation, where to insert (see the commands barrel).
  */
 import type { Decision, Milestone, Project } from '../model/project'
-import type { ProjectId } from '../values/ids'
 import type { NarrativeList, ProjectScalarField } from '../events/project'
 
 /** Insert a complete project at `index`. */
@@ -22,13 +21,6 @@ export interface MoveProject {
   readonly type: 'MoveProject'
   readonly id: string
   readonly to: number
-}
-
-/** Give the project addressed by `id` the id `newId` (already refined). */
-export interface RenumberProject {
-  readonly type: 'RenumberProject'
-  readonly id: ProjectId
-  readonly newId: ProjectId
 }
 
 /** Set one scalar field of a project (one variant per field, typed value). */

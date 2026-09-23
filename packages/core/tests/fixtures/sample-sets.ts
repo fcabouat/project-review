@@ -10,12 +10,17 @@ import rawFr from '../../samples/sample-portfolio.fr.json'
 import rawEn from '../../samples/sample-portfolio.en.json'
 import { parsePortfolio } from '../../src/services/parse/index'
 import type { Portfolio } from '../../src/model/portfolio'
+import { projectId } from '../../src/values/ids'
 
 /** Parse-or-throw: a sample set that stops parsing must fail the suite loudly. */
 export function load(raw: unknown): Portfolio {
   const r = parsePortfolio(raw)
   if (!r.ok) throw new Error(JSON.stringify(r.errors))
-  return r.portfolio
+  // Readable aliases in domain fixtures only; shipped files keep their UUIDs.
+  return {
+    ...r.portfolio,
+    projects: r.portfolio.projects.map((p) => ({ ...p, id: projectId(p.reference ?? p.id)! })),
+  }
 }
 
 export const fr = load(rawFr)

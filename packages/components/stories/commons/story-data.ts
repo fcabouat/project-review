@@ -5,7 +5,7 @@
  */
 import rawSample from '@project-review/core/samples/sample-portfolio.fr.json'
 import { parsePortfolio } from '@project-review/core/services/parse'
-import { categoryOf, projectById } from '@project-review/core/projections'
+import { categoryOf } from '@project-review/core/projections'
 import { catColor } from '../../src/commons/cat-color'
 import type { Portfolio } from '@project-review/core/model/portfolio'
 import type { Project } from '@project-review/core/model/project'
@@ -19,7 +19,7 @@ export const language = sample.settings.language
 
 /** Project of the sample data set, by id — throws if the id disappears from it. */
 export function project(id: string): Project {
-  const p = projectById(sample, id)
+  const p = sample.projects.find((p) => p.reference === id || p.id === id)
   if (!p) throw new Error(`Project ${id} missing from the sample data set`)
   return p
 }

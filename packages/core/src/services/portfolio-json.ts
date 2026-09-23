@@ -32,7 +32,7 @@ export const serializePortfolio = (portfolio: Portfolio): string =>
   JSON.stringify(portfolio, null, 2)
 
 /**
- * The partial export: a VALID stand-alone v3 portfolio carrying the selected
+ * The partial export: a VALID stand-alone v4 portfolio carrying the selected
  * projects, THEIR categories (present order and content), and the CURRENT
  * review, settings and identity — so the recipient opens the file alone in
  * the app and works in the owner's frame. Free slides stay home: they are the
@@ -43,7 +43,7 @@ export const partialPortfolio = (p: Portfolio, selected: ReadonlySet<string>): P
   const projects = p.projects.filter((x) => selected.has(x.id))
   const used = new Set(projects.map((x) => x.categoryId))
   return {
-    version: 3,
+    version: 4,
     review: p.review,
     settings: p.settings,
     categories: p.categories.filter((c) => used.has(c.id)),

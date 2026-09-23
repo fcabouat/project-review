@@ -87,7 +87,6 @@ const EVENT_TYPES = [
   'ProjectCreated',
   'ProjectDeleted',
   'ProjectMoved',
-  'ProjectRenumbered',
   'ProjectFieldChanged',
   'ProjectListChanged',
   'ProjectMilestonesChanged',
@@ -149,7 +148,7 @@ const PROBE_PROJECT: Project = {
 }
 
 const PROBE: Portfolio = {
-  version: 3,
+  version: 4,
   review: { title: '', reviewDate: PROBE_DATE },
   settings: {
     language: 'en',
@@ -282,9 +281,6 @@ const soundVariant = (o: Record<string, unknown>, type: DomainEvent['type']): bo
         isRecord(o['project']) &&
         validProject(o['project'] as never)
       )
-
-    case 'ProjectRenumbered':
-      return keys(o, ['type', 'oldId', 'newId']) && isId(o['oldId']) && isId(o['newId'])
 
     case 'ProjectFieldChanged':
       return (

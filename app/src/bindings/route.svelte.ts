@@ -17,7 +17,7 @@ export interface Router {
   readonly route: Route
   /** Pushes a new entry (a click somewhere that is not a real link). */
   readonly navigate: (route: Route) => void
-  /** Replaces the current entry — redirects (unknown sheet id, renumbering). */
+  /** Replaces the current entry — redirects for an unknown sheet id. */
   readonly replace: (route: Route) => void
 }
 

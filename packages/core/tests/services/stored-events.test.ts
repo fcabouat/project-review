@@ -74,9 +74,6 @@ describe('decodeEvent — the payload-less event that used to crash Undo', () =>
 
 describe('decodeEvent — exact keys, exact types', () => {
   it('refuses unusable ids and duplicate font slots in persisted events too', () => {
-    expect(
-      decodeEvent({ type: 'ProjectRenumbered', oldId: 'P-01', newId: '\ud800' }),
-    ).toBeUndefined()
     const face = {
       family: 'Atelier',
       weight: '400',
@@ -135,7 +132,6 @@ describe('decodeEvent — exact keys, exact types', () => {
     ] as const) {
       expect(decodeEvent({ ...sampleOf(type), id: '' })).toBeUndefined()
     }
-    expect(decodeEvent({ ...sampleOf('ProjectRenumbered'), newId: '' })).toBeUndefined()
   })
 
   it('refuses a field name outside its closed vocabulary', () => {
@@ -183,7 +179,7 @@ describe('decodeEvent — exact keys, exact types', () => {
 
   it('refuses a forged portfolio on either side of a replacement', () => {
     expect(
-      decodeEvent({ type: 'PortfolioReplaced', before: testPortfolio(), after: { version: 3 } }),
+      decodeEvent({ type: 'PortfolioReplaced', before: testPortfolio(), after: { version: 4 } }),
     ).toBeUndefined()
     expect(
       decodeEvent({ type: 'PortfolioReplaced', before: 42, after: testPortfolio() }),

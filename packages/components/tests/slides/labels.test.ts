@@ -66,9 +66,8 @@ describe('monthLabel — capitalised month + year, from the long date', () => {
 })
 
 describe('columns — one catalog line split on " · "', () => {
-  it('yields the 8 recap headers in each language', () => {
+  it('yields the 7 recap headers in each language', () => {
     expect(columns('recap.columns', 'fr')).toEqual([
-      'ID',
       'Projet',
       'Catégorie',
       'Étape',
@@ -77,7 +76,7 @@ describe('columns — one catalog line split on " · "', () => {
       'Prochain jalon',
       'Décision',
     ])
-    expect(columns('recap.columns', 'en')).toHaveLength(8)
+    expect(columns('recap.columns', 'en')).toHaveLength(7)
     expect(columns('decisions.columns', 'en')[0]).toBe('Project')
   })
 })

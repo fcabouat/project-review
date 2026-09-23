@@ -64,11 +64,12 @@ export interface Milestone {
  * of an optional field is meaningful display state ("not assessed" health, "—"
  * priority), never a default to fill in. Scalars are edited one by one
  * (`ProjectFieldChanged`); the three narrative lists and the two row
- * collections are replaced wholesale. `id` is user-visible ("P-01") and only
- * changes through the dedicated renumber event.
+ * collections are replaced wholesale. `id` is an immutable technical identity,
+ * preserved across exports. The optional reference is display-only.
  */
 export interface Project {
   readonly id: ProjectId
+  readonly reference?: string
   readonly name: string
   readonly categoryId: CategoryId
   readonly priority?: Priority

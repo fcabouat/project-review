@@ -35,7 +35,6 @@ import type {
   ProjectListChanged,
   ProjectMilestonesChanged,
   ProjectMoved,
-  ProjectRenumbered,
 } from './project'
 import type {
   FreeSlideChanged,
@@ -76,7 +75,6 @@ export type DomainEvent =
   | ProjectCreated
   | ProjectDeleted
   | ProjectMoved
-  | ProjectRenumbered
   | ProjectFieldChanged
   | ProjectListChanged
   | ProjectMilestonesChanged

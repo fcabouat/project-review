@@ -105,7 +105,7 @@ describe('fetchSample — the neighbour file, strictly parsed, silently refused'
   })
 
   it('resolves undefined on a contract violation — same strict parse as any import', async () => {
-    stubFetch({ version: 3, unexpected: true })
+    stubFetch({ version: 4, unexpected: true })
     await expect(fetchSample('fr', BASE)).resolves.toBeUndefined()
   })
 

@@ -22,7 +22,7 @@ export interface Store {
   /**
    * Runs the command through the runtime and rebinds the state.
    * The recorded event — or `undefined` for a refused/trivial command — is
-   * returned so a view can react (e.g. a refused renumbering).
+   * returned so a view can react (e.g. a command targeting a missing project).
    */
   readonly dispatch: (command: Command) => DomainEvent | undefined
   readonly undo: () => void

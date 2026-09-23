@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { newId } from '../editor/new-id'
   /**
    * Review screen — the review's own fields, plus the free slides anchored to
    * it.
@@ -13,7 +14,7 @@
    */
   import type { Portfolio } from '@project-review/core/model/portfolio'
   import type { ReviewField } from '@project-review/core/events'
-  import { nextFreeSlideId } from '@project-review/core/values/ids'
+  import { freeSlideId } from '@project-review/core/values/ids'
   import type { FreeSlide } from '@project-review/core/model/free-slide'
   import { isoDate } from '@project-review/core/values/date'
   import { te } from '../i18n'
@@ -75,7 +76,7 @@
   function addSlide(): void {
     // Born empty: the display does the "—" fallback, the data stays honest.
     const slide: FreeSlide = {
-      id: nextFreeSlideId(portfolio.freeSlides),
+      id: freeSlideId(newId())!,
       anchor: { type: 'opening' },
       title: '',
       blocks: [[]],
