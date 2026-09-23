@@ -146,8 +146,7 @@
     open(project.id)
   }
 
-  const ROW_GRID =
-    'grid grid-cols-[52px_46px_minmax(0,1fr)_150px_46px_30px_96px_46px_60px_26px] items-center gap-x-2 px-3.5'
+  const ROW_GRID = 'project-grid items-center gap-x-3 px-3.5'
 </script>
 
 {#snippet row(project: Project, siblings: readonly Project[])}
@@ -158,43 +157,20 @@
   <div
     class="{ROW_GRID} border-border min-h-[46px] w-full border-b py-1.5 last:border-b-0 even:bg-secondary"
   >
-    <span class="inline-flex items-center justify-start gap-1">
-      <DropdownMenu.Root>
-        <DropdownMenu.Trigger
-          disabled={readOnly}
-          class="text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-ring inline-flex size-[22px] cursor-pointer items-center justify-center rounded-md text-sm focus-visible:outline-2"
-          title={te('editor.menu.actions', language)}
-          aria-label="{te('editor.menu.actions', language)} {project.name}">⋯</DropdownMenu.Trigger
-        >
-        <DropdownMenu.Content align="start">
-          <DropdownMenu.Item
-            disabled={position <= 0}
-            onSelect={() => moveProject(project, siblings, -1)}
-            >{te('editor.projects.moveUp', language)}</DropdownMenu.Item
-          >
-          <DropdownMenu.Item
-            disabled={position === siblings.length - 1}
-            onSelect={() => moveProject(project, siblings, 1)}
-            >{te('editor.projects.moveDown', language)}</DropdownMenu.Item
-          >
-          <DropdownMenu.Item variant="destructive" onSelect={() => (pendingDelete = project)}
-            >{te('editor.projects.delete', language)}</DropdownMenu.Item
-          >
-        </DropdownMenu.Content>
-      </DropdownMenu.Root>
-      <Button
-        variant="ghost"
-        size="icon-xs"
-        class="text-muted-foreground"
-        title={te('editor.projects.edit', language)}
-        aria-label="{te('editor.projects.edit', language)} {project.name}"
-        onclick={() => open(project.id)}>✎</Button
+    <div class="row-title min-w-0">
+      <button
+        class="text-foreground line-clamp-2 cursor-pointer text-left text-[13.5px] hover:underline focus-visible:outline-2"
+        title={project.name}
+        onclick={() => open(project.id)}
       >
-    </span>
-    <span class="text-(--txt2) text-[12.5px] font-bold tabular-nums">{project.reference ?? ''}</span
-    >
-    <span class="text-foreground min-w-0 truncate text-[13.5px]" title={project.name}
-      >{project.name}</span
+        {#if project.reference}<b>{project.reference}</b>{' · '}{/if}{project.name}
+      </button>
+      {#if project.lead}<span class="compact-lead text-muted-foreground text-xs"
+          >{project.lead}</span
+        >{/if}
+    </div>
+    <span class="row-lead text-muted-foreground min-w-0 truncate text-xs" title={project.lead}
+      >{project.lead ?? ''}</span
     >
     <span class="flex min-w-0 flex-wrap items-center gap-1">
       <!-- The SAME StageChip as the recap slide — one chip vocabulary, on-hold
@@ -268,6 +244,39 @@
     {:else}
       <span></span>
     {/if}
+    <span class="row-actions inline-flex items-center justify-end gap-1">
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        class="text-muted-foreground"
+        title={te('editor.projects.edit', language)}
+        aria-label="{te('editor.projects.edit', language)} {project.name}"
+        onclick={() => open(project.id)}>✎</Button
+      >
+      <DropdownMenu.Root>
+        <DropdownMenu.Trigger
+          disabled={readOnly}
+          class="text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-ring inline-flex size-8 cursor-pointer items-center justify-center rounded-md text-sm focus-visible:outline-2"
+          title={te('editor.menu.actions', language)}
+          aria-label="{te('editor.menu.actions', language)} {project.name}">⋯</DropdownMenu.Trigger
+        >
+        <DropdownMenu.Content align="end">
+          <DropdownMenu.Item
+            disabled={position <= 0}
+            onSelect={() => moveProject(project, siblings, -1)}
+            >{te('editor.projects.moveUp', language)}</DropdownMenu.Item
+          >
+          <DropdownMenu.Item
+            disabled={position === siblings.length - 1}
+            onSelect={() => moveProject(project, siblings, 1)}
+            >{te('editor.projects.moveDown', language)}</DropdownMenu.Item
+          >
+          <DropdownMenu.Item variant="destructive" onSelect={() => (pendingDelete = project)}
+            >{te('editor.projects.delete', language)}</DropdownMenu.Item
+          >
+        </DropdownMenu.Content>
+      </DropdownMenu.Root>
+    </span>
   </div>
 {/snippet}
 
@@ -324,21 +333,16 @@
     </span>
   </div>
 
-  <!-- The 11-column grid keeps its full metrics on every screen: below its
-       natural width the TABLE scrolls sideways inside this container — the
-       page body itself never scrolls horizontally. -->
+  <!-- Full metrics on wide screens; lead folds under the title, then rows become cards. -->
   <div class="overflow-x-auto overscroll-x-contain">
-    <div class="min-w-[860px]">
+    <div class="project-list mx-auto max-w-[1480px]">
       <div
-        class="{ROW_GRID} bg-secondary text-muted-foreground border-border h-8 border-b text-[10.5px] font-bold tracking-[0.05em] uppercase"
+        class="{ROW_GRID} row-header bg-secondary text-muted-foreground border-border h-8 border-b text-[10.5px] font-bold tracking-[0.05em] uppercase"
       >
-        <span></span>
-        <span class="overflow-hidden whitespace-nowrap"
-          >{te('editor.projects.col.id', language)}</span
-        >
         <span class="overflow-hidden whitespace-nowrap"
           >{te('editor.projects.col.project', language)}</span
         >
+        <span class="row-lead">{te('editor.field.lead', language)}</span>
         <span class="overflow-hidden whitespace-nowrap">{te('editor.field.stage', language)}</span>
         <span class="overflow-hidden whitespace-nowrap">{te('editor.field.health', language)}</span>
         <span class="overflow-hidden whitespace-nowrap"
@@ -438,3 +442,47 @@
     </AlertDialog.Content>
   </AlertDialog.Root>
 {/if}
+
+<style>
+  .project-list {
+    container-type: inline-size;
+  }
+  .project-grid {
+    display: grid;
+    grid-template-columns:
+      minmax(14rem, 2fr) minmax(8rem, 1fr)
+      132px 42px 30px 96px 40px 54px 26px 72px;
+  }
+  .compact-lead {
+    display: none;
+  }
+  @container (max-width: 1080px) {
+    .project-grid {
+      grid-template-columns: minmax(12rem, 1fr) 132px 42px 30px 96px 40px 54px 26px 72px;
+    }
+    .row-lead {
+      display: none;
+    }
+    .compact-lead {
+      display: block;
+    }
+  }
+  @container (max-width: 820px) {
+    .project-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 14px;
+      padding-block: 12px;
+    }
+    .row-header {
+      display: none;
+    }
+    .row-title {
+      flex: 1 1 calc(100% - 92px);
+      order: -2;
+    }
+    .row-actions {
+      order: -1;
+    }
+  }
+</style>
