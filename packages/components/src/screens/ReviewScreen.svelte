@@ -142,6 +142,7 @@
           {language}
           label={te('editor.field.reviewDate', language)}
           draftKey="review.reviewDate"
+          type="date"
           value={review.reviewDate}
           commit={(v) => change('reviewDate', v)}
           hint={te('editor.review.dateHint', language)}
@@ -151,6 +152,7 @@
           {language}
           label={te('editor.field.previousReviewDate', language)}
           draftKey="review.previousReviewDate"
+          type="date"
           value={review.previousReviewDate}
           commit={(v) => change('previousReviewDate', v)}
           hint={te('editor.review.dateHint', language)}

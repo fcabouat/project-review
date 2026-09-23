@@ -30,6 +30,7 @@ const NBSP = ' '
 
 /** Closed editor keys; each entry supplies every supported language. */
 export const EDITOR_CATALOG = {
+  'editor.date.picker': { fr: 'Calendrier — {field}', en: 'Calendar — {field}' },
   /* ------------------------------- shell -------------------------------- */
   'editor.nav.portfolio': { fr: 'Portefeuille', en: 'Portfolio' },
   'editor.nav.review': { fr: 'Revue', en: 'Review' },
