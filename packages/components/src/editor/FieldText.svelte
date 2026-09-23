@@ -36,6 +36,7 @@
   import type { CapacityField } from '@project-review/core/model/budget'
   import { TEXT_CAPACITY, overCapacity } from '@project-review/core/model/budget'
   import { Input } from '../commons/ui/input'
+  import { isoDate } from '@project-review/core/values/date'
   import { Textarea } from '../commons/ui/textarea'
 
   interface Props {
@@ -79,6 +80,7 @@
     readonly readonly?: boolean
     readonly ariaLabel?: string
     readonly monospace?: boolean
+    readonly type?: 'text' | 'date'
   }
 
   let {
@@ -99,6 +101,7 @@
     readonly = false,
     ariaLabel,
     monospace = false,
+    type = 'text',
   }: Props = $props()
 
   // Seeded from the prop ONCE; the effect below owns every later resync.
@@ -215,10 +218,14 @@
       ></Textarea>
     {:else}
       <Input
-        class="read-only:text-(--txt2) read-only:bg-[#fafafa] aria-invalid:border-destructive pr-8 dark:read-only:bg-white/5 {compact
-          ? 'h-8 text-[13px]'
-          : ''}"
+        class="read-only:text-(--txt2) read-only:bg-[#fafafa] aria-invalid:border-destructive {type ===
+        'date'
+          ? 'pr-16'
+          : 'pr-8'} dark:read-only:bg-white/5 {compact ? 'h-8 text-[13px]' : ''}"
         type="text"
+        inputmode={type === 'date' ? 'numeric' : undefined}
+        name={draftKey}
+        autocomplete="off"
         {placeholder}
         {readonly}
         aria-label={ariaLabel ?? label}
@@ -227,10 +234,28 @@
         onfocus={() => (touched = true)}
         {onblur}
       />
+      {#if type === 'date' && !readonly}
+        <input
+          type="date"
+          class="date-picker absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2 cursor-pointer overflow-hidden rounded text-transparent"
+          aria-label={te('editor.date.picker', language, { field: ariaLabel ?? label ?? '' })}
+          name={`${draftKey ?? 'date'}-calendar`}
+          autocomplete="off"
+          min="0001-01-01"
+          max="9999-12-31"
+          value={isoDate(draft) ?? ''}
+          onchange={(e) => {
+            draft = e.currentTarget.value
+            onblur()
+          }}
+        />
+      {/if}
     {/if}
     {#if showSaveState}
       <span
-        class="text-muted-foreground pointer-events-none absolute top-1/2 right-2 -translate-y-1/2"
+        class="text-muted-foreground pointer-events-none absolute top-1/2 {type === 'date'
+          ? 'right-9'
+          : 'right-2'} -translate-y-1/2"
         role="status"
         aria-label={saveLabel}
       >
@@ -286,3 +311,14 @@
     </span>
   {/if}
 </label>
+
+<style>
+  .date-picker::-webkit-datetime-edit {
+    display: none;
+  }
+  .date-picker::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    margin: 0;
+    padding: 4px;
+  }
+</style>

@@ -130,6 +130,7 @@
       value={project.start}
       placeholder={te('editor.review.dateHint', language)}
       error={dateErrors.start}
+      type="date"
       commit={(v) => commitDate('start', v)}
     />
     <FieldText
@@ -139,6 +140,7 @@
       value={project.targetEnd}
       placeholder={te('editor.review.dateHint', language)}
       error={dateErrors.targetEnd}
+      type="date"
       commit={(v) => commitDate('targetEnd', v)}
     />
     <FieldText
@@ -148,6 +150,7 @@
       value={project.actualEnd}
       placeholder={te('editor.review.dateHint', language)}
       error={dateErrors.actualEnd}
+      type="date"
       commit={(v) => commitDate('actualEnd', v)}
     />
   </div>
@@ -189,6 +192,7 @@
               error={field === 'date' && milestoneDateError?.index === entry.index
                 ? milestoneDateError.message
                 : undefined}
+              type={field === 'date' ? 'date' : 'text'}
               placeholder={field === 'date'
                 ? te('editor.review.dateHint', language)
                 : field === 'display'

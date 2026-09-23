@@ -186,6 +186,7 @@
           <FieldText
             {language}
             label={te('editor.sheet.takenWhen', language)}
+            type="date"
             value={outcomes[index]?.when ?? ''}
             draftKey={JSON.stringify(['project', project.id, 'decision', index, 'when'])}
             required
