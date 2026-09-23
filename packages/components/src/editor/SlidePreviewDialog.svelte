@@ -10,6 +10,7 @@
   import SlideView from '../slides/SlideView.svelte'
   import { te } from '../i18n'
   import { Button } from '../commons/ui/button'
+  import Icon from '../commons/Icon.svelte'
   import * as Dialog from '../commons/ui/dialog'
   import { useSlideshow } from '../slideshow/SlideshowHost.svelte'
 
@@ -60,9 +61,10 @@
   <Dialog.Content
     class="top-11 max-h-[calc(100dvh-60px)] w-[860px] max-w-[calc(100%-32px)] translate-y-0 gap-0 overflow-x-hidden overflow-y-auto rounded-lg p-0 sm:max-w-[860px]"
     closeLabel={te('editor.io.close', language)}
+    showCloseButton={false}
   >
     <div
-      class="border-border flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 border-b py-3 pr-14 pl-[18px]"
+      class="border-border flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 border-b px-[18px] py-3"
     >
       <Dialog.Title class="min-w-0 wrap-anywhere text-sm font-bold"
         >{te('editor.preview.title', language, { subject })}</Dialog.Title
@@ -89,6 +91,18 @@
         >
           {te('editor.preview.openSlideshow', language)}
         </Button>
+        <Dialog.Close>
+          {#snippet child({ props })}
+            <Button
+              {...props}
+              variant="ghost"
+              size="icon-sm"
+              aria-label={te('editor.io.close', language)}
+            >
+              <Icon name="close-line" size="16px" />
+            </Button>
+          {/snippet}
+        </Dialog.Close>
       </span>
     </div>
 
