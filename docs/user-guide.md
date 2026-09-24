@@ -106,6 +106,7 @@ vocabulary; removing a tag affects only the current project. The free-form detai
 is no longer offered. Existing files may still contain `scope`: it remains readable and
 is preserved on export, without implicit conversion on import. Tags appear in the
 project list and summaries and are included in search.
+Tags are sorted alphabetically in the editor, slides and JSON exports.
 On slides, tags and metadata are limited to two display lines to preserve the layout;
 the full text remains available on hover and in the JSON.
 

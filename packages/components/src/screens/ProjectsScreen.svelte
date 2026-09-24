@@ -1,5 +1,6 @@
 <script lang="ts">
   import { newId } from '../editor/new-id'
+  import { orderedScopeTags } from '@project-review/core/values/scope-tags'
   /**
    * Projects screen — the portfolio table, grouped by category, with the
    * instant fuzzy search. Destructive confirmation runs in the vendored
@@ -223,7 +224,7 @@
         >{/if}
       {#if project.scopeTags?.length}
         <div class="mt-1 flex flex-wrap gap-1">
-          {#each project.scopeTags as tag (tag)}
+          {#each orderedScopeTags(project.scopeTags) as tag (tag)}
             <span
               class="border-primary/15 bg-primary/5 text-primary inline-flex max-w-full rounded-full border px-2 py-0.5 text-[11px] leading-tight break-all"
               >{tag}</span

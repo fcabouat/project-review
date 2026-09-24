@@ -1,6 +1,6 @@
 /**
  * The portfolio as a FILE — name and payload of the .json export, the exact
- * inverse of the strict parse (`parse/`): what `serializePortfolio` writes,
+ * counterpart of the strict parse (`parse/`): what `serializePortfolio` writes,
  * `readPortfolioJson` (services/parse) accepts whole. The saved state is NOT
  * this file: persistence wraps the same portfolio in an envelope carrying its
  * revision and its undo/redo log (`services/persistence.ts`). The download
@@ -8,6 +8,7 @@
  */
 
 import type { Portfolio } from '../model/portfolio'
+import { orderedScopeTags } from '../values/scope-tags'
 
 /**
  * Download name of the exported portfolio. The review date (already
@@ -27,9 +28,23 @@ export const portfolioFileName = (reviewDate: string, partial = false): string =
  */
 export const UNREADABLE_STATE_FILE_NAME = 'project-review-unreadable-state.json'
 
-/** The exported payload: the bare portfolio, indented for hand editing. */
+/** Bare portfolio, indented for hand editing; tag ordering never mutates live state. */
 export const serializePortfolio = (portfolio: Portfolio): string =>
-  JSON.stringify(portfolio, null, 2)
+  JSON.stringify(
+    {
+      ...portfolio,
+      projects: portfolio.projects.map((project) =>
+        project.scopeTags === undefined
+          ? project
+          : {
+              ...project,
+              scopeTags: orderedScopeTags(project.scopeTags),
+            },
+      ),
+    },
+    null,
+    2,
+  )
 
 /**
  * The partial export: a VALID stand-alone v4 portfolio carrying the selected

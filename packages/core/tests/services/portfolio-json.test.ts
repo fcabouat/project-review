@@ -1,6 +1,6 @@
 /**
  * Pins `src/services/portfolio-json.ts` — the portfolio as a file: the export
- * payload is the exact inverse of the strict parse, and the download name
+ * payload round-trips through the strict parse with canonical tag order, and the download name
  * stamps the review date.
  */
 
@@ -17,6 +17,17 @@ import { SAMPLE_SETS } from '../fixtures/sample-sets'
 import { intBelow, mulberry32 } from '../fixtures/seeded-random'
 
 describe('serializePortfolio', () => {
+  it('sorts exported tags without changing the portfolio or the caller’s arrays', () => {
+    const tags = Object.freeze(['#zebra', '#alpha', '#middle'])
+    const p = testPortfolio()
+    const source = { ...p, projects: [{ ...p.projects[0]!, scopeTags: tags }] }
+    const exported = parsePortfolio(JSON.parse(serializePortfolio(source)))
+    expect(exported.ok).toBe(true)
+    if (exported.ok)
+      expect(exported.portfolio.projects[0]?.scopeTags).toEqual(['#alpha', '#middle', '#zebra'])
+    expect(source.projects[0]?.scopeTags).toBe(tags)
+    expect(tags).toEqual(['#zebra', '#alpha', '#middle'])
+  })
   it('round-trips through the strict parse without losing anything', () => {
     const p = testPortfolio()
     const parsed = parsePortfolio(JSON.parse(serializePortfolio(p)))

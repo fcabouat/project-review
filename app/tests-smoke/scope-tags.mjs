@@ -8,7 +8,7 @@ export async function checkScopeTags(browser, appUrl) {
   )
   const portfolio = { ...sample, projects: sample.projects.slice(0, 2) }
   portfolio.projects[0].scopeTags = ['#workstation']
-  portfolio.projects[1].scopeTags = ['#shared-tag']
+  portfolio.projects[1].scopeTags = ['#z-last', '#shared-tag', '#a-first']
   const id = portfolio.projects[0].id
   const context = await browser.newContext({ locale: 'fr-FR' })
   context.setDefaultTimeout(15_000)
@@ -51,6 +51,14 @@ export async function checkScopeTags(browser, appUrl) {
         { key: JSON.stringify(['project', id, 'scopeTags']), expected: value },
       )
     }
+    await page.goto(`${appUrl}?lang=fr#/sheet/${encodeURIComponent(portfolio.projects[1].id)}`)
+    assert.deepEqual(
+      await page
+        .getByRole('button', { name: /^Retirer #/ })
+        .evaluateAll((buttons) => buttons.map((button) => button.getAttribute('aria-label'))),
+      ['Retirer #a-first', 'Retirer #shared-tag', 'Retirer #z-last'],
+      'imported unsorted tags display alphabetically',
+    )
     await page.goto(`${appUrl}?lang=fr#/sheet/${encodeURIComponent(id)}`)
     assert.equal(await input.getAttribute('placeholder'), '#tag1, #tag2')
     assert.equal(await page.getByRole('textbox', { name: 'Précisions du périmètre' }).count(), 0)
@@ -61,14 +69,14 @@ export async function checkScopeTags(browser, appUrl) {
     assert.match(await onHold.locator('..').getAttribute('title'), /pause/i)
     await input.fill('SHARED_')
     await page.getByRole('button', { name: '#shared-tag', exact: true }).click()
-    await waitTags(['#workstation', '#shared-tag'])
+    await waitTags(['#shared-tag', '#workstation'])
     assert.equal(await input.inputValue(), '', 'suggestions consume the partial query')
 
     await input.fill('invalid!tag')
     await waitDraft('invalid!tag')
     await page.reload()
     assert.equal(await input.inputValue(), 'invalid!tag', 'invalid raw text survives a reload')
-    await waitTags(['#workstation', '#shared-tag'])
+    await waitTags(['#shared-tag', '#workstation'])
 
     // Removing a chip changes the field base, but must not discard the pending input.
     await input.focus()
@@ -100,6 +108,11 @@ export async function checkScopeTags(browser, appUrl) {
     )
     await page.getByRole('button', { name: /Générer le diaporama/ }).click()
     await page.waitForSelector('.reveal.ready')
+    const summary = (await page.locator('.table--recap').allTextContents()).join('\n')
+    assert.ok(
+      summary.indexOf('#a-first') >= 0 && summary.indexOf('#a-first') < summary.indexOf('#z-last'),
+      'summary sorts imported tags',
+    )
     assert.ok(
       (await page.locator('.table--recap').allTextContents()).join('\n').includes('#valid-tag-06'),
       'summary exposes project scope',

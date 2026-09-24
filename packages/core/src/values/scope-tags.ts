@@ -5,6 +5,10 @@ export const validScopeTags = (value: unknown): value is readonly string[] =>
   Array.from(value).every((tag) => typeof tag === 'string' && /^#[a-z0-9-]{1,63}$/.test(tag)) &&
   new Set(value).size === value.length
 
+/** Stable lexical order for the ASCII tag alphabet, without mutating the source. */
+export const orderedScopeTags = (tags: readonly string[] = []): readonly string[] =>
+  [...tags].sort()
+
 /** Entry convenience only; imported JSON must already contain canonical tags. */
 export function scopeTagsFromText(text: string): readonly string[] | undefined {
   const tags = [
@@ -16,5 +20,5 @@ export function scopeTagsFromText(text: string): readonly string[] | undefined {
         .map((tag) => (tag.startsWith('#') ? tag : `#${tag}`)),
     ),
   ]
-  return validScopeTags(tags) ? tags : undefined
+  return validScopeTags(tags) ? orderedScopeTags(tags) : undefined
 }
