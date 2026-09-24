@@ -8,7 +8,7 @@ export async function checkScopeTags(browser, appUrl) {
   )
   const portfolio = { ...sample, projects: sample.projects.slice(0, 2) }
   portfolio.projects[0].scopeTags = ['#workstation']
-  portfolio.projects[1].scopeTags = ['#shared_tag']
+  portfolio.projects[1].scopeTags = ['#shared-tag']
   const id = portfolio.projects[0].id
   const context = await browser.newContext({ locale: 'fr-FR' })
   context.setDefaultTimeout(15_000)
@@ -59,37 +59,37 @@ export async function checkScopeTags(browser, appUrl) {
     assert.ok(descriptionId, 'on-hold switch has an accessible explanation')
     assert.match(await page.locator(`[id="${descriptionId}"]`).textContent(), /pause/i)
     assert.match(await onHold.locator('..').getAttribute('title'), /pause/i)
-    await input.fill('shared')
-    await page.getByRole('button', { name: '#shared_tag', exact: true }).click()
-    await waitTags(['#workstation', '#shared_tag'])
+    await input.fill('SHARED_')
+    await page.getByRole('button', { name: '#shared-tag', exact: true }).click()
+    await waitTags(['#workstation', '#shared-tag'])
     assert.equal(await input.inputValue(), '', 'suggestions consume the partial query')
 
     await input.fill('invalid!tag')
     await waitDraft('invalid!tag')
     await page.reload()
     assert.equal(await input.inputValue(), 'invalid!tag', 'invalid raw text survives a reload')
-    await waitTags(['#workstation', '#shared_tag'])
+    await waitTags(['#workstation', '#shared-tag'])
 
     // Removing a chip changes the field base, but must not discard the pending input.
     await input.focus()
     await page.getByRole('button', { name: /#workstation/ }).click()
-    await waitTags(['#shared_tag'])
+    await waitTags(['#shared-tag'])
     assert.equal(await input.inputValue(), 'invalid!tag')
     await waitDraft('invalid!tag')
     await page.reload()
     assert.equal(await input.inputValue(), 'invalid!tag', 'draft follows its updated chip base')
 
-    await input.fill('#Valid-tag_06')
+    await input.fill('#Valid_tag_06 #valid-tag-06')
     await input.press('Enter')
-    await waitTags(['#shared_tag', '#Valid-tag_06'])
+    await waitTags(['#shared-tag', '#valid-tag-06'])
     assert.equal(await input.inputValue(), '')
     await page.goto(`${appUrl}?lang=fr#/projects`)
     const row = page
       .locator('.project-grid')
       .filter({ has: page.locator('.row-title', { hasText: portfolio.projects[0].name }) })
       .first()
-    assert.ok((await row.textContent()).includes('#Valid-tag_06'), 'list exposes project scope')
-    const pill = row.getByText('#Valid-tag_06', { exact: true })
+    assert.ok((await row.textContent()).includes('#valid-tag-06'), 'list exposes project scope')
+    const pill = row.getByText('#valid-tag-06', { exact: true })
     assert.equal(
       await pill.evaluate((element) => {
         const style = getComputedStyle(element)
@@ -101,7 +101,7 @@ export async function checkScopeTags(browser, appUrl) {
     await page.getByRole('button', { name: /Générer le diaporama/ }).click()
     await page.waitForSelector('.reveal.ready')
     assert.ok(
-      (await page.locator('.table--recap').allTextContents()).join('\n').includes('#Valid-tag_06'),
+      (await page.locator('.table--recap').allTextContents()).join('\n').includes('#valid-tag-06'),
       'summary exposes project scope',
     )
     assert.deepEqual(errors, [])
@@ -126,7 +126,7 @@ async function checkSheetScopeOverflow(browser, appUrl) {
     portfolio.projects = portfolio.projects.slice(0, 2)
     portfolio.projects[0].scopeTags = Array.from(
       { length: 32 },
-      (_, i) => `#${'a'.repeat(60)}_${String(i).padStart(2, '0')}`,
+      (_, i) => `#${'a'.repeat(60)}-${String(i).padStart(2, '0')}`,
     )
     portfolio.projects[0].scope = 'Texte de périmètre conservé '.repeat(8)
     portfolio.projects[1].scopeTags = ['#extra']

@@ -97,10 +97,11 @@ has five tabs: **Identity**, **Updates**, **Decisions**,
 
 ### Scope and bulk actions
 
-Under **Identity → Scope (tags)**, enter `#site_north` or `#Team-06`, then press
-**Enter**, a comma or **Add**. After `#`, only `a–z`, `A–Z`, `0–9`, `_` and `-` are accepted:
-at most 63 characters and 32 tags per project. Case is preserved. A missing `#` is added and duplicate
-tags are ignored. Tags already used in the portfolio are suggested to reuse a shared
+Under **Identity → Scope (tags)**, enter `#site-north` or `#team-06`, then press
+**Enter**, a comma or **Add**. After `#`, only `a–z`, `0–9` and `-` are accepted:
+at most 63 characters and 32 tags per project. Typed uppercase letters become lowercase
+and underscores become hyphens. A missing `#` is added and duplicates are ignored after
+normalization. Tags already used in the portfolio are suggested to reuse a shared
 vocabulary; removing a tag affects only the current project. The free-form details field
 is no longer offered. Existing files may still contain `scope`: it remains readable and
 is preserved on export, without implicit conversion on import. Tags appear in the

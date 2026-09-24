@@ -172,10 +172,10 @@ export async function checkSummaryLeads(browser, appUrl) {
         ...project,
         scopeTags: withTags
           ? [
-              '#infrastructure_reseau_region_06',
-              '#postes_travail_equipes_territoriales',
-              '#securite_reseau_et_applications',
-              '#metier_06',
+              '#infrastructure-reseau-region-06',
+              '#postes-travail-equipes-territoriales',
+              '#securite-reseau-et-applications',
+              '#metier-06',
             ]
           : undefined,
       }))
@@ -224,7 +224,7 @@ export async function checkSummaryLeads(browser, appUrl) {
             assert.ok(
               tagLines.every(
                 (label) =>
-                  label.lines >= 1.9 && label.lines <= 2.1 && label.text.includes('#metier_06'),
+                  label.lines >= 1.9 && label.lines <= 2.1 && label.text.includes('#metier-06'),
               ),
               `${style}/${media}: scope tags must exercise two rendered lines: ${JSON.stringify(tagLines)}`,
             )

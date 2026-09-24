@@ -48,8 +48,8 @@ export const EDITOR_CATALOG = {
     en: 'Shared project tags. Enter or comma to add; at most 32 tags.',
   },
   'editor.scopeTags.invalid': {
-    fr: 'Utilisez uniquement a–z, A–Z, 0–9, _ et - après # (64 caractères par tag, 32 tags maximum).',
-    en: 'Use only a–z, A–Z, 0–9, _ and - after # (64 characters per tag, at most 32 tags).',
+    fr: 'Utilisez uniquement a–z, 0–9 et - après # (64 caractères par tag, 32 tags maximum).',
+    en: 'Use only a–z, 0–9 and - after # (64 characters per tag, at most 32 tags).',
   },
   'editor.scopeTags.remove': { fr: 'Retirer {tag}', en: 'Remove {tag}' },
   'editor.scopeTags.suggestions': { fr: 'Tags existants :', en: 'Existing tags:' },

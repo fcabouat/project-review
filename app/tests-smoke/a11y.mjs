@@ -42,8 +42,8 @@ async function scan(page, surface, mode) {
 
 async function editorPass(browser, base, mode) {
   const sample = JSON.parse(await readFile(join(DIST, 'sample-portfolio.fr.json'), 'utf8'))
-  sample.projects[0].scopeTags = ['#site_06', '#workstations']
-  sample.projects[1].scopeTags = ['#shared_tag']
+  sample.projects[0].scopeTags = ['#site-06', '#workstations']
+  sample.projects[1].scopeTags = ['#shared-tag']
   const context = await browser.newContext({
     locale: 'fr-FR',
     viewport: { width: 1280, height: 860 },

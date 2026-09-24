@@ -108,10 +108,11 @@ fiche a cinq onglets : **Identité**, **Suivi**, **Décisions**,
 
 ### Périmètre et actions groupées
 
-Dans **Identité → Périmètre (tags)**, saisissez par exemple `#site_nord` ou
-`#Equipe-06`, puis **Entrée**, une virgule ou **Ajouter**. Après `#`, seuls `a–z`,
-`A–Z`, `0–9`, `_` et `-` sont acceptés : 63 caractères maximum, jusqu'à 32 tags par projet.
-La casse est conservée. Le préfixe `#` est ajouté si nécessaire et les doublons sont ignorés. Les tags déjà
+Dans **Identité → Périmètre (tags)**, saisissez par exemple `#site-nord` ou
+`#equipe-06`, puis **Entrée**, une virgule ou **Ajouter**. Après `#`, seuls `a–z`,
+`0–9` et `-` sont acceptés : 63 caractères maximum, jusqu'à 32 tags par projet.
+À la saisie, les majuscules deviennent des minuscules et les `_` deviennent des tirets.
+Le préfixe `#` est ajouté si nécessaire et les doublons sont ignorés après normalisation. Les tags déjà
 utilisés dans le portefeuille sont proposés pour réutiliser le même vocabulaire ;
 la croix d'un tag le retire uniquement du projet courant. Le champ de précisions libres
 n'est plus proposé. Les anciens fichiers peuvent encore contenir `scope` : cette donnée

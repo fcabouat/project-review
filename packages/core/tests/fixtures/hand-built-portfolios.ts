@@ -75,7 +75,7 @@ export const testPortfolio = (): Portfolio => ({
       lead: 'Camille NOËL',
       sponsor: 'Direction',
       scope: 'Deux sites, 900 postes',
-      scopeTags: ['#site_06'],
+      scopeTags: ['#site-06'],
       goal: 'Remplacer les commutateurs de cœur. Sécuriser la disponibilité du réseau.',
       budget: '120 k€ — notifié',
       start: d('2026-01-15'),

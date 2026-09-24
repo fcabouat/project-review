@@ -812,9 +812,11 @@ describe('sample data — schema and parse agree', () => {
   const ajv = new Ajv({ allErrors: true })
   const validate = ajv.compile(schema)
 
-  it('agrees on case-preserving scope tags with letters, digits, underscores and hyphens', () => {
+  it('agrees on lowercase scope tags with digits and hyphens, without silently repairing imports', () => {
     for (const [scopeTags, accepted] of [
-      [['#NoeMI', '#ATE', '#site-06', '#Mixed_Case-07'], true],
+      [['#noemi', '#ate', '#site-06', '#mixed-case-07'], true],
+      [['#NoeMI'], false],
+      [['#under_score'], false],
       [['#invalid!'], false],
       [['#two words'], false],
       [['#accenté'], false],
