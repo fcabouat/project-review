@@ -15,3 +15,11 @@
 {#if lead && project.lead}<span class="block text-[0.85em] leading-[1.25] font-normal"
     >{t('sheet.lead', language)} : {project.lead}</span
   >{/if}
+{#if project.scopeTags?.length}
+  <span
+    class="line-clamp-2 text-[0.8em] leading-[1.25] font-normal break-all"
+    title={project.scopeTags.join(' ')}
+  >
+    {project.scopeTags.join(' ')}
+  </span>
+{/if}

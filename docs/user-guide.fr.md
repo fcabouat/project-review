@@ -80,12 +80,12 @@ comme lien profond, même en `file://`.
 <img src="images/fr-projects.png" width="720" alt="Vue Projets : le portefeuille groupé par catégorie">
 
 Cliquez une ligne de projet (ou son crayon) pour ouvrir sa fiche. L'éditeur de
-fiche a cinq onglets : **Cadre & état**, **Récit**, **Décisions**,
+fiche a cinq onglets : **Identité**, **Suivi**, **Décisions**,
 **Jalons & dates**, **Options**.
 
-<img src="images/fr-sheet.png" width="720" alt="Éditeur de fiche : onglet Cadre & état d'un projet">
+<img src="images/fr-sheet.png" width="720" alt="Éditeur de fiche : identité et état d'un projet">
 
-- Le bouton **⋯** en tête de ligne ouvre le menu de la ligne : **Monter**,
+- Le crayon et le bouton **⋯** se trouvent en fin de ligne. Ce dernier ouvre le menu : **Monter**,
   **Descendre** et **Supprimer** (avec confirmation).
 - Les changements sont enregistrés quand les champs perdent le focus. Le texte
   et la date d'une décision prise se valident ensemble. La fermeture ou le
@@ -106,6 +106,26 @@ fiche a cinq onglets : **Cadre & état**, **Récit**, **Décisions**,
 - Le bouton **Aperçu de la slide** (œil) rend la slide qu'un projet ou une
   slide libre produira, sans générer tout le diaporama.
 
+### Périmètre et actions groupées
+
+Dans **Identité → Périmètre (tags)**, saisissez par exemple `#site_nord` ou
+`#equipe06`, puis **Entrée**, une virgule ou **Ajouter**. Après `#`, seuls `a–z`,
+`0–9` et `_` sont acceptés : 63 caractères maximum, jusqu'à 32 tags par projet.
+Le préfixe `#` est ajouté si nécessaire et les doublons sont ignorés. Les tags déjà
+utilisés dans le portefeuille sont proposés pour réutiliser le même vocabulaire ;
+la croix d'un tag le retire uniquement du projet courant. L'ancien texte libre reste
+conservé dans **Précisions du périmètre** : il n'est pas transformé automatiquement.
+Les tags figurent dans la liste et les synthèses, et la recherche les prend en compte.
+Sur les slides, l'affichage des tags et des métadonnées est borné à deux lignes pour
+préserver la mise en page ; leur texte complet reste disponible au survol et dans le JSON.
+
+Dans **Projets**, activez **Sélectionner**, cochez les lignes souhaitées ou
+**Tout sélectionner (visible)**, puis choisissez une **catégorie** ou une **étape**
+et **Appliquer à la sélection**. Seuls les projets sélectionnés actuellement visibles
+sont concernés : les résultats masqués par la recherche et les archives repliées ne
+sont pas modifiés. Toute l'opération s'annule en une fois ; aucune suppression groupée
+n'est proposée.
+
 ## Le diaporama dérivé
 
 Sur le jeu d'exemple, le diaporama fait 34 slides : une slide libre
@@ -116,13 +136,15 @@ décisions précédentes. Tout est dérivé du portefeuille au moment de la
 génération ; les slides ne s'éditent jamais directement — on change les
 données.
 
-Qu'un projet ait ou non une fiche se règle par son option **Slide de détail**
+Qu'un projet ait ou non une fiche se règle par son option **Affichage de la slide de détail**
 (onglet Options, ou les raccourcis A/T/J de la liste des projets) :
 
 - **Auto** — fiche affichée si le projet est prêt, en cours ou en reliquats,
   ou s'il porte une décision attendue.
 - **Toujours** — fiche affichée quoi qu'il arrive.
 - **Jamais** — le projet n'apparaît que dans le récapitulatif.
+
+Les boutons gardent ces libellés courts ; l'explication du choix actif apparaît dessous.
 
 **Paramètres > Diaporama** active ou coupe le dashboard de santé, le
 récapitulatif, les archives et les slides de décisions.
@@ -233,12 +255,18 @@ Le panachage est une seule entrée d'historique : **Ctrl+Z** le défait en bloc.
 ### Identités et références
 
 Un nouveau projet reçoit un identifiant technique aléatoire, stable et non modifiable.
-Il est conservé dans les exports et consultable/copiable dans **Options → Identifiant technique**.
+Il est conservé dans les exports et consultable/copiable dans **Options → Métadonnées du projet**.
 La **référence métier** est facultative : vide, elle ne réserve aucune colonne ni aucun
 emplacement dans les slides. Elle ne sert jamais à identifier une mise à jour.
-Le porteur est affiché dans la liste et sous le titre dans les récapitulatifs ; ceux-ci
-sont limités à 10 projets par page lorsqu'ils comportent des porteurs, même si une
-densité supérieure est demandée.
+La **Dernière modification**, au même endroit, indique le jour local de création ou
+de dernière modification réelle du contenu. Elle ne change pas pour une valeur inchangée
+ou un déplacement dans la liste ; plusieurs modifications le même jour gardent la même
+date. Annuler/rétablir restaure ensemble contenu et date, sans étape supplémentaire.
+Les imports conservent la date portée par le fichier, sans la remplacer par le jour d'import.
+
+Le porteur est affiché dans la liste et sous le titre dans les récapitulatifs. La pagination
+du récapitulatif est plafonnée à **6 projets par page avec des tags**, sinon **10 avec des
+porteurs**, même si une densité supérieure est demandée ; un réglage inférieur est respecté.
 
 Le format courant est **v4**. Avant de passer d'une ancienne version à celle-ci,
 exportez votre portefeuille. Les JSON v3 nécessitent une conversion externe ponctuelle ;
@@ -319,8 +347,8 @@ pour des données non confidentielles.
 ## Sur téléphone ou tablette
 
 L'éditeur s'adapte sous les largeurs de bureau : la barre latérale devient un
-tiroir derrière le bouton ☰, les formulaires s'empilent, et les tableaux
-larges (le portefeuille, les jalons) défilent latéralement dans leur propre
+tiroir derrière le bouton ☰, les formulaires et les lignes de projets s'empilent,
+et les tableaux larges (comme les jalons) défilent latéralement dans leur propre
 cadre — la page, elle, ne défile jamais horizontalement. Le diaporama réduit
 ses slides 16:9 à la taille de l'écran, et sa barre de sortie reste visible
 sur écran tactile. Tout fonctionne sur téléphone ; un poste de travail reste

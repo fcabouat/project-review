@@ -9,6 +9,9 @@ import { serve } from './server.mjs'
 import { checkImportSelection } from './import-selection.mjs'
 import { checkTimeline } from './timeline.mjs'
 import { checkIdentities, checkSummaryLeads } from './identities.mjs'
+import { checkSheetPolish } from './sheet-polish.mjs'
+import { checkBulkProjects } from './bulk-projects.mjs'
+import { checkScopeTags } from './scope-tags.mjs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -120,6 +123,9 @@ async function main() {
     await checkTimeline(browser, HTTP_ORIGIN, ROOT)
     await checkIdentities(browser, HTTP_APP)
     await checkSummaryLeads(browser, HTTP_APP)
+    await checkSheetPolish(browser, HTTP_APP)
+    await checkBulkProjects(browser, HTTP_APP)
+    await checkScopeTags(browser, HTTP_APP)
     /* ---- 1. file://: empty boots, and ?sample reports a load error ---- */
     await emptyBoot(browser, 'fr-FR', 'fr', 'Projets')
     await emptyBoot(browser, 'en-US', 'en', 'Projects')

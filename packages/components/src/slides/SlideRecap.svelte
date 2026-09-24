@@ -100,7 +100,8 @@
 
   {@const TH =
     'px-[9px] py-[9px] text-xs leading-[1.45] font-bold tracking-[0.02em] print:px-1.5 print:text-[11.5px]'}
-  {@const TD = 'px-[9px] py-1 align-middle print:px-1.5 print:py-[5px]'}
+  {@const tagged = rows.some((row) => row.project.scopeTags?.length)}
+  {@const TD = `px-[9px] align-middle print:px-1.5 ${tagged ? 'py-0.5' : 'py-1 print:py-[5px]'}`}
   <table class="table table--recap w-full table-fixed">
     <!-- The print canvas is narrower than the screen one: the same seven widths,
          scaled by 0.87, keep every column — including Decision — on the page. -->
