@@ -444,6 +444,15 @@
           },
           "reference": {
             "type": "string"
+          },
+          "scopeTags": {
+            "type": "array",
+            "maxItems": 32,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^#[a-z0-9_]{1,63}$"
+            }
           }
         }
       }

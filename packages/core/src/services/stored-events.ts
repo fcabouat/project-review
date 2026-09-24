@@ -43,6 +43,7 @@ import type { CategoryId, ProjectId } from '../values/ids'
 import { COLORS } from '../model/category'
 import type { Portfolio } from '../model/portfolio'
 import type { Project } from '../model/project'
+import { MAX_ENTITIES } from '../model/budget'
 import {
   isDenseList,
   isId,
@@ -50,6 +51,8 @@ import {
   isRecord,
   isText,
   isTextList,
+  uniqueIds,
+  isDate,
   oneOf,
   validCategory,
   validDecision,
@@ -84,6 +87,7 @@ const EVENT_TYPES = [
   'CategoryRenamed',
   'CategoryRecolored',
   'CategoryMoved',
+  'ProjectsChanged',
   'ProjectCreated',
   'ProjectDeleted',
   'ProjectMoved',
@@ -119,6 +123,11 @@ const keys = (
 /** `before` and `after` of a field-carrying variant: both optional, because an
  * optional field whose value is absent loses its key in the serialisation. */
 const SIDES = ['before', 'after'] as const
+const soundModification = (value: unknown): boolean =>
+  value === undefined ||
+  (isRecord(value) &&
+    keys(value, [], SIDES) &&
+    SIDES.every((key) => value[key] === undefined || isDate(value[key])))
 
 /* --------------------------------- probes -------------------------------- */
 
@@ -273,6 +282,27 @@ const soundVariant = (o: Record<string, unknown>, type: DomainEvent['type']): bo
         isPosition(o['to'])
       )
 
+    case 'ProjectsChanged': {
+      if (
+        !keys(o, ['type', ...SIDES]) ||
+        !SIDES.every(
+          (key) =>
+            Array.isArray(o[key]) &&
+            o[key].length > 0 &&
+            o[key].length <= MAX_ENTITIES &&
+            isDenseList(o[key]) &&
+            (o[key] as unknown[]).every(
+              (p) => isRecord(p) && validProject(p as unknown as Project),
+            ) &&
+            uniqueIds(o[key] as Project[]),
+        )
+      )
+        return false
+      const before = o['before'] as Project[],
+        after = o['after'] as Project[]
+      return before.length === after.length && before.every((p, i) => p.id === after[i]!.id)
+    }
+
     case 'ProjectCreated':
     case 'ProjectDeleted':
       return (
@@ -284,7 +314,8 @@ const soundVariant = (o: Record<string, unknown>, type: DomainEvent['type']): bo
 
     case 'ProjectFieldChanged':
       return (
-        keys(o, ['type', 'id', 'field'], [...SIDES]) &&
+        keys(o, ['type', 'id', 'field'], [...SIDES, 'modified']) &&
+        soundModification(o['modified']) &&
         isId(o['id']) &&
         oneOf(o['field'], PROJECT_SCALAR_FIELDS) &&
         soundProjectSides(o, o['field'] as never)
@@ -300,7 +331,8 @@ const soundVariant = (o: Record<string, unknown>, type: DomainEvent['type']): bo
     // discovered at the next reload.
     case 'ProjectListChanged':
       return (
-        keys(o, ['type', 'id', 'list', ...SIDES]) &&
+        keys(o, ['type', 'id', 'list', ...SIDES], ['modified']) &&
+        soundModification(o['modified']) &&
         isId(o['id']) &&
         oneOf(o['list'], NARRATIVE_LISTS) &&
         SIDES.every((s) => withinRows(o[s]) && isTextList(o[s]))
@@ -308,14 +340,16 @@ const soundVariant = (o: Record<string, unknown>, type: DomainEvent['type']): bo
 
     case 'ProjectMilestonesChanged':
       return (
-        keys(o, ['type', 'id', ...SIDES]) &&
+        keys(o, ['type', 'id', ...SIDES], ['modified']) &&
+        soundModification(o['modified']) &&
         isId(o['id']) &&
         SIDES.every((s) => withinRows(o[s]) && (o[s] as unknown[]).every(validMilestone as never))
       )
 
     case 'ProjectDecisionsChanged':
       return (
-        keys(o, ['type', 'id', ...SIDES]) &&
+        keys(o, ['type', 'id', ...SIDES], ['modified']) &&
+        soundModification(o['modified']) &&
         isId(o['id']) &&
         SIDES.every((s) => withinRows(o[s]) && (o[s] as unknown[]).every(validDecision as never))
       )

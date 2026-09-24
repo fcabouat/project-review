@@ -29,6 +29,7 @@
  *
  * PURE module: model + values only, no clock, no mutation.
  */
+import { validScopeTags } from '../values/scope-tags'
 import type { Category, Color } from './category'
 import { COLORS } from './category'
 import type { Anchor, FreeSlide } from './free-slide'
@@ -164,6 +165,7 @@ export const PROJECT_KEYS = {
     'lead',
     'sponsor',
     'scope',
+    'scopeTags',
     'budget',
     'start',
     'targetEnd',
@@ -334,6 +336,7 @@ export const validProject = (p: Project): boolean =>
   absentOr(p.lead, isText) &&
   absentOr(p.sponsor, isText) &&
   absentOr(p.scope, isText) &&
+  absentOr(p.scopeTags, validScopeTags) &&
   isText(p.goal) &&
   absentOr(p.budget, isText) &&
   absentOr(p.start, isDate) &&

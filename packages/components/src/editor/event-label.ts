@@ -202,6 +202,9 @@ export function eventLabel(event: DomainEvent, language: Language, nameOf?: Name
         language,
       )
 
+    case 'ProjectsChanged':
+      return te('editor.event.ProjectsChanged', language, { n: event.after.length })
+
     case 'ProjectCreated':
     case 'ProjectDeleted':
       return te(`editor.event.${event.type}`, language, { id: displayLabel(event.project.name) })

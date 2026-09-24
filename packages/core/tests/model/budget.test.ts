@@ -287,6 +287,7 @@ describe('the byte ceiling, weighed on EVERY command — not on a list of the gr
     CreateProject: { type: 'CreateProject', project: { ...NEW_PROJECT, goal: HUGE }, index: 0 },
     DeleteProject: null,
     MoveProject: null,
+    ChangeProjects: null, // Only a known category or a closed stage value.
     ChangeProjectField: {
       type: 'ChangeProjectField',
       id: projectOf(p, 'P-02').id,

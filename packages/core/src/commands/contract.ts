@@ -48,6 +48,8 @@ import { PROJECT_SCALAR_FIELDS } from '../events/project'
 import type { Portfolio } from '../model/portfolio'
 import {
   isDenseList,
+  isId,
+  isRecord,
   isPosition,
   withinRows,
   isText,
@@ -150,6 +152,26 @@ export const honorsContract = (p: Portfolio, c: Command): boolean => {
         validProject(c.project) &&
         isPosition(c.index) &&
         byId(p.projects, c.project.id) === undefined
+      )
+
+    case 'ChangeProjects':
+      return (
+        isDenseList(c.ids) &&
+        c.ids.length > 0 &&
+        new Set(c.ids).size === c.ids.length &&
+        isRecord(c.change) &&
+        oneOf(c.change.field, ['categoryId', 'stage']) &&
+        (c.change.field !== 'categoryId' ||
+          c.change.after === '' ||
+          p.categories.some((x) => x.id === c.change.after)) &&
+        c.ids.every((id) => {
+          const project = byId(p.projects, id)
+          return (
+            isId(id) &&
+            project !== undefined &&
+            validProject(withField(project, c.change.field, c.change.after as never))
+          )
+        })
       )
 
     case 'ChangeProjectField': {

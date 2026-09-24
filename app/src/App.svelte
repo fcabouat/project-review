@@ -141,7 +141,7 @@
   }
 
   const initial = initialState()
-  const store = createStore(initial.portfolio, initial.log)
+  const store = createStore(initial.portfolio, initial.log, today)
   const router = createRouter()
   // The wiring receives the storage's verdict itself: built BLOCKED on an
   // unreadable envelope (every write disarmed until the recovery screen's
