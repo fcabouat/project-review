@@ -63,6 +63,7 @@ export async function checkBulkProjects(browser, appUrl) {
       )
     }
     await page.goto(appUrl + '?lang=fr#/projects')
+    await checkActivation(page)
     const list = await page.locator('.project-list').boundingBox()
     const card = await page.locator('.category-card').first().boundingBox()
     assert.ok(Math.abs(card.x - list.x) < 2 && Math.abs(card.width - list.width) < 2)
@@ -112,4 +113,68 @@ export async function checkBulkProjects(browser, appUrl) {
   } finally {
     await context.close()
   }
+}
+
+/** Enabled controls must already be fully opaque, including interrupted transitions. */
+async function checkActivation(page) {
+  const style = await page.addStyleTag({
+    content: '[data-slot="button"] { transition-duration: 500ms !important; }',
+  })
+  const start = page.getByRole('button', { name: 'Sélectionner', exact: true })
+  const all = page.getByRole('button', { name: 'Tout sélectionner (visible)', exact: true })
+  const clear = page.getByRole('button', { name: 'Désélectionner', exact: true })
+  const observe = async (locator, expectFade) => {
+    const states = await locator.evaluate(async (button) => {
+      const states = []
+      for (let frame = 0; frame < 180; frame++) {
+        const opacity = Number(getComputedStyle(button).opacity)
+        states.push({ disabled: button.disabled, opacity })
+        // Native disabled semantics must block clicks throughout the fade.
+        if (button.disabled) button.click()
+        if (!button.disabled) break
+        await new Promise(requestAnimationFrame)
+      }
+      return states
+    })
+    assert.equal(states.at(-1).disabled, false, 'transition eventually enables the button')
+    assert.ok(
+      states.every((state) => state.disabled || state.opacity >= 0.999),
+      'no enabled half-opacity frame',
+    )
+    if (expectFade)
+      assert.ok(
+        states.some((state) => state.disabled && state.opacity < 0.99),
+        'exercise the disabled fade',
+      )
+  }
+  await start.click()
+  await all.click()
+  await observe(clear, true)
+  assert.equal(await page.locator('.row-select:checked').count(), 3)
+  await page.getByRole('combobox', { name: 'Action groupée', exact: true }).selectOption('stage')
+  await page.getByRole('combobox', { name: 'Nouvelle valeur', exact: true }).selectOption('ready')
+  await observe(page.getByRole('button', { name: 'Appliquer à la sélection', exact: true }), true)
+  await clear.click()
+  await all.click()
+  await page.getByRole('searchbox').fill('no matching project')
+  await clear.evaluate(async (button) => {
+    await Promise.allSettled(button.getAnimations().map((animation) => animation.finished))
+  })
+  assert.equal(
+    await clear.isDisabled(),
+    true,
+    'cancelled enable cannot reactivate a now-empty selection',
+  )
+  await page.getByRole('searchbox').fill('')
+  await observe(clear, true)
+  await clear.click()
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await all.click()
+  await observe(clear, false)
+  await page.getByRole('button', { name: 'Terminer la sélection', exact: true }).click()
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await style.evaluate((element) => element.remove())
+  console.log(
+    '  ok — batch buttons activate after fading; interrupted and reduced-motion paths stay safe',
+  )
 }
