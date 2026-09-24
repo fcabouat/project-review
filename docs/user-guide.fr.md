@@ -109,12 +109,13 @@ fiche a cinq onglets : **Identité**, **Suivi**, **Décisions**,
 ### Périmètre et actions groupées
 
 Dans **Identité → Périmètre (tags)**, saisissez par exemple `#site_nord` ou
-`#equipe06`, puis **Entrée**, une virgule ou **Ajouter**. Après `#`, seuls `a–z`,
-`0–9` et `_` sont acceptés : 63 caractères maximum, jusqu'à 32 tags par projet.
-Le préfixe `#` est ajouté si nécessaire et les doublons sont ignorés. Les tags déjà
+`#Equipe-06`, puis **Entrée**, une virgule ou **Ajouter**. Après `#`, seuls `a–z`,
+`A–Z`, `0–9`, `_` et `-` sont acceptés : 63 caractères maximum, jusqu'à 32 tags par projet.
+La casse est conservée. Le préfixe `#` est ajouté si nécessaire et les doublons sont ignorés. Les tags déjà
 utilisés dans le portefeuille sont proposés pour réutiliser le même vocabulaire ;
-la croix d'un tag le retire uniquement du projet courant. L'ancien texte libre reste
-conservé dans **Précisions du périmètre** : il n'est pas transformé automatiquement.
+la croix d'un tag le retire uniquement du projet courant. Le champ de précisions libres
+n'est plus proposé. Les anciens fichiers peuvent encore contenir `scope` : cette donnée
+reste lisible et conservée à l'export, sans conversion implicite lors d'un import.
 Les tags figurent dans la liste et les synthèses, et la recherche les prend en compte.
 Sur les slides, l'affichage des tags et des métadonnées est borné à deux lignes pour
 préserver la mise en page ; leur texte complet reste disponible au survol et dans le JSON.
@@ -267,6 +268,12 @@ Les imports conservent la date portée par le fichier, sans la remplacer par le 
 Le porteur est affiché dans la liste et sous le titre dans les récapitulatifs. La pagination
 du récapitulatif est plafonnée à **6 projets par page avec des tags**, sinon **10 avec des
 porteurs**, même si une densité supérieure est demandée ; un réglage inférieur est respecté.
+
+Le champ JSON `version` indique la **version du format de données**, indépendamment
+de la version de l'application. Le schéma JSON `packages/core/samples/portfolio.schema.json`
+est suivi dans Git, ainsi que les jeux d'exemple fictifs ; vos portefeuilles personnels
+ne sont ni ajoutés ni envoyés au dépôt par l'application. Les changements incompatibles
+du format nécessitent une nouvelle version ; un changement d'interface n'en nécessite pas.
 
 Le format courant est **v4**. Avant de passer d'une ancienne version à celle-ci,
 exportez votre portefeuille. Les JSON v3 nécessitent une conversion externe ponctuelle ;

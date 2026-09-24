@@ -812,6 +812,20 @@ describe('sample data — schema and parse agree', () => {
   const ajv = new Ajv({ allErrors: true })
   const validate = ajv.compile(schema)
 
+  it('agrees on case-preserving scope tags with letters, digits, underscores and hyphens', () => {
+    for (const [scopeTags, accepted] of [
+      [['#NoeMI', '#ATE', '#site-06', '#Mixed_Case-07'], true],
+      [['#invalid!'], false],
+      [['#two words'], false],
+      [['#accenté'], false],
+      [['#tag', '#tag'], false],
+    ] as const) {
+      const raw = rawPortfolio({ projects: [rawProject({ scopeTags })] })
+      expect(validate(raw)).toBe(accepted)
+      expect(parsePortfolio(raw).ok).toBe(accepted)
+    }
+  })
+
   it('refuses malformed Unicode in ids and category references on both sides', () => {
     for (const id of ['\ud800', '\udfff', 'a\ud800b']) {
       const raw = rawPortfolio({

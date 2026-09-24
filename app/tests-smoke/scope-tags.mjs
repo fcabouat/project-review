@@ -52,40 +52,56 @@ export async function checkScopeTags(browser, appUrl) {
       )
     }
     await page.goto(`${appUrl}?lang=fr#/sheet/${encodeURIComponent(id)}`)
+    assert.equal(await input.getAttribute('placeholder'), '#tag1, #tag2')
+    assert.equal(await page.getByRole('textbox', { name: 'Précisions du périmètre' }).count(), 0)
+    const onHold = page.getByRole('switch', { name: 'En attente', exact: true })
+    const descriptionId = await onHold.getAttribute('aria-describedby')
+    assert.ok(descriptionId, 'on-hold switch has an accessible explanation')
+    assert.match(await page.locator(`[id="${descriptionId}"]`).textContent(), /pause/i)
+    assert.match(await onHold.locator('..').getAttribute('title'), /pause/i)
     await input.fill('shared')
     await page.getByRole('button', { name: '#shared_tag', exact: true }).click()
     await waitTags(['#workstation', '#shared_tag'])
     assert.equal(await input.inputValue(), '', 'suggestions consume the partial query')
 
-    await input.fill('UPPER_case')
-    await waitDraft('UPPER_case')
+    await input.fill('invalid!tag')
+    await waitDraft('invalid!tag')
     await page.reload()
-    assert.equal(await input.inputValue(), 'UPPER_case', 'invalid raw text survives a reload')
+    assert.equal(await input.inputValue(), 'invalid!tag', 'invalid raw text survives a reload')
     await waitTags(['#workstation', '#shared_tag'])
 
     // Removing a chip changes the field base, but must not discard the pending input.
     await input.focus()
     await page.getByRole('button', { name: /#workstation/ }).click()
     await waitTags(['#shared_tag'])
-    assert.equal(await input.inputValue(), 'UPPER_case')
-    await waitDraft('UPPER_case')
+    assert.equal(await input.inputValue(), 'invalid!tag')
+    await waitDraft('invalid!tag')
     await page.reload()
-    assert.equal(await input.inputValue(), 'UPPER_case', 'draft follows its updated chip base')
+    assert.equal(await input.inputValue(), 'invalid!tag', 'draft follows its updated chip base')
 
-    await input.fill('#valid_tag')
+    await input.fill('#Valid-tag_06')
     await input.press('Enter')
-    await waitTags(['#shared_tag', '#valid_tag'])
+    await waitTags(['#shared_tag', '#Valid-tag_06'])
     assert.equal(await input.inputValue(), '')
     await page.goto(`${appUrl}?lang=fr#/projects`)
     const row = page
       .locator('.project-grid')
       .filter({ has: page.locator('.row-title', { hasText: portfolio.projects[0].name }) })
       .first()
-    assert.ok((await row.textContent()).includes('#valid_tag'), 'list exposes project scope')
+    assert.ok((await row.textContent()).includes('#Valid-tag_06'), 'list exposes project scope')
+    const pill = row.getByText('#Valid-tag_06', { exact: true })
+    assert.equal(
+      await pill.evaluate((element) => {
+        const style = getComputedStyle(element)
+        return Number.parseFloat(style.borderTopWidth) > 0 && style.borderRadius !== '0px'
+      }),
+      true,
+      'list scope tags have a visible pill boundary',
+    )
     await page.getByRole('button', { name: /Générer le diaporama/ }).click()
     await page.waitForSelector('.reveal.ready')
     assert.ok(
-      (await page.locator('.table--recap').allTextContents()).join('\n').includes('#valid_tag'),
+      (await page.locator('.table--recap').allTextContents()).join('\n').includes('#Valid-tag_06'),
       'summary exposes project scope',
     )
     assert.deepEqual(errors, [])

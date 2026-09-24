@@ -96,7 +96,8 @@
   },
   "properties": {
     "version": {
-      "const": 4
+      "const": 4,
+      "description": "Data format revision, independent of the application release version."
     },
     "review": {
       "type": "object",
@@ -451,7 +452,7 @@
             "uniqueItems": true,
             "items": {
               "type": "string",
-              "pattern": "^#[a-z0-9_]{1,63}$"
+              "pattern": "^#[A-Za-z0-9_-]{1,63}$"
             }
           }
         }

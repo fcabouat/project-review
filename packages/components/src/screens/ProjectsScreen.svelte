@@ -222,8 +222,13 @@
           >{project.lead}</span
         >{/if}
       {#if project.scopeTags?.length}
-        <div class="mt-1 flex flex-wrap gap-x-2 gap-y-0.5 text-[11.5px] text-muted-foreground">
-          {#each project.scopeTags as tag (tag)}<span class="break-all">{tag}</span>{/each}
+        <div class="mt-1 flex flex-wrap gap-1">
+          {#each project.scopeTags as tag (tag)}
+            <span
+              class="border-primary/15 bg-primary/5 text-primary inline-flex max-w-full rounded-full border px-2 py-0.5 text-[11px] leading-tight break-all"
+              >{tag}</span
+            >
+          {/each}
         </div>
       {:else if project.scope}
         <div class="mt-1 line-clamp-2 text-[11.5px] text-muted-foreground" title={project.scope}>

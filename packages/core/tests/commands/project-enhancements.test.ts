@@ -18,7 +18,13 @@ describe('project scope vocabulary', () => {
   it('normalizes input separators and prefixes without changing or duplicating canonical tags', () => {
     expect(scopeTagsFromText(' a_06, #b2\n#a_06  ')).toEqual(['#a_06', '#b2'])
     expect(scopeTagsFromText('   , ')).toEqual([])
-    expect(scopeTagsFromText('Pas de prose')).toBeUndefined()
+    expect(scopeTagsFromText('Pas de prose!')).toBeUndefined()
+    expect(scopeTagsFromText('#NoeMI #ATE team-06 #Mixed_Case-07')).toEqual([
+      '#NoeMI',
+      '#ATE',
+      '#team-06',
+      '#Mixed_Case-07',
+    ])
     expect(validScopeTags(['#a', '#0', '#_', `#${'a'.repeat(63)}`])).toBe(true)
     expect(validScopeTags(Array.from({ length: 32 }, (_, i) => `#tag_${i}`))).toBe(true)
     for (const bad of [
@@ -26,9 +32,8 @@ describe('project scope vocabulary', () => {
       '#a',
       [1],
       ['#'],
-      ['#A'],
       ['#é'],
-      ['#a-b'],
+      ['#a.b'],
       ['#a b'],
       ['a'],
       ['#a', '#a'],
@@ -50,7 +55,7 @@ describe('project scope vocabulary', () => {
     expect(parsed.ok).toBe(true)
     if (parsed.ok) expect(parsed.portfolio.projects[0]?.scopeTags).toEqual(['#team_06', '#site'])
     expect(readPortfolioJson(JSON.stringify(portfolio)).ok).toBe(true)
-    for (const scopeTags of [['#UPPER'], ['#a', '#a'], 'a', [null]]) {
+    for (const scopeTags of [['#invalid!'], ['#a', '#a'], 'a', [null]]) {
       expect(
         readPortfolioJson(
           JSON.stringify({ ...withTags, projects: [{ ...withTags.projects[0], scopeTags }] }),
@@ -283,7 +288,7 @@ describe('project modification date travels with the content event', () => {
       { ...bulk, after: [] },
       { ...bulk, after: [{ ...project, id: 'substituted' }] },
       { ...bulk, before: [project, project], after: [project, project] },
-      { ...bulk, after: [{ ...project, scopeTags: ['#INVALID'] }] },
+      { ...bulk, after: [{ ...project, scopeTags: ['#invalid!'] }] },
     ])
       expect(decodeEvent(wire(bad))).toBeUndefined()
   })
