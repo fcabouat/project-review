@@ -425,6 +425,7 @@
         variant="link"
         size="sm"
         disabled={selectedVisibleIds.length === 0}
+        deferEnable
         onclick={() => (selectedIds = [])}>{te('editor.projects.bulk.clear', language)}</Button
       >
       <select
@@ -460,6 +461,7 @@
       <Button
         size="sm"
         disabled={bulkTarget === undefined || selectedVisibleIds.length === 0}
+        deferEnable
         onclick={applyBatch}>{te('editor.projects.bulk.apply', language)}</Button
       >
       <p class="text-muted-foreground w-full text-xs">
