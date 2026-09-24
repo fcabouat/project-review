@@ -18,7 +18,7 @@ describe('recapRows guard', () => {
     const p = {
       ...fr,
       settings: { ...fr.settings, recapRows: 16 },
-      projects: fr.projects.map((project) => ({ ...project, scopeTags: ['#site_06'] })),
+      projects: fr.projects.map((project) => ({ ...project, scopeTags: ['#site-06'] })),
     }
     expect(recapPages(p).map((page) => page.length)).toEqual([6, 6, 5])
     expect(p.settings.recapRows).toBe(16)
@@ -30,7 +30,7 @@ describe('recapRows guard', () => {
       ...p,
       projects: p.projects.map((project) => ({
         ...project,
-        scopeTags: isArchived(project) ? ['#site_06'] : [],
+        scopeTags: isArchived(project) ? ['#site-06'] : [],
       })),
     }
     expect(recapPages(archivedOnly).map((page) => page.length)).toEqual([10, 7])

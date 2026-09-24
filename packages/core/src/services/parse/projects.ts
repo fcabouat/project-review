@@ -104,7 +104,7 @@ export function parseProjects(x: unknown, errors: Errors): readonly Project[] {
     const scopeTags = o['scopeTags']
     if (scopeTags !== undefined && !validScopeTags(scopeTags))
       fail(errors, path + '.scopeTags', 'wrongType', {
-        expected: '0–32 unique hashtags: #[A-Za-z0-9_-]+, max 64 characters each',
+        expected: '0–32 unique hashtags: #[a-z0-9-]+, max 64 characters each',
       })
 
     projects.push({

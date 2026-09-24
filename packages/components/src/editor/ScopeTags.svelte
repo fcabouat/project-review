@@ -31,7 +31,11 @@
   const valid = $derived(combined !== undefined && validScopeTags(combined))
   const available = $derived(
     suggestions
-      .filter((tag) => !tags.includes(tag) && tag.includes(draft.trim().replace(/^#/, '')))
+      .filter(
+        (tag) =>
+          !tags.includes(tag) &&
+          tag.includes(draft.trim().toLowerCase().replace(/_/g, '-').replace(/^#/, '')),
+      )
       .slice(0, 8),
   )
 

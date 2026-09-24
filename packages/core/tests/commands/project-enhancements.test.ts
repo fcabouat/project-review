@@ -16,30 +16,32 @@ const wire = (value: unknown): unknown => JSON.parse(JSON.stringify(value))
 
 describe('project scope vocabulary', () => {
   it('normalizes input separators and prefixes without changing or duplicating canonical tags', () => {
-    expect(scopeTagsFromText(' a_06, #b2\n#a_06  ')).toEqual(['#a_06', '#b2'])
+    expect(scopeTagsFromText(' a_06, #b2\n#A-06  ')).toEqual(['#a-06', '#b2'])
     expect(scopeTagsFromText('   , ')).toEqual([])
     expect(scopeTagsFromText('Pas de prose!')).toBeUndefined()
     expect(scopeTagsFromText('#NoeMI #ATE team-06 #Mixed_Case-07')).toEqual([
-      '#NoeMI',
-      '#ATE',
+      '#noemi',
+      '#ate',
       '#team-06',
-      '#Mixed_Case-07',
+      '#mixed-case-07',
     ])
-    expect(validScopeTags(['#a', '#0', '#_', `#${'a'.repeat(63)}`])).toBe(true)
-    expect(validScopeTags(Array.from({ length: 32 }, (_, i) => `#tag_${i}`))).toBe(true)
+    expect(validScopeTags(['#a', '#0', '#-', `#${'a'.repeat(63)}`])).toBe(true)
+    expect(validScopeTags(Array.from({ length: 32 }, (_, i) => `#tag-${i}`))).toBe(true)
     for (const bad of [
       null,
       '#a',
       [1],
       ['#'],
       ['#é'],
+      ['#UPPER'],
+      ['#under_score'],
       ['#a.b'],
       ['#a b'],
       ['a'],
       ['#a', '#a'],
       new Array(1),
       [`#${'a'.repeat(64)}`],
-      Array.from({ length: 33 }, (_, i) => `#tag_${i}`),
+      Array.from({ length: 33 }, (_, i) => `#tag-${i}`),
     ]) {
       expect(validScopeTags(bad)).toBe(false)
     }
@@ -49,13 +51,20 @@ describe('project scope vocabulary', () => {
     const portfolio = testPortfolio()
     const withTags = {
       ...portfolio,
-      projects: [{ ...portfolio.projects[0]!, scopeTags: ['#team_06', '#site'] }],
+      projects: [{ ...portfolio.projects[0]!, scopeTags: ['#team-06', '#site'] }],
     }
     const parsed = readPortfolioJson(JSON.stringify(withTags))
     expect(parsed.ok).toBe(true)
-    if (parsed.ok) expect(parsed.portfolio.projects[0]?.scopeTags).toEqual(['#team_06', '#site'])
+    if (parsed.ok) expect(parsed.portfolio.projects[0]?.scopeTags).toEqual(['#team-06', '#site'])
     expect(readPortfolioJson(JSON.stringify(portfolio)).ok).toBe(true)
-    for (const scopeTags of [['#invalid!'], ['#a', '#a'], 'a', [null]]) {
+    for (const scopeTags of [
+      ['#UPPER'],
+      ['#under_score'],
+      ['#invalid!'],
+      ['#a', '#a'],
+      'a',
+      [null],
+    ]) {
       expect(
         readPortfolioJson(
           JSON.stringify({ ...withTags, projects: [{ ...withTags.projects[0], scopeTags }] }),
@@ -184,7 +193,7 @@ describe('project modification date travels with the content event', () => {
         after: [{ label: 'New milestone', date: today, done: false }],
       },
       { type: 'ChangeProjectDecisions', id, after: [{ question: 'New question' }] },
-      { type: 'ChangeProjectField', id, field: 'scopeTags', after: ['#team_06'] },
+      { type: 'ChangeProjectField', id, field: 'scopeTags', after: ['#team-06'] },
     ]
     for (const command of commands) {
       const result = execute(initial, command, today)

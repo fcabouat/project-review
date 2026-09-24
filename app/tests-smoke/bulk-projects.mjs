@@ -13,7 +13,7 @@ export async function checkBulkProjects(browser, appUrl) {
       name: ['Visible Alpha', 'Hidden Beta', 'Other Gamma'][index],
       categoryId: sample.categories[0].id,
       stage: 'inProgress',
-      scopeTags: ['#perimetre_06'],
+      scopeTags: ['#perimetre-06'],
     })),
   }
   const context = await browser.newContext({
@@ -66,7 +66,7 @@ export async function checkBulkProjects(browser, appUrl) {
     const list = await page.locator('.project-list').boundingBox()
     const card = await page.locator('.category-card').first().boundingBox()
     assert.ok(Math.abs(card.x - list.x) < 2 && Math.abs(card.width - list.width) < 2)
-    assert.equal(await page.locator('.row-title').filter({ hasText: '#perimetre_06' }).count(), 3)
+    assert.equal(await page.locator('.row-title').filter({ hasText: '#perimetre-06' }).count(), 3)
     await begin()
     const staged = await apply('stage', 'ready')
     assert.ok(staged.projects.every((project) => project.stage === 'ready'))
@@ -89,7 +89,7 @@ export async function checkBulkProjects(browser, appUrl) {
     await page.getByRole('searchbox').fill('')
     await undo()
     // Search includes the shared scope tags.
-    await page.getByRole('searchbox').fill('#perimetre_06')
+    await page.getByRole('searchbox').fill('#perimetre-06')
     assert.equal(await page.locator('.project-row').count(), 3)
     await page.getByRole('searchbox').fill('')
     await begin()
