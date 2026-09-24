@@ -79,7 +79,9 @@ export interface Project {
   readonly progress?: Progress
   readonly lead?: string
   readonly sponsor?: string
+  /** Optional free-text context, independent from the shared tags. */
   readonly scope?: string
+  readonly scopeTags?: readonly string[]
   readonly goal: string
   readonly budget?: string
   readonly start?: IsoDate

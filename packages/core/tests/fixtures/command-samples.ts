@@ -78,6 +78,18 @@ export const COMMAND_SAMPLES: CommandSamples = {
     command: { type: 'MoveCategory', id: 'infra', to: 1 },
     event: { type: 'CategoryMoved', id: 'infra', from: 0, to: 1 },
   },
+  ChangeProjects: {
+    command: {
+      type: 'ChangeProjects',
+      ids: [p.projects[0]!.id],
+      change: { field: 'stage', after: 'closed' },
+    },
+    event: {
+      type: 'ProjectsChanged',
+      before: [p.projects[0]!],
+      after: [{ ...p.projects[0]!, stage: 'closed' }],
+    },
+  },
   CreateProject: {
     command: { type: 'CreateProject', project: NEW_PROJECT, index: 3 },
     event: { type: 'ProjectCreated', project: NEW_PROJECT, index: 3 },

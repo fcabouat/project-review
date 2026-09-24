@@ -24,6 +24,7 @@ import type {
   RenameCategory,
 } from './category'
 import type {
+  ChangeProjects,
   ChangeProjectDecisions,
   ChangeProjectField,
   ChangeProjectList,
@@ -56,6 +57,7 @@ export type Command =
   | CreateProject
   | DeleteProject
   | MoveProject
+  | ChangeProjects
   | ChangeProjectField
   | ChangeProjectList
   | ChangeProjectMilestones
@@ -84,6 +86,7 @@ const _EVENT_FOR = {
   CreateProject: 'ProjectCreated',
   DeleteProject: 'ProjectDeleted',
   MoveProject: 'ProjectMoved',
+  ChangeProjects: 'ProjectsChanged',
   ChangeProjectField: 'ProjectFieldChanged',
   ChangeProjectList: 'ProjectListChanged',
   ChangeProjectMilestones: 'ProjectMilestonesChanged',

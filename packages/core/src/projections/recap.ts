@@ -17,8 +17,11 @@ import { paginate } from './paginate'
 export function recapPages(p: Portfolio): readonly (readonly Project[])[] {
   const requested = p.settings.recapRows >= 1 ? p.settings.recapRows : 11
   // Owner lines need enough height on both the 16:9 and A4 canvases.
-  const perPage = p.projects.some((project) => isTracked(project) && project.lead)
-    ? Math.min(requested, 10)
-    : requested
+  const hasTags = p.projects.some((project) => isTracked(project) && project.scopeTags?.length)
+  const perPage = hasTags
+    ? Math.min(requested, 6)
+    : p.projects.some((project) => isTracked(project) && project.lead)
+      ? Math.min(requested, 10)
+      : requested
   return paginate(orderedProjects(p).filter(isTracked), perPage)
 }

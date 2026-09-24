@@ -30,6 +30,52 @@ const NBSP = ' '
 
 /** Closed editor keys; each entry supplies every supported language. */
 export const EDITOR_CATALOG = {
+  'editor.scopeTags.refused': {
+    fr: 'Modification refusée : les tags et la saisie sont conservés. Vérifiez la capacité du portefeuille.',
+    en: 'Change refused: tags and input were preserved. Check the portfolio capacity.',
+  },
+  'editor.projects.bulk.noChange': {
+    fr: 'Aucun changement appliqué : valeurs identiques ou opération refusée.',
+    en: 'No changes applied: values are identical or the operation was refused.',
+  },
+  'editor.metadata.title': { fr: 'Métadonnées du projet', en: 'Project metadata' },
+  'editor.sheetMode.auto.label': { fr: 'Auto', en: 'Auto' },
+  'editor.sheetMode.always.label': { fr: 'Toujours', en: 'Always' },
+  'editor.sheetMode.never.label': { fr: 'Jamais', en: 'Never' },
+  'editor.field.scopeTags': { fr: 'Périmètre (tags)', en: 'Scope (tags)' },
+  'editor.field.scopeDetails': { fr: 'Précisions du périmètre', en: 'Scope details' },
+  'editor.hint.scopeTags': {
+    fr: 'Tags partagés entre projets : #a_z_09. Entrée ou virgule pour ajouter ; 32 tags maximum.',
+    en: 'Shared project tags: #a_z_09. Enter or comma to add; at most 32 tags.',
+  },
+  'editor.scopeTags.invalid': {
+    fr: 'Utilisez uniquement a–z, 0–9 et _ après # (64 caractères par tag, 32 tags maximum).',
+    en: 'Use only a–z, 0–9 and _ after # (64 characters per tag, at most 32 tags).',
+  },
+  'editor.scopeTags.remove': { fr: 'Retirer {tag}', en: 'Remove {tag}' },
+  'editor.scopeTags.suggestions': { fr: 'Tags existants :', en: 'Existing tags:' },
+  'editor.scopeTags.add': { fr: 'Ajouter', en: 'Add' },
+  'editor.projects.bulk.start': { fr: 'Sélectionner', en: 'Select projects' },
+  'editor.projects.bulk.done': { fr: 'Terminer la sélection', en: 'Done selecting' },
+  'editor.projects.bulk.select': { fr: 'Sélectionner {name}', en: 'Select {name}' },
+  'editor.projects.bulk.selectVisible': {
+    fr: 'Tout sélectionner (visible)',
+    en: 'Select all visible',
+  },
+  'editor.projects.bulk.clear': { fr: 'Désélectionner', en: 'Clear selection' },
+  'editor.projects.bulk.count': { fr: '{n} projet(s) sélectionné(s)', en: '{n} selected projects' },
+  'editor.projects.bulk.field': { fr: 'Action groupée', en: 'Bulk action' },
+  'editor.projects.bulk.target': { fr: 'Nouvelle valeur', en: 'New value' },
+  'editor.projects.bulk.choose': { fr: 'Choisir…', en: 'Choose…' },
+  'editor.projects.bulk.apply': { fr: 'Appliquer à la sélection', en: 'Apply to selected' },
+  'editor.projects.bulk.hint': {
+    fr: 'Uniquement les projets visibles sélectionnés. Une seule annulation.',
+    en: 'Only selected visible projects. Undo in one step.',
+  },
+  'editor.event.ProjectsChanged': {
+    fr: '{n} projet(s) modifié(s) en lot',
+    en: '{n} project(s) updated in bulk',
+  },
   'editor.date.picker': { fr: 'Calendrier — {field}', en: 'Calendar — {field}' },
   'editor.field.reference': {
     fr: 'Référence métier (facultative)',
@@ -199,8 +245,8 @@ export const EDITOR_CATALOG = {
   'editor.field.targetEnd': { fr: 'Fin cible', en: 'Target end' },
   'editor.field.actualEnd': { fr: 'Fin réelle', en: 'Actual end' },
   'editor.field.risks': { fr: 'Risques', en: 'Risks' },
-  'editor.field.sheet': { fr: 'Slide de détail', en: 'Detail slide' },
-  'editor.field.updatedOn': { fr: 'Mis à jour', en: 'Updated' },
+  'editor.field.sheet': { fr: 'Affichage de la slide de détail', en: 'Detail slide display' },
+  'editor.field.updatedOn': { fr: 'Dernière modification', en: 'Last modified' },
   'editor.field.author': { fr: 'Rédacteur', en: 'Writer' },
   'editor.field.id': { fr: 'ID', en: 'ID' },
 
@@ -228,8 +274,8 @@ export const EDITOR_CATALOG = {
   'editor.setting.decisions': { fr: 'Décisions', en: 'Decisions' },
   'editor.setting.recapRows': { fr: 'Lignes par page', en: 'Rows per page' },
   'editor.setting.recapRowsHint': {
-    fr: 'Maximum 10 par page si les projets affichent un porteur.',
-    en: 'At most 10 per page when projects display a lead.',
+    fr: 'Maximum 10 par page avec porteurs ; 6 avec tags de périmètre.',
+    en: 'At most 10 per page with leads; 6 with scope tags.',
   },
 
   /* --------------------------- shared values ----------------------------- */
@@ -599,14 +645,14 @@ export const EDITOR_CATALOG = {
     en: 'Changes applied continuously — Ctrl+Z to undo',
   },
   'editor.sheet.missing': { fr: 'Projet introuvable.', en: 'Project not found.' },
-  'editor.tab.state': { fr: 'Cadre & état', en: 'Frame & status' },
-  'editor.tab.narrative': { fr: 'Récit', en: 'Narrative' },
+  'editor.tab.state': { fr: 'Identité', en: 'Identity' },
+  'editor.tab.narrative': { fr: 'Suivi', en: 'Updates' },
   'editor.tab.decisions': { fr: 'Décisions', en: 'Decisions' },
   'editor.tab.milestones': { fr: 'Jalons & dates', en: 'Milestones & dates' },
   'editor.tab.options': { fr: 'Options', en: 'Options' },
 
   'editor.sheet.status': { fr: 'État', en: 'Status' },
-  'editor.sheet.frame': { fr: 'Cadre', en: 'Frame' },
+  'editor.sheet.frame': { fr: 'Identité', en: 'Identity' },
   'editor.sheet.narrative': { fr: 'Récit de revue', en: 'Review narrative' },
   'editor.sheet.timeAndMilestones': { fr: 'Temps & jalons', en: 'Time & milestones' },
   'editor.sheet.options': { fr: 'Options', en: 'Options' },

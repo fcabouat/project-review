@@ -38,6 +38,7 @@ const BY_TYPE: {
   CategoryRenamed: { type: 'CategoryRenamed', id: 'c', before: 'C', after: 'D' },
   CategoryRecolored: { type: 'CategoryRecolored', id: 'c', before: 'red', after: 'blue' },
   CategoryMoved: { type: 'CategoryMoved', id: 'c', from: 0, to: 1 },
+  ProjectsChanged: { type: 'ProjectsChanged', before: [], after: [] },
   ProjectCreated: { type: 'ProjectCreated', project: testPortfolio().projects[0]!, index: 0 },
   ProjectDeleted: { type: 'ProjectDeleted', project: testPortfolio().projects[0]!, index: 0 },
   ProjectMoved: { type: 'ProjectMoved', id: 'P-01', from: 0, to: 2 },

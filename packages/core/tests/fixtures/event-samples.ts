@@ -66,6 +66,7 @@ const NEW_VALUES = {
   lead: 'Alex MARTIN',
   sponsor: 'Secrétariat général',
   scope: 'Périmètre élargi',
+  scopeTags: ['#national'],
   goal: 'Objectif reformulé.',
   budget: '12 k€',
   start: d('2026-02-01'),
@@ -253,6 +254,13 @@ export const EVENT_SAMPLES: EventSamples = {
     { type: 'CategoryMoved', id: 'poste', from: 1, to: 0 },
   ],
 
+  ProjectsChanged: [
+    {
+      type: 'ProjectsChanged',
+      before: [p.projects[0]!],
+      after: [{ ...p.projects[0]!, stage: 'closed' }],
+    },
+  ],
   ProjectCreated: [
     { type: 'ProjectCreated', project: NEW_PROJECT, index: 0 },
     { type: 'ProjectCreated', project: NEW_PROJECT, index: 3 },

@@ -27,6 +27,10 @@
  *
  * PURE module: no Svelte/DOM import, no clock, no mutation.
  */
+import type { IsoDate } from '../values/date'
+import { isoDate } from '../values/date'
+import { stampProjectEdit } from './project-modified'
+import { withField } from '../events/collections'
 import type { Portfolio } from '../model/portfolio'
 import type { DomainEvent } from '../events/index'
 import type { Command } from './index'
@@ -110,6 +114,19 @@ const complete = (p: Portfolio, c: Command): DomainEvent | undefined => {
       const from = indexOf(p.projects, c.id)
       if (from === undefined || from === c.to) return undefined
       return { type: 'ProjectMoved', id: c.id, from, to: c.to }
+    }
+
+    case 'ChangeProjects': {
+      const ids = new Set(c.ids)
+      const before = p.projects.filter(
+        (project) => ids.has(project.id) && project[c.change.field] !== c.change.after,
+      )
+      if (before.length === 0) return undefined
+      return {
+        type: 'ProjectsChanged',
+        before,
+        after: before.map((project) => withField(project, c.change.field, c.change.after as never)),
+      }
     }
 
     case 'ChangeProjectField': {
@@ -239,12 +256,15 @@ export type Verdict =
  * is deliberate: discovering at the next reload that the file no longer loads
  * costs more than any keystroke.
  */
-export const verdict = (p: Portfolio, c: Command): Verdict => {
+export const verdict = (p: Portfolio, c: Command, today?: IsoDate): Verdict => {
+  if (today !== undefined && isoDate(today) === undefined)
+    return { ok: false, refusal: 'offContract' }
   // The shape first: a command carrying a value the file format would refuse
   // never becomes an event, whatever else is true of it.
   if (!honorsContract(p, c)) return { ok: false, refusal: 'offContract' }
-  const event = complete(p, c)
-  if (event === undefined) return { ok: false, refusal: 'noEffect' }
+  const completed = complete(p, c)
+  if (completed === undefined) return { ok: false, refusal: 'noEffect' }
+  const event = stampProjectEdit(p, completed, today)
   return withinMemoryBudget(apply(p, event))
     ? { ok: true, event }
     : { ok: false, refusal: 'overBudget' }
@@ -255,7 +275,7 @@ export const verdict = (p: Portfolio, c: Command): Verdict => {
  * completed event, or `undefined` when the command is off contract,
  * inapplicable or trivial (module header) — {@link verdict} says which.
  */
-export const decide = (p: Portfolio, c: Command): DomainEvent | undefined => {
-  const v = verdict(p, c)
+export const decide = (p: Portfolio, c: Command, today?: IsoDate): DomainEvent | undefined => {
+  const v = verdict(p, c, today)
   return v.ok ? v.event : undefined
 }

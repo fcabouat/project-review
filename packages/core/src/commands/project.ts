@@ -12,6 +12,13 @@ export interface CreateProject {
   readonly index: number
 }
 
+/** Apply one field change to known identities in a single undo step. */
+export interface ChangeProjects {
+  readonly type: 'ChangeProjects'
+  readonly ids: readonly string[]
+  readonly change: { readonly field: 'categoryId' | 'stage'; readonly after: string }
+}
+
 export interface DeleteProject {
   readonly type: 'DeleteProject'
   readonly id: string

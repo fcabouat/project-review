@@ -10,7 +10,7 @@ import type { DomainEvent } from './index'
  * by construction (the discriminant is left alone) but escapes inference over a
  * correlated union: hence the module's single assertion.
  */
-const swap = <E extends { readonly before: unknown; readonly after: unknown }>(e: E): E =>
+const swap = <E extends { readonly before?: unknown; readonly after?: unknown }>(e: E): E =>
   ({ ...e, before: e.after, after: e.before }) as E
 
 /**
@@ -29,15 +29,18 @@ export const invert = (e: DomainEvent): DomainEvent => {
     case 'SettingChanged':
     case 'CategoryRenamed':
     case 'CategoryRecolored':
-    case 'ProjectFieldChanged':
-    case 'ProjectListChanged':
-    case 'ProjectMilestonesChanged':
-    case 'ProjectDecisionsChanged':
+    case 'ProjectsChanged':
     case 'PortfolioReplaced':
     // A merge swaps too: its slices carry position as well as content, and
     // `apply` splices symmetrically (events/portfolio.ts states the shape).
     case 'ProjectsMerged':
       return swap(e)
+
+    case 'ProjectFieldChanged':
+    case 'ProjectListChanged':
+    case 'ProjectMilestonesChanged':
+    case 'ProjectDecisionsChanged':
+      return e.modified === undefined ? swap(e) : { ...swap(e), modified: swap(e.modified) }
 
     case 'CategoryCreated':
       return { type: 'CategoryDeleted', category: e.category, index: e.index }
