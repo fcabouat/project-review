@@ -42,6 +42,8 @@ async function scan(page, surface, mode) {
 
 async function editorPass(browser, base, mode) {
   const sample = JSON.parse(await readFile(join(DIST, 'sample-portfolio.fr.json'), 'utf8'))
+  sample.projects[0].scopeTags = ['#site_06', '#workstations']
+  sample.projects[1].scopeTags = ['#shared_tag']
   const context = await browser.newContext({
     locale: 'fr-FR',
     viewport: { width: 1280, height: 860 },
@@ -75,6 +77,11 @@ async function editorPass(browser, base, mode) {
     await page.waitForSelector('.editor')
     await settle()
     await scan(page, surface, mode)
+    if (surface === 'projects') {
+      await page.getByRole('button', { name: 'Sélectionner', exact: true }).click()
+      await page.getByRole('button', { name: 'Tout sélectionner (visible)', exact: true }).click()
+      await scan(page, 'project batch actions', mode)
+    }
   }
 
   for (const [label, surface] of [

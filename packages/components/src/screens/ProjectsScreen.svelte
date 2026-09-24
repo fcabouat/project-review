@@ -21,7 +21,7 @@
   import type { Category, UnsortedCategory } from '@project-review/core/model/category'
   import type { Project } from '@project-review/core/model/project'
   import { UNSORTED_CATEGORY } from '@project-review/core/model/category'
-  import { SHEET_MODES } from '@project-review/core/model/project'
+  import { SHEET_MODES, STAGES } from '@project-review/core/model/project'
   import {
     groupKey,
     isArchived,
@@ -60,11 +60,23 @@
   let { portfolio, dispatch, open, readOnly = false }: Props = $props()
 
   let query = $state('')
+  let selecting = $state(false)
+  let selectedIds = $state<readonly string[]>([])
+  let archivedOpen = $state(false)
+  let bulkField = $state<'categoryId' | 'stage'>('categoryId')
+  let bulkTarget = $state<string | undefined>(undefined)
 
   const language = $derived(portfolio.settings.language)
 
   const matching = $derived(
-    fuzzyFilter(portfolio.projects, query, (p) => [p.reference, p.name, p.lead, p.sponsor]),
+    fuzzyFilter(portfolio.projects, query, (p) => [
+      p.reference,
+      p.name,
+      p.lead,
+      p.sponsor,
+      p.scope,
+      p.scopeTags?.join(' '),
+    ]),
   )
   const matchingIds = $derived(new Set(matching.map((p) => p.id)))
 
@@ -102,6 +114,37 @@
   const totalCount = $derived(portfolio.projects.length)
   const foundCount = $derived(matching.length)
   const searching = $derived(query.trim() !== '')
+  const visibleIds = $derived([
+    ...groups.flatMap((group) => group.projects.map((project) => project.id)),
+    ...(archivedOpen ? archived.map((project) => project.id) : []),
+  ])
+  // Filtering or collapsing archives must never leave invisible batch targets.
+  const selectedVisibleIds = $derived(visibleIds.filter((id) => selectedIds.includes(id)))
+
+  function toggleSelection(id: string, checked: boolean): void {
+    selectedIds = checked
+      ? [...selectedVisibleIds, id]
+      : selectedVisibleIds.filter((item) => item !== id)
+  }
+
+  function finishSelection(): void {
+    selecting = false
+    selectedIds = []
+    bulkTarget = undefined
+    bulkError = false
+  }
+
+  let bulkError = $state(false)
+  function applyBatch(): void {
+    if (readOnly || bulkTarget === undefined || selectedVisibleIds.length === 0) return
+    const event = dispatch({
+      type: 'ChangeProjects',
+      ids: selectedVisibleIds,
+      change: { field: bulkField, after: bulkTarget },
+    })
+    bulkError = event === undefined
+    if (event !== undefined) finishSelection()
+  }
 
   function countLabel(n: number): string {
     return n === 1
@@ -155,8 +198,18 @@
   {@const warnings = projectWarnings(project)}
   {@const position = siblings.indexOf(project)}
   <div
-    class="{ROW_GRID} border-border min-h-[46px] w-full border-b py-1.5 last:border-b-0 even:bg-secondary"
+    class="{ROW_GRID} project-row border-border min-h-[50px] w-full border-b py-2 last:border-b-0"
+    class:selected-row={selectedVisibleIds.includes(project.id)}
   >
+    {#if selecting}
+      <input
+        class="row-select size-4 cursor-pointer accent-primary"
+        type="checkbox"
+        checked={selectedVisibleIds.includes(project.id)}
+        aria-label={te('editor.projects.bulk.select', language, { name: project.name })}
+        onchange={(event) => toggleSelection(project.id, event.currentTarget.checked)}
+      />
+    {/if}
     <div class="row-title min-w-0">
       <button
         class="text-foreground line-clamp-2 cursor-pointer text-left text-[13.5px] hover:underline focus-visible:outline-2"
@@ -168,6 +221,15 @@
       {#if project.lead}<span class="compact-lead text-muted-foreground text-xs"
           >{project.lead}</span
         >{/if}
+      {#if project.scopeTags?.length}
+        <div class="mt-1 flex flex-wrap gap-x-2 gap-y-0.5 text-[11.5px] text-muted-foreground">
+          {#each project.scopeTags as tag (tag)}<span class="break-all">{tag}</span>{/each}
+        </div>
+      {:else if project.scope}
+        <div class="mt-1 line-clamp-2 text-[11.5px] text-muted-foreground" title={project.scope}>
+          {project.scope}
+        </div>
+      {/if}
     </div>
     <span class="row-lead text-muted-foreground min-w-0 truncate text-xs" title={project.lead}
       >{project.lead ?? ''}</span
@@ -280,9 +342,9 @@
   </div>
 {/snippet}
 
-<section class="bg-background border-border min-w-0 flex-1 overflow-hidden rounded-lg border">
+<section class="min-w-0 flex-1">
   <div
-    class="border-border flex items-center justify-between gap-4 border-b px-4 py-3.5 max-md:flex-wrap max-md:px-3"
+    class="bg-background border-border mb-3 flex flex-wrap items-center justify-between gap-4 rounded-lg border px-4 py-3.5 max-md:px-3"
   >
     <div class="relative w-[520px] max-w-full flex-none max-md:w-full">
       <svg
@@ -309,7 +371,17 @@
         aria-label={te('editor.projects.searchLabel', language)}
       />
     </div>
-    <span class="text-muted-foreground flex items-center text-xs">
+    <span class="text-muted-foreground flex flex-wrap items-center gap-y-2 text-xs">
+      {#if !readOnly}
+        <Button
+          variant="outline"
+          size="sm"
+          class="mr-3"
+          onclick={() => (selecting ? finishSelection() : (selecting = true))}
+        >
+          {te(selecting ? 'editor.projects.bulk.done' : 'editor.projects.bulk.start', language)}
+        </Button>
+      {/if}
       {#if searching}
         {te('editor.projects.found', language, { n: foundCount, total: totalCount })}
         <Button
@@ -333,12 +405,73 @@
     </span>
   </div>
 
+  {#if selecting}
+    <div
+      class="bg-background border-border mb-3 flex flex-wrap items-center gap-3 rounded-lg border p-3"
+    >
+      <strong class="text-sm" aria-live="polite"
+        >{te('editor.projects.bulk.count', language, { n: selectedVisibleIds.length })}</strong
+      >
+      <Button variant="link" size="sm" onclick={() => (selectedIds = visibleIds)}
+        >{te('editor.projects.bulk.selectVisible', language)}</Button
+      >
+      <Button
+        variant="link"
+        size="sm"
+        disabled={selectedVisibleIds.length === 0}
+        onclick={() => (selectedIds = [])}>{te('editor.projects.bulk.clear', language)}</Button
+      >
+      <select
+        class="border-input bg-background h-9 max-w-full rounded-md border px-2 text-sm"
+        aria-label={te('editor.projects.bulk.field', language)}
+        bind:value={bulkField}
+        onchange={() => {
+          bulkTarget = undefined
+          bulkError = false
+        }}
+      >
+        <option value="categoryId">{te('editor.field.categoryId', language)}</option>
+        <option value="stage">{te('editor.field.stage', language)}</option>
+      </select>
+      <select
+        class="border-input bg-background h-9 max-w-full rounded-md border px-2 text-sm"
+        aria-label={te('editor.projects.bulk.target', language)}
+        bind:value={bulkTarget}
+        onchange={() => (bulkError = false)}
+      >
+        <option value={undefined}>{te('editor.projects.bulk.choose', language)}</option>
+        {#if bulkField === 'categoryId'}
+          <option value={NO_CATEGORY}>{categoryName(UNSORTED_CATEGORY, language)}</option>
+          {#each portfolio.categories as category (category.id)}<option value={category.id}
+              >{categoryName(category, language)}</option
+            >{/each}
+        {:else}
+          {#each STAGES as stage (stage)}<option value={stage}
+              >{t(`stage.${stage}`, language)}</option
+            >{/each}
+        {/if}
+      </select>
+      <Button
+        size="sm"
+        disabled={bulkTarget === undefined || selectedVisibleIds.length === 0}
+        onclick={applyBatch}>{te('editor.projects.bulk.apply', language)}</Button
+      >
+      <p class="text-muted-foreground w-full text-xs">
+        {te('editor.projects.bulk.hint', language)}
+        {#if bulkError}<span role="alert" class="block text-destructive"
+            >{te('editor.projects.bulk.noChange', language)}</span
+          >{/if}
+      </p>
+    </div>
+  {/if}
+
   <!-- Full metrics on wide screens; lead folds under the title, then rows become cards. -->
-  <div class="overflow-x-auto overscroll-x-contain">
-    <div class="project-list mx-auto max-w-[1480px]">
+  <div class="min-w-0">
+    <div class="project-list" class:selection-mode={selecting}>
       <div
         class="{ROW_GRID} row-header bg-secondary text-muted-foreground border-border h-8 border-b text-[10.5px] font-bold tracking-[0.05em] uppercase"
       >
+        {#if selecting}<span></span>{/if}
         <span class="overflow-hidden whitespace-nowrap"
           >{te('editor.projects.col.project', language)}</span
         >
@@ -364,9 +497,12 @@
       </div>
 
       {#each groups as group (groupKey(group.ref))}
-        <div class="border-secondary border-b-[5px] last-of-type:border-b-0">
+        <div
+          class="category-card bg-background border-border mb-4 overflow-hidden rounded-lg border"
+          style="--category-accent:{catColor(group.category.color)}"
+        >
           <div
-            class="border-border bg-background flex h-9 items-center gap-2 border-b px-3.5 text-[13px]"
+            class="category-heading border-border flex min-h-11 flex-wrap items-center gap-2 border-b px-3.5 py-2 text-[13px]"
           >
             <span
               class="inline-block size-2.5 flex-none rounded-full"
@@ -385,9 +521,13 @@
       {/each}
 
       {#if archived.length > 0}
-        <details class="border-secondary group border-b-[5px] last-of-type:border-b-0">
+        <details
+          bind:open={archivedOpen}
+          class="category-card bg-background border-border group mb-4 overflow-hidden rounded-lg border"
+          style="--category-accent:var(--av-na)"
+        >
           <summary
-            class="border-border bg-background flex h-9 cursor-pointer list-none items-center gap-2 border-b px-3.5 text-[13px] [&::-webkit-details-marker]:hidden"
+            class="category-heading border-border flex min-h-11 cursor-pointer list-none items-center gap-2 border-b px-3.5 py-2 text-[13px] [&::-webkit-details-marker]:hidden"
           >
             <span
               class="text-muted-foreground inline-block w-2.5 text-[10px] transition-transform duration-[120ms] group-open:rotate-90"
@@ -447,18 +587,36 @@
   .project-list {
     container-type: inline-size;
   }
+  .category-heading {
+    background: color-mix(in srgb, var(--category-accent) 9%, var(--bg));
+    box-shadow: inset 3px 0 var(--category-accent);
+  }
+  .project-row:hover {
+    background: var(--bg-alt);
+  }
+  .selected-row {
+    background: var(--accent-975);
+  }
   .project-grid {
     display: grid;
     grid-template-columns:
       minmax(14rem, 2fr) minmax(8rem, 1fr)
       132px 42px 30px 96px 40px 54px 26px 72px;
   }
+  .selection-mode .project-grid {
+    grid-template-columns:
+      20px minmax(14rem, 2fr) minmax(8rem, 1fr)
+      132px 42px 30px 96px 40px 54px 26px 72px;
+  }
   .compact-lead {
     display: none;
   }
-  @container (max-width: 1080px) {
+  @container (max-width: 1180px) {
     .project-grid {
       grid-template-columns: minmax(12rem, 1fr) 132px 42px 30px 96px 40px 54px 26px 72px;
+    }
+    .selection-mode .project-grid {
+      grid-template-columns: 20px minmax(12rem, 1fr) 132px 42px 30px 96px 40px 54px 26px 72px;
     }
     .row-lead {
       display: none;
@@ -467,7 +625,7 @@
       display: block;
     }
   }
-  @container (max-width: 820px) {
+  @container (max-width: 900px) {
     .project-grid {
       display: flex;
       flex-wrap: wrap;
@@ -480,6 +638,13 @@
     .row-title {
       flex: 1 1 calc(100% - 92px);
       order: -2;
+    }
+    .selection-mode .row-title {
+      flex-basis: calc(100% - 130px);
+    }
+    .row-select {
+      order: -3;
+      flex: none;
     }
     .row-actions {
       order: -1;

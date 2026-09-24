@@ -44,6 +44,9 @@
   const language = $derived(portfolio.settings.language)
   const project = $derived(projectById(portfolio, projectId))
   const warnings = $derived(project ? projectWarnings(project) : [])
+  const scopeSuggestions = $derived(
+    [...new Set(portfolio.projects.flatMap((p) => p.scopeTags ?? []))].sort(),
+  )
 
   // Unknown id (deleted project, hand-typed hash): back to the table, without
   // piling a dead entry onto the browser history.
@@ -64,9 +67,11 @@
   ]
 
   /** One scalar field of the project — one command, typed by the field. */
-  function set<F extends ProjectScalarField>(field: F, after: Project[F]): void {
-    if (!project || readOnly) return
-    dispatch({ type: 'ChangeProjectField', id: project.id, field, after } as never)
+  function set<F extends ProjectScalarField>(field: F, after: Project[F]): boolean {
+    if (!project || readOnly) return false
+    return (
+      dispatch({ type: 'ChangeProjectField', id: project.id, field, after } as never) !== undefined
+    )
   }
 
   const category = $derived(project ? categoryOf(portfolio, project.categoryId) : undefined)
@@ -84,7 +89,7 @@
   </p>
 {:else}
   <div
-    class="border-border bg-background flex flex-col items-stretch gap-2.5 rounded-t-lg border border-b-0 px-[22px] py-4 max-md:px-3"
+    class="sheet-header border-border bg-background flex flex-col items-stretch gap-2.5 rounded-t-lg border border-b-0 px-[22px] py-4 max-md:px-3"
   >
     <nav class="text-muted-foreground text-xs" aria-label={te('editor.sheet.breadcrumb', language)}>
       <Button variant="link" class="h-auto p-0 text-xs underline" onclick={back}>
@@ -93,9 +98,9 @@
       <span class="text-muted-foreground mx-1.5" aria-hidden="true">/</span>
       <span class="text-(--txt2) font-semibold">{project.name}</span>
     </nav>
-    <div class="flex items-start gap-[18px] max-md:flex-col max-md:items-stretch max-md:gap-3">
-      <fieldset disabled={readOnly} class="flex min-w-0 flex-1 gap-4 max-md:flex-col max-md:gap-3">
-        <div class="w-40 flex-none max-md:w-full">
+    <div class="sheet-header-grid">
+      <fieldset disabled={readOnly} class="contents">
+        <div class="sheet-header-field">
           <FieldText
             {language}
             label={te('editor.field.reference', language)}
@@ -105,7 +110,7 @@
           />
         </div>
 
-        <div class="min-w-0 flex-1">
+        <div class="sheet-header-field">
           <FieldText
             {language}
             label={te('editor.field.name', language)}
@@ -116,7 +121,7 @@
           />
         </div>
 
-        <div class="flex w-[210px] flex-none flex-col max-md:w-full">
+        <div class="sheet-header-category">
           <span class="text-(--txt2) mb-[5px] text-[12.5px] font-semibold"
             >{te('editor.field.categoryId', language)}</span
           >
@@ -140,12 +145,7 @@
           </Select.Root>
         </div>
       </fieldset>
-      <div class="flex flex-none flex-col">
-        <!-- Keep the action aligned to the controls' input row while the
-             name field's counter remains below its input. -->
-        <span class="text-(--txt2) invisible mb-[5px] text-[12.5px] font-semibold"
-          >{te('editor.field.name', language)}</span
-        >
+      <div class="sheet-header-preview">
         <Button onclick={() => (previewing = true)}>
           <Icon name="eye-line" />
           {te('editor.preview.button', language)}
@@ -178,7 +178,9 @@
           </ul>
         {/if}
 
-        <Tabs.Content value="state"><StateTab {project} {language} {set} /></Tabs.Content>
+        <Tabs.Content value="state"
+          ><StateTab {project} {language} {set} {scopeSuggestions} /></Tabs.Content
+        >
         <Tabs.Content value="narrative">
           <NarrativeTab {project} {language} {dispatch} {set} />
         </Tabs.Content>
@@ -209,3 +211,63 @@
     />
   {/if}
 {/if}
+
+<style>
+  .sheet-header {
+    container-type: inline-size;
+  }
+
+  .sheet-header-grid {
+    display: grid;
+    gap: 0.75rem 1rem;
+  }
+
+  .sheet-header-field,
+  .sheet-header-category {
+    min-width: 0;
+  }
+
+  .sheet-header-category {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sheet-header-preview {
+    display: flex;
+    align-items: start;
+  }
+
+  @container (min-width: 60rem) {
+    .sheet-header-grid {
+      grid-template-columns: 11rem minmax(15rem, 1fr) 13rem auto;
+      grid-template-rows: auto auto auto auto;
+      row-gap: 0;
+    }
+
+    .sheet-header-field,
+    .sheet-header-category,
+    .sheet-header-preview {
+      display: grid;
+      grid-row: 1 / span 4;
+      grid-template-rows: subgrid;
+    }
+
+    /* Share the label, input and counter tracks, including when a label
+       wraps. FieldText keeps its native label/input association. */
+    .sheet-header-field :global(> label) {
+      display: grid;
+      grid-row: 1 / span 4;
+      grid-template-rows: subgrid;
+    }
+
+    .sheet-header-field :global(> label > span:first-child),
+    .sheet-header-category > span {
+      align-self: end;
+    }
+
+    .sheet-header-preview :global(> button) {
+      grid-row: 2;
+      align-self: start;
+    }
+  }
+</style>

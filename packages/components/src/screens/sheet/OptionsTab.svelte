@@ -41,18 +41,18 @@
   <h2 class="text-primary mb-3 text-xs font-bold tracking-[0.06em] uppercase">
     {te('editor.sheet.options', language)}
   </h2>
-  <div class="flex flex-wrap items-start gap-[34px]">
+  <div class="grid min-w-0 gap-5">
     <FieldSegmented
       label={te('editor.field.sheet', language)}
       value={project.sheet}
       options={SHEET_MODES.map((mode) => ({
         value: mode,
-        label: te(`editor.sheetMode.${mode}`, language),
+        label: te(`editor.sheetMode.${mode}.label`, language),
       }))}
       hint={sheetHint}
       commit={(v: SheetMode) => set('sheet', v)}
     />
-    <div class="flex w-[220px] flex-col">
+    <div class="flex w-full max-w-[320px] flex-col">
       <FieldText
         {language}
         label={te('editor.field.author', language)}
@@ -61,19 +61,22 @@
         commit={(v) => set('author', v)}
       />
     </div>
-    <div class="flex flex-col gap-[7px]">
-      <span class="text-(--txt2) text-[12.5px] font-semibold"
-        >{te('editor.field.updatedOn', language)}</span
-      >
-      <span class="text-(--txt2) flex h-9 items-center text-sm">
-        {project.updatedOn ? formatShortDate(project.updatedOn) : t('priority.none', language)}
-      </span>
-    </div>
   </div>
   <p class="text-muted-foreground mt-3.5 text-[11.5px]">{sheetReason}</p>
   <details class="text-muted-foreground mt-4 text-xs">
-    <summary class="cursor-pointer">{te('editor.identity.title', language)}</summary>
-    <code class="mt-2 block select-all break-all">{project.id}</code>
+    <summary class="cursor-pointer">{te('editor.metadata.title', language)}</summary>
+    <dl class="mt-3 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+      <div>
+        <dt class="font-semibold">{te('editor.identity.title', language)}</dt>
+        <dd class="mt-1"><code class="select-all break-all">{project.id}</code></dd>
+      </div>
+      <div>
+        <dt class="font-semibold">{te('editor.field.updatedOn', language)}</dt>
+        <dd class="mt-1">
+          {project.updatedOn ? formatShortDate(project.updatedOn) : t('priority.none', language)}
+        </dd>
+      </div>
+    </dl>
     <p class="mt-2">{te('editor.identity.hint', language)}</p>
   </details>
 </section>

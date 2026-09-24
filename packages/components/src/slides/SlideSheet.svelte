@@ -52,9 +52,15 @@
       [
         ['sheet.lead', project?.lead],
         ['sheet.sponsor', project?.sponsor],
-        ['sheet.scope', project?.scope],
+        [
+          'sheet.scope',
+          [project?.scopeTags?.join(' '), project?.scope].filter(Boolean).join(' · ') || undefined,
+        ],
       ] as const
     ).flatMap(([key, value]) => (value ? [{ key, value }] : [])),
+  )
+  const metaText = $derived(
+    meta.map((item) => `${fieldLabel(item.key, language)}${item.value}`).join(' · '),
   )
 
   const narratives = $derived<readonly { variant: NarrativeVariant; lines: readonly string[] }[]>([
@@ -94,7 +100,7 @@
           <HealthDot health={project.health} {language} shape="chip" />
           <PriorityBadge priority={project.priority} {language} />
           {#if meta.length > 0}
-            <span class="flat-meta">
+            <span class="flat-meta line-clamp-2 min-w-0 flex-1 break-words" title={metaText}>
               {#each meta as item, i (item.key)}{#if i > 0}{' · '}{/if}{fieldLabel(
                   item.key,
                   language,
@@ -118,7 +124,8 @@
           </div>
         </div>
         <div
-          class="sheet-meta mt-1.5 flex-none text-[13px] leading-[18px] print:text-[12.5px] print:leading-[17px]"
+          class="sheet-meta mt-1.5 line-clamp-2 flex-none text-[13px] leading-[18px] break-words print:text-[12.5px] print:leading-[17px]"
+          title={[project.reference, metaText].filter(Boolean).join(' · ')}
         >
           {#if project.reference}{project.reference}{/if}{#each meta as item, i (item.key)}{#if project.reference || i > 0}{' · '}{/if}{fieldLabel(
               item.key,

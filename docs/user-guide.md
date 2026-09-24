@@ -73,12 +73,12 @@ sheet's URL can be bookmarked or shared as a deep link, even from `file://`.
 <img src="images/en-projects.png" width="720" alt="Projects view: the portfolio grouped by category">
 
 Click a project row (or its pencil button) to open its sheet. The sheet editor
-has five tabs: **Frame & status**, **Narrative**, **Decisions**,
+has five tabs: **Identity**, **Updates**, **Decisions**,
 **Milestones & dates**, **Options**.
 
-<img src="images/en-sheet.png" width="720" alt="Sheet editor: Frame & status tab of a project">
+<img src="images/en-sheet.png" width="720" alt="Sheet editor: project identity and status">
 
-- The **⋯** button at the start of a row opens the row menu: **Move up**,
+- The pencil and **⋯** buttons sit at the end of each row. The latter opens the row menu: **Move up**,
   **Move down** and **Delete** (with a confirmation).
 - Changes are recorded when fields lose focus. A decision outcome commits its
   text and date together. The close/reload hook commits complete valid drafts
@@ -95,6 +95,23 @@ has five tabs: **Frame & status**, **Narrative**, **Decisions**,
 - The **Preview the slide** button (eye) renders the slide a project or a free
   slide will produce, without generating the whole deck.
 
+### Scope and bulk actions
+
+Under **Identity → Scope (tags)**, enter `#site_north` or `#team06`, then press
+**Enter**, a comma or **Add**. After `#`, only `a–z`, `0–9` and `_` are accepted:
+at most 63 characters and 32 tags per project. A missing `#` is added and duplicate
+tags are ignored. Tags already used in the portfolio are suggested to reuse a shared
+vocabulary; removing a tag affects only the current project. Existing free-form text
+is preserved under **Scope details**, without automatic conversion. Tags appear in the
+project list and summaries and are included in search.
+On slides, tags and metadata are limited to two display lines to preserve the layout;
+the full text remains available on hover and in the JSON.
+
+In **Projects**, choose **Select projects**, tick the desired rows or **Select all visible**,
+then choose a **category** or **stage** and **Apply to selected**. Only selected projects
+currently visible are affected: search-filtered rows and collapsed archives are not changed.
+The whole operation can be undone in one step; bulk deletion is not offered.
+
 ## The deck
 
 On the sample set the deck is 34 slides: an opening free slide, the title
@@ -104,13 +121,15 @@ the archives, and the record of previous decisions. All of it is derived from
 the portfolio when the slideshow is generated; slides are never edited
 directly — change the data instead.
 
-Whether a project gets a detail sheet is its **Detail slide** option (Options
+Whether a project gets a detail sheet is its **Detail slide display** option (Options
 tab, also the A/A/N shortcuts in the project list):
 
 - **Auto** — sheet shown when the project is ready, in progress or in
   residuals, or carries a pending decision.
 - **Always** — sheet shown no matter what.
 - **Never** — the project only appears in the recap.
+
+Buttons use these short labels; the selected mode's explanation appears underneath.
 
 **Settings > Slideshow** switches the health dashboard, the recap, the
 archives and the decisions slides on or off.
@@ -208,10 +227,16 @@ application, and the files travel however you like (mail, file share…).
 ### Identities and references
 
 New projects receive a random, stable, read-only technical identity. Exports preserve it;
-inspect and copy it under **Options → Technical identity**. The business reference is
+inspect and copy it under **Options → Project metadata**. The business reference is
 optional and reserves no column or slide space when absent. It never identifies updates.
-Project leads appear in the list and below titles in summaries. Recap pages with leads
-are capped at 10 projects, even when a higher density is requested.
+**Last modified**, in the same section, records the local day of creation or the last
+actual content edit. Unchanged values and list reordering do not update it; multiple
+edits on the same day retain that date. Undo/redo restores both content and date in the
+same step. Imports preserve the date carried by the file rather than using the import day.
+
+Project leads appear in the list and below titles in summaries. Recap pagination is
+capped at **6 projects per page with tags**, otherwise **10 with leads**, even when a
+higher density is requested; a lower configured limit is respected.
 
 The current file format is **v4**. Export your portfolio before upgrading from an older
 application. v3 files require a one-off external conversion; browser history and drafts
@@ -287,7 +312,7 @@ for non-confidential data.
 ## On a phone or tablet
 
 The editor adapts below desktop widths: the sidebar becomes a drawer behind
-the ☰ button, forms stack, and the wide tables (the portfolio, the
+the ☰ button, forms and project rows stack, and wide tables (such as
 milestones) scroll sideways inside their own frame — the page itself never
 scrolls horizontally. The slideshow scales its 16:9 slides to fit the screen,
 and its exit bar stays visible on touch screens. Everything works on a phone;
