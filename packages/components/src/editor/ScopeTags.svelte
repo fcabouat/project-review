@@ -102,7 +102,7 @@
       autocapitalize="none"
       spellcheck={false}
       class="min-w-0 flex-1"
-      placeholder="#underscore_case06"
+      placeholder="#tag1, #tag2"
       aria-describedby="{inputId}-hint"
       aria-invalid={attempted && !valid ? 'true' : undefined}
       bind:value={draft}

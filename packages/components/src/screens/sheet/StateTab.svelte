@@ -70,6 +70,7 @@
 
     <FieldSwitch
       label={te('editor.field.onHold', language)}
+      hint={te('editor.hint.onHold', language)}
       checked={project.onHold}
       commit={(v) => set('onHold', v)}
     />
@@ -163,14 +164,6 @@
       suggestions={scopeSuggestions}
       draftKey={JSON.stringify(['project', project.id, 'scopeTags'])}
       commit={(v) => set('scopeTags', v)}
-    />
-    <FieldText
-      {language}
-      label={te('editor.field.scopeDetails', language)}
-      draftKey={JSON.stringify(['project', project.id, 'scope'])}
-      value={project.scope}
-      hint={te('editor.hint.scope', language)}
-      commit={(v) => set('scope', v)}
     />
     <FieldText
       {language}

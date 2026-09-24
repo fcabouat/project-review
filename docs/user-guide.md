@@ -97,12 +97,13 @@ has five tabs: **Identity**, **Updates**, **Decisions**,
 
 ### Scope and bulk actions
 
-Under **Identity → Scope (tags)**, enter `#site_north` or `#team06`, then press
-**Enter**, a comma or **Add**. After `#`, only `a–z`, `0–9` and `_` are accepted:
-at most 63 characters and 32 tags per project. A missing `#` is added and duplicate
+Under **Identity → Scope (tags)**, enter `#site_north` or `#Team-06`, then press
+**Enter**, a comma or **Add**. After `#`, only `a–z`, `A–Z`, `0–9`, `_` and `-` are accepted:
+at most 63 characters and 32 tags per project. Case is preserved. A missing `#` is added and duplicate
 tags are ignored. Tags already used in the portfolio are suggested to reuse a shared
-vocabulary; removing a tag affects only the current project. Existing free-form text
-is preserved under **Scope details**, without automatic conversion. Tags appear in the
+vocabulary; removing a tag affects only the current project. The free-form details field
+is no longer offered. Existing files may still contain `scope`: it remains readable and
+is preserved on export, without implicit conversion on import. Tags appear in the
 project list and summaries and are included in search.
 On slides, tags and metadata are limited to two display lines to preserve the layout;
 the full text remains available on hover and in the JSON.
@@ -237,6 +238,12 @@ same step. Imports preserve the date carried by the file rather than using the i
 Project leads appear in the list and below titles in summaries. Recap pagination is
 capped at **6 projects per page with tags**, otherwise **10 with leads**, even when a
 higher density is requested; a lower configured limit is respected.
+
+The JSON `version` field identifies the **data format version**, independently of the
+application version. The JSON schema `packages/core/samples/portfolio.schema.json`
+and fictional samples are tracked in Git; the application does not add or upload personal
+portfolios to the repository. Incompatible format changes require a new format version;
+interface changes do not.
 
 The current file format is **v4**. Export your portfolio before upgrading from an older
 application. v3 files require a one-off external conversion; browser history and drafts

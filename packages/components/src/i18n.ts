@@ -43,14 +43,13 @@ export const EDITOR_CATALOG = {
   'editor.sheetMode.always.label': { fr: 'Toujours', en: 'Always' },
   'editor.sheetMode.never.label': { fr: 'Jamais', en: 'Never' },
   'editor.field.scopeTags': { fr: 'Périmètre (tags)', en: 'Scope (tags)' },
-  'editor.field.scopeDetails': { fr: 'Précisions du périmètre', en: 'Scope details' },
   'editor.hint.scopeTags': {
-    fr: 'Tags partagés entre projets : #a_z_09. Entrée ou virgule pour ajouter ; 32 tags maximum.',
-    en: 'Shared project tags: #a_z_09. Enter or comma to add; at most 32 tags.',
+    fr: 'Tags partagés entre projets. Entrée ou virgule pour ajouter ; 32 tags maximum.',
+    en: 'Shared project tags. Enter or comma to add; at most 32 tags.',
   },
   'editor.scopeTags.invalid': {
-    fr: 'Utilisez uniquement a–z, 0–9 et _ après # (64 caractères par tag, 32 tags maximum).',
-    en: 'Use only a–z, 0–9 and _ after # (64 characters per tag, at most 32 tags).',
+    fr: 'Utilisez uniquement a–z, A–Z, 0–9, _ et - après # (64 caractères par tag, 32 tags maximum).',
+    en: 'Use only a–z, A–Z, 0–9, _ and - after # (64 characters per tag, at most 32 tags).',
   },
   'editor.scopeTags.remove': { fr: 'Retirer {tag}', en: 'Remove {tag}' },
   'editor.scopeTags.suggestions': { fr: 'Tags existants :', en: 'Existing tags:' },
@@ -234,6 +233,10 @@ export const EDITOR_CATALOG = {
   'editor.field.priority': { fr: 'Priorité', en: 'Priority' },
   'editor.field.stage': { fr: 'Étape', en: 'Stage' },
   'editor.field.onHold': { fr: 'En attente', en: 'On hold' },
+  'editor.hint.onHold': {
+    fr: 'Pause temporaire : le projet conserve son étape et sa santé. S’il est suivi, il n’est plus compté parmi les projets actifs et entre dans les projets à surveiller.',
+    en: 'Temporary pause: the project keeps its stage and health. If tracked, it is excluded from active projects and included in projects needing attention.',
+  },
   'editor.field.health': { fr: 'Santé', en: 'Health' },
   'editor.field.progress': { fr: 'Avancement', en: 'Progress' },
   'editor.field.lead': { fr: 'Porteur', en: 'Lead' },
@@ -723,10 +726,6 @@ export const EDITOR_CATALOG = {
   'editor.hint.decider': {
     fr: "Qui a l'autorité de trancher",
     en: 'Who has the authority to settle it',
-  },
-  'editor.hint.scope': {
-    fr: 'Pour qui, combien, où — une ligne',
-    en: 'For whom, how many, where — one line',
   },
   'editor.hint.budget': {
     fr: `Libre et court («${NBSP}20 k€ — devis attendu${NBSP}»)`,
