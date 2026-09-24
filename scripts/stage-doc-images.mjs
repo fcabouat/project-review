@@ -243,6 +243,12 @@ async function samplePictures(browser, base, language, sample) {
   await page.getByRole('button', { name: LABEL.importNav[language] }).click()
   await page.getByRole('textbox', { name: LABEL.paste[language] }).fill(JSON.stringify(sample))
   await page
+    .getByRole('radio', {
+      name: language === 'fr' ? 'Remplacer tout le portefeuille' : 'Replace the whole portfolio',
+      exact: true,
+    })
+    .check()
+  await page
     .getByRole('button', {
       name:
         language === 'fr'
@@ -273,7 +279,7 @@ async function samplePictures(browser, base, language, sample) {
   await open('#/review')
   await shoot(page, `${language}-review`)
 
-  await open('#/sheet/P-01')
+  await open(`#/sheet/${sample.projects[0].id}`)
   await shoot(page, `${language}-sheet`)
 
   await open('#/settings')
@@ -291,7 +297,7 @@ async function samplePictures(browser, base, language, sample) {
   await importMerge(page, language, sample)
   await shoot(page, `${language}-import-merge`)
 
-  await open('#/sheet/P-01')
+  await open(`#/sheet/${sample.projects[0].id}`)
   await slideshowOnSheet(page, language)
   await shoot(page, `${language}-slide`)
 

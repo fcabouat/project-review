@@ -6,7 +6,7 @@
  * freeSlides): {@link updateById}/{@link removeById} take the FIRST match, so
  * `apply ∘ invert` breaks on duplicates (the inverse would hit the wrong
  * element). Not re-checked here: uniqueness is enforced upstream by the strict
- * parse, the id allocators (values/ids.ts) and the renumber guard.
+ * parse and the command contract (identities are immutable and unique).
  */
 
 /**

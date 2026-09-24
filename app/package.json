@@ -1,7 +1,7 @@
 {
   "name": "@project-review/app",
   "private": true,
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "The deliverable: single-page app deriving a full project-review slideshow from one portfolio file — wiring only: core services bound to runes, browser adapters injected, pure screens mounted.",
   "license": "MIT",
   "type": "module",

@@ -129,8 +129,8 @@ describe('the weight bound', () => {
     const side = tag.repeat(Math.floor((HISTORY_MAX_CHARS * share) / 2) - 40)
     return {
       type: 'PortfolioReplaced',
-      before: { version: 3, review: { title: side } },
-      after: { version: 3, review: { title: side } },
+      before: { version: 4, review: { title: side } },
+      after: { version: 4, review: { title: side } },
     } as unknown as DomainEvent
   }
 

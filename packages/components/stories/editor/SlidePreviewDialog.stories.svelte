@@ -29,7 +29,10 @@
   <div class="editor">
     <SlidePreviewDialog
       portfolio={samplePortfolio}
-      slide={{ type: 'sheet', projectId: 'P-04' }}
+      slide={{
+        type: 'sheet',
+        projectId: samplePortfolio.projects.find((p) => p.reference === 'P-04')!.id,
+      }}
       subject={te('editor.preview.subject.sheet', language, { id: 'P-04' })}
       close={() => {}}
     />

@@ -15,6 +15,13 @@ import { paginate } from './paginate'
  * yields NO page, and the deck emits no recap slide at all.
  */
 export function recapPages(p: Portfolio): readonly (readonly Project[])[] {
-  const perPage = p.settings.recapRows >= 1 ? p.settings.recapRows : 11
+  const requested = p.settings.recapRows >= 1 ? p.settings.recapRows : 11
+  // Owner lines need enough height on both the 16:9 and A4 canvases.
+  const hasTags = p.projects.some((project) => isTracked(project) && project.scopeTags?.length)
+  const perPage = hasTags
+    ? Math.min(requested, 6)
+    : p.projects.some((project) => isTracked(project) && project.lead)
+      ? Math.min(requested, 10)
+      : requested
   return paginate(orderedProjects(p).filter(isTracked), perPage)
 }

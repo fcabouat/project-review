@@ -45,10 +45,14 @@
     WithElementRef<HTMLAnchorAttributes> & {
       variant?: ButtonVariant
       size?: ButtonSize
+      /** Native buttons can finish their opacity transition before becoming interactive. */
+      deferEnable?: boolean
     }
 </script>
 
 <script lang="ts">
+  import { tick, untrack } from 'svelte'
+
   let {
     class: className,
     variant = 'default',
@@ -57,9 +61,43 @@
     href = undefined,
     type = 'button',
     disabled,
+    deferEnable = false,
+    style,
     children,
     ...restProps
   }: ButtonProps = $props()
+
+  let enabling = $state(false)
+  let wasDisabled = untrack(() => Boolean(disabled))
+  // Run before DOM updates: there must never be an enabled, half-opacity frame.
+  $effect.pre(() => {
+    const requested = Boolean(disabled)
+    const element = ref
+    let cancelled = false
+    if (requested || !deferEnable || href) enabling = false
+    else if (wasDisabled && element instanceof HTMLButtonElement) {
+      enabling = true
+      void (async () => {
+        await tick()
+        if (cancelled) return
+        // Reading animations flushes the style change. With reduced motion or
+        // zero duration this list is empty and activation is immediate.
+        const transitions = element
+          .getAnimations()
+          .filter(
+            (animation) =>
+              animation.effect instanceof KeyframeEffect &&
+              animation.effect.getKeyframes().some((frame) => frame.opacity !== undefined),
+          )
+        await Promise.allSettled(transitions.map((animation) => animation.finished))
+        if (!cancelled) enabling = false
+      })()
+    }
+    wasDisabled = requested
+    return () => {
+      cancelled = true
+    }
+  })
 </script>
 
 {#if href}
@@ -72,6 +110,7 @@
     role={disabled ? 'link' : undefined}
     tabindex={disabled ? -1 : undefined}
     {...restProps}
+    {style}
   >
     {@render children?.()}
   </a>
@@ -79,10 +118,15 @@
   <button
     bind:this={ref}
     data-slot="button"
-    class={cn(buttonVariants({ variant, size }), className)}
+    class={cn(
+      buttonVariants({ variant, size }),
+      deferEnable && 'motion-reduce:transition-none',
+      className,
+    )}
     {type}
-    {disabled}
+    disabled={disabled || enabling}
     {...restProps}
+    style={enabling ? `${style ?? ''}; opacity: 1;` : style}
   >
     {@render children?.()}
   </button>

@@ -48,7 +48,8 @@ entrée d'historique — Ctrl+Z l'annule. Le lien facultatif « Découvrir avec 
 restaure tout le fichier ; **Panacher — choisir quoi importer** affiche
 d'abord un aperçu : choisissez les blocs revue/langue/identité (logo
 compris)/thème/affichage, puis les catégories, projets et slides libres
-individuellement. Un identifiant sélectionné existant est remplacé ; rien de
+individuellement. Une identité connue conserve la version locale : son remplacement
+ou l'ajout d'une copie indépendante demande un choix explicite. Rien de
 non sélectionné n'est supprimé. Un profil d'apparence ne contient que
 paramètres et catégories et se mélange uniquement.
 
@@ -69,7 +70,7 @@ Ensuite :
   projet appartient à une catégorie.
 
 Chaque vue est une adresse : `#/review`, `#/projects`, `#/settings`,
-`#/history` — et `#/sheet/P-01` pour une fiche projet. Les entrées de la barre
+`#/history` — et `#/sheet/<identifiant-technique>` pour une fiche projet. Les entrées de la barre
 latérale sont de vrais liens, les boutons précédent/suivant du navigateur
 retracent la navigation, et l'URL d'une fiche se met en favori ou se partage
 comme lien profond, même en `file://`.
@@ -79,12 +80,12 @@ comme lien profond, même en `file://`.
 <img src="images/fr-projects.png" width="720" alt="Vue Projets : le portefeuille groupé par catégorie">
 
 Cliquez une ligne de projet (ou son crayon) pour ouvrir sa fiche. L'éditeur de
-fiche a cinq onglets : **Cadre & état**, **Récit**, **Décisions**,
+fiche a cinq onglets : **Identité**, **Suivi**, **Décisions**,
 **Jalons & dates**, **Options**.
 
-<img src="images/fr-sheet.png" width="720" alt="Éditeur de fiche : onglet Cadre & état d'un projet">
+<img src="images/fr-sheet.png" width="720" alt="Éditeur de fiche : identité et état d'un projet">
 
-- Le bouton **⋯** en tête de ligne ouvre le menu de la ligne : **Monter**,
+- Le crayon et le bouton **⋯** se trouvent en fin de ligne. Ce dernier ouvre le menu : **Monter**,
   **Descendre** et **Supprimer** (avec confirmation).
 - Les changements sont enregistrés quand les champs perdent le focus. Le texte
   et la date d'une décision prise se valident ensemble. La fermeture ou le
@@ -93,7 +94,7 @@ fiche a cinq onglets : **Cadre & état**, **Récit**, **Décisions**,
   après 1,5 seconde de pause, ou après 10 secondes de frappe continue, sans ajouter
   d'étape d'annulation. Après rechargement, retrouvez-les dans les mêmes champs.
   Le document et les diaporamas exportés changent seulement après validation.
-  Les filtres de recherche et les dialogues de confirmation (comme la renumérotation)
+  Les filtres de recherche et les dialogues de confirmation (comme la suppression)
   restent des états d'interface temporaires.
   Vérifiez l'état de sauvegarde et conservez des copies JSON.
 - Annuler/rétablir conserve jusqu'à 500 actions, avec un plafond mémoire
@@ -105,6 +106,29 @@ fiche a cinq onglets : **Cadre & état**, **Récit**, **Décisions**,
 - Le bouton **Aperçu de la slide** (œil) rend la slide qu'un projet ou une
   slide libre produira, sans générer tout le diaporama.
 
+### Périmètre et actions groupées
+
+Dans **Identité → Périmètre (tags)**, saisissez par exemple `#site-nord` ou
+`#equipe-06`, puis **Entrée**, une virgule ou **Ajouter**. Après `#`, seuls `a–z`,
+`0–9` et `-` sont acceptés : 63 caractères maximum, jusqu'à 32 tags par projet.
+À la saisie, les majuscules deviennent des minuscules et les `_` deviennent des tirets.
+Les tags sont classés par ordre alphabétique dans l'éditeur, les slides et les exports JSON.
+Le préfixe `#` est ajouté si nécessaire et les doublons sont ignorés après normalisation. Les tags déjà
+utilisés dans le portefeuille sont proposés pour réutiliser le même vocabulaire ;
+la croix d'un tag le retire uniquement du projet courant. Le champ de précisions libres
+n'est plus proposé. Les anciens fichiers peuvent encore contenir `scope` : cette donnée
+reste lisible et conservée à l'export, sans conversion implicite lors d'un import.
+Les tags figurent dans la liste et les synthèses, et la recherche les prend en compte.
+Sur les slides, l'affichage des tags et des métadonnées est borné à deux lignes pour
+préserver la mise en page ; leur texte complet reste disponible au survol et dans le JSON.
+
+Dans **Projets**, activez **Sélectionner**, cochez les lignes souhaitées ou
+**Tout sélectionner (visible)**, puis choisissez une **catégorie** ou une **étape**
+et **Appliquer à la sélection**. Seuls les projets sélectionnés actuellement visibles
+sont concernés : les résultats masqués par la recherche et les archives repliées ne
+sont pas modifiés. Toute l'opération s'annule en une fois ; aucune suppression groupée
+n'est proposée.
+
 ## Le diaporama dérivé
 
 Sur le jeu d'exemple, le diaporama fait 34 slides : une slide libre
@@ -115,13 +139,15 @@ décisions précédentes. Tout est dérivé du portefeuille au moment de la
 génération ; les slides ne s'éditent jamais directement — on change les
 données.
 
-Qu'un projet ait ou non une fiche se règle par son option **Slide de détail**
+Qu'un projet ait ou non une fiche se règle par son option **Affichage de la slide de détail**
 (onglet Options, ou les raccourcis A/T/J de la liste des projets) :
 
 - **Auto** — fiche affichée si le projet est prêt, en cours ou en reliquats,
   ou s'il porte une décision attendue.
 - **Toujours** — fiche affichée quoi qu'il arrive.
 - **Jamais** — le projet n'apparaît que dans le récapitulatif.
+
+Les boutons gardent ces libellés courts ; l'explication du choix actif apparaît dessous.
 
 **Paramètres > Diaporama** active ou coupe le dashboard de santé, le
 récapitulatif, les archives et les slides de décisions.
@@ -151,7 +177,7 @@ autonome. L'impression et la numérotation des pages restent identiques.
 
 <img src="images/fr-navigation.png" width="420" alt="Paramètres du diaporama : navigation Par sections ou Linéaire">
 
-En l'absence de `settings.navigation` dans un portefeuille v3, la navigation
+En l'absence de `settings.navigation` dans un portefeuille v4, la navigation
 par sections est utilisée par défaut.
 
 <img src="images/fr-slide.png" width="720" alt="Une fiche projet du diaporama, style flat">
@@ -217,12 +243,47 @@ copie de l'application, et les fichiers voyagent comme vous voulez
    quoi importer**. Rien n'est sélectionné implicitement : choisissez les
    catégories et projets désirés, ainsi que les blocs revue, langue, identité,
    thème ou affichage. Les blocs non cochés préservent revue, identité,
-   présentation et slides libres ; un identifiant sélectionné existant est
-   remplacé sur place, un nouveau est ajouté, et rien n'est supprimé.
+   présentation et slides libres. Une identité inconnue est ajoutée. Une identité
+   connue inchangée est ignorée ; si son contenu diffère, comparez les changements
+   puis conservez la version locale, prenez le projet importé en entier ou ajoutez
+   une copie indépendante. Aucun rapprochement ne repose sur le titre ou la référence métier.
+   Choisissez les catégories nécessaires ou rattachez-les à vos catégories locales.
+   Le remplacement d'une catégorie modifie aussi l'apparence des projets locaux qui l'utilisent.
+   Aucun élément n'est supprimé et aucune fusion champ par champ n'est effectuée.
 
 <img src="images/fr-import-merge.png" width="720" alt="Le panachage : choix des projets à importer, conflits et récapitulatif avant validation">
 
 Le panachage est une seule entrée d'historique : **Ctrl+Z** le défait en bloc.
+
+### Identités et références
+
+Un nouveau projet reçoit un identifiant technique aléatoire, stable et non modifiable.
+Il est conservé dans les exports et consultable/copiable dans **Options → Métadonnées du projet**.
+La **référence métier** est facultative : vide, elle ne réserve aucune colonne ni aucun
+emplacement dans les slides. Elle ne sert jamais à identifier une mise à jour.
+La **Dernière modification**, au même endroit, indique le jour local de création ou
+de dernière modification réelle du contenu. Elle ne change pas pour une valeur inchangée
+ou un déplacement dans la liste ; plusieurs modifications le même jour gardent la même
+date. Annuler/rétablir restaure ensemble contenu et date, sans étape supplémentaire.
+Les imports conservent la date portée par le fichier, sans la remplacer par le jour d'import.
+
+Le porteur est affiché dans la liste et sous le titre dans les récapitulatifs. La pagination
+du récapitulatif est plafonnée à **6 projets par page avec des tags**, sinon **10 avec des
+porteurs**, même si une densité supérieure est demandée ; un réglage inférieur est respecté.
+
+Le champ JSON `version` indique la **version du format de données**, indépendamment
+de la version de l'application. Le schéma JSON `packages/core/samples/portfolio.schema.json`
+est suivi dans Git, ainsi que les jeux d'exemple fictifs ; vos portefeuilles personnels
+ne sont ni ajoutés ni envoyés au dépôt par l'application. Les changements incompatibles
+du format nécessitent une nouvelle version ; un changement d'interface n'en nécessite pas.
+
+Le format courant est **v4**. Avant de passer d'une ancienne version à celle-ci,
+exportez votre portefeuille. Les JSON v3 nécessitent une conversion externe ponctuelle ;
+ils ne sont pas migrés automatiquement, pas plus que l'historique et les brouillons.
+Une ancienne sauvegarde navigateur non lisible reste récupérable, elle n'est pas effacée silencieusement.
+Après conversion, partagez le même fichier v4 : convertir séparément deux anciennes copies
+leur donnerait des identités distinctes.
+
 Un profil d'apparence (`project-review-appearance.json`) exporte uniquement les
 paramètres et catégories ; importez-le par Panacher, jamais par Remplacer.
 
@@ -295,8 +356,8 @@ pour des données non confidentielles.
 ## Sur téléphone ou tablette
 
 L'éditeur s'adapte sous les largeurs de bureau : la barre latérale devient un
-tiroir derrière le bouton ☰, les formulaires s'empilent, et les tableaux
-larges (le portefeuille, les jalons) défilent latéralement dans leur propre
+tiroir derrière le bouton ☰, les formulaires et les lignes de projets s'empilent,
+et les tableaux larges (comme les jalons) défilent latéralement dans leur propre
 cadre — la page, elle, ne défile jamais horizontalement. Le diaporama réduit
 ses slides 16:9 à la taille de l'écran, et sa barre de sortie reste visible
 sur écran tactile. Tout fonctionne sur téléphone ; un poste de travail reste

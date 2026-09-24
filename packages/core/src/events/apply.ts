@@ -3,10 +3,15 @@
  * id-routed (design rules of the events barrel, index.ts); untouched sub-trees
  * keep their references (structural copy).
  */
+import type { Project } from '../model/project'
+import type { ProjectModification } from './project'
 import type { Portfolio, Settings } from '../model/portfolio'
 import type { SettingChanged } from './settings'
 import type { DomainEvent } from './index'
 import { insertAt, moveById, removeById, replaceSlice, updateById, withField } from './collections'
+
+const modified = (project: Project, date?: ProjectModification): Project =>
+  date === undefined ? project : withField(project, 'updatedOn', date.after)
 
 const applySetting = (s: Settings, e: SettingChanged): Settings => {
   switch (e.setting) {
@@ -95,6 +100,14 @@ export const apply = (p: Portfolio, e: DomainEvent): Portfolio => {
     case 'CategoryMoved':
       return { ...p, categories: moveById(p.categories, e.id, e.to) }
 
+    case 'ProjectsChanged': {
+      const replacements = new Map(e.after.map((project) => [project.id, project]))
+      return {
+        ...p,
+        projects: p.projects.map((project) => replacements.get(project.id) ?? project),
+      }
+    }
+
     case 'ProjectCreated':
       return { ...p, projects: insertAt(p.projects, e.index, e.project) }
 
@@ -104,34 +117,36 @@ export const apply = (p: Portfolio, e: DomainEvent): Portfolio => {
     case 'ProjectMoved':
       return { ...p, projects: moveById(p.projects, e.id, e.to) }
 
-    case 'ProjectRenumbered':
-      return {
-        ...p,
-        projects: updateById(p.projects, e.oldId, (pr) => ({ ...pr, id: e.newId })),
-      }
-
     case 'ProjectFieldChanged':
       return {
         ...p,
-        projects: updateById(p.projects, e.id, (pr) => withField(pr, e.field, e.after)),
+        projects: updateById(p.projects, e.id, (pr) =>
+          modified(withField(pr, e.field, e.after), e.modified),
+        ),
       }
 
     case 'ProjectListChanged':
       return {
         ...p,
-        projects: updateById(p.projects, e.id, (pr) => withField(pr, e.list, e.after)),
+        projects: updateById(p.projects, e.id, (pr) =>
+          modified(withField(pr, e.list, e.after), e.modified),
+        ),
       }
 
     case 'ProjectMilestonesChanged':
       return {
         ...p,
-        projects: updateById(p.projects, e.id, (pr) => ({ ...pr, milestones: e.after })),
+        projects: updateById(p.projects, e.id, (pr) =>
+          modified({ ...pr, milestones: e.after }, e.modified),
+        ),
       }
 
     case 'ProjectDecisionsChanged':
       return {
         ...p,
-        projects: updateById(p.projects, e.id, (pr) => ({ ...pr, decisions: e.after })),
+        projects: updateById(p.projects, e.id, (pr) =>
+          modified({ ...pr, decisions: e.after }, e.modified),
+        ),
       }
 
     case 'FreeSlideCreated':

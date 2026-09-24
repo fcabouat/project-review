@@ -36,7 +36,7 @@ const pid = (s: string) => projectId(s)!
 const fid = (s: string) => freeSlideId(s)!
 
 export const testPortfolio = (): Portfolio => ({
-  version: 3,
+  version: 4,
   review: {
     title: 'Revue des projets',
     subtitle: 'Revue mensuelle',
@@ -64,6 +64,7 @@ export const testPortfolio = (): Portfolio => ({
   projects: [
     {
       id: pid('P-01'),
+      reference: 'REF-01',
       name: 'Refonte du cœur de réseau',
       categoryId: cid('infra'),
       priority: 'P1',
@@ -74,6 +75,7 @@ export const testPortfolio = (): Portfolio => ({
       lead: 'Camille NOËL',
       sponsor: 'Direction',
       scope: 'Deux sites, 900 postes',
+      scopeTags: ['#site-06'],
       goal: 'Remplacer les commutateurs de cœur. Sécuriser la disponibilité du réseau.',
       budget: '120 k€ — notifié',
       start: d('2026-01-15'),
@@ -145,7 +147,7 @@ export const testPortfolio = (): Portfolio => ({
 
 /** Second portfolio, for `PortfolioReplaced` (import). */
 export const otherPortfolio = (): Portfolio => ({
-  version: 3,
+  version: 4,
   review: { title: 'Autre revue', reviewDate: d('2027-01-08') },
   settings: {
     language: 'en',

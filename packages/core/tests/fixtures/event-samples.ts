@@ -13,7 +13,7 @@
 
 import type { Identity, Review } from '../../src/model/portfolio'
 import type { Project } from '../../src/model/project'
-import { categoryId, freeSlideId, projectId } from '../../src/values/ids'
+import { categoryId, freeSlideId } from '../../src/values/ids'
 import { isoDate } from '../../src/values/date'
 import { progressOf } from '../../src/values/progress'
 import {
@@ -47,7 +47,6 @@ import {
 
 const d = (x: string) => isoDate(x)!
 const cid = (x: string) => categoryId(x)!
-const pid = (x: string) => projectId(x)!
 const fid = (x: string) => freeSlideId(x)!
 
 /** The portfolio every sample's `before` is read from. */
@@ -57,6 +56,7 @@ const p = testPortfolio()
  * whose `after` equalled the `before` would prove inversion vacuously. */
 const NEW_VALUES = {
   name: 'Nom remanié',
+  reference: 'REF-42',
   categoryId: cid('poste'),
   priority: 'P3',
   stage: 'closed',
@@ -66,6 +66,7 @@ const NEW_VALUES = {
   lead: 'Alex MARTIN',
   sponsor: 'Secrétariat général',
   scope: 'Périmètre élargi',
+  scopeTags: ['#national'],
   goal: 'Objectif reformulé.',
   budget: '12 k€',
   start: d('2026-02-01'),
@@ -253,6 +254,13 @@ export const EVENT_SAMPLES: EventSamples = {
     { type: 'CategoryMoved', id: 'poste', from: 1, to: 0 },
   ],
 
+  ProjectsChanged: [
+    {
+      type: 'ProjectsChanged',
+      before: [p.projects[0]!],
+      after: [{ ...p.projects[0]!, stage: 'closed' }],
+    },
+  ],
   ProjectCreated: [
     { type: 'ProjectCreated', project: NEW_PROJECT, index: 0 },
     { type: 'ProjectCreated', project: NEW_PROJECT, index: 3 },
@@ -265,7 +273,6 @@ export const EVENT_SAMPLES: EventSamples = {
     { type: 'ProjectMoved', id: 'P-01', from: 0, to: 2 },
     { type: 'ProjectMoved', id: 'P-03', from: 2, to: 0 },
   ],
-  ProjectRenumbered: [{ type: 'ProjectRenumbered', oldId: pid('P-01'), newId: pid('P-99') }],
 
   // Scalar fields: P-01 carries them all (change then erasure),
   // P-02 carries none (appearance of an absent optional).

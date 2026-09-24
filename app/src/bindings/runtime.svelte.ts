@@ -4,6 +4,7 @@
  * module owns; decide, apply and the bounded register live in the core.
  */
 
+import type { IsoDate } from '@project-review/core/values/date'
 import type { Portfolio } from '@project-review/core/model/portfolio'
 import type { DomainEvent } from '@project-review/core/events'
 import type { History } from '@project-review/core/events/history'
@@ -22,7 +23,7 @@ export interface Store {
   /**
    * Runs the command through the runtime and rebinds the state.
    * The recorded event — or `undefined` for a refused/trivial command — is
-   * returned so a view can react (e.g. a refused renumbering).
+   * returned so a view can react (e.g. a command targeting a missing project).
    */
   readonly dispatch: (command: Command) => DomainEvent | undefined
   readonly undo: () => void
@@ -34,7 +35,7 @@ export interface Store {
  * rehydrates undo/redo across reloads — consistency contract and re-capping
  * are the runtime's (`hydrate`).
  */
-export const createStore = (initial: Portfolio, log?: History): Store => {
+export const createStore = (initial: Portfolio, log?: History, today?: () => IsoDate): Store => {
   // `$state.raw`, not `$state`: the runtime replaces its state wholesale on
   // every event and never mutates it, so no deep proxy is needed and the data
   // stays plain objects (serializable, comparable). The `.svelte.ts` extension
@@ -42,7 +43,7 @@ export const createStore = (initial: Portfolio, log?: History): Store => {
   let state = $state.raw(hydrate(initial, log))
 
   const dispatch = (command: Command): DomainEvent | undefined => {
-    const result = execute(state, command)
+    const result = execute(state, command, today?.())
     state = result.state
     return result.event
   }

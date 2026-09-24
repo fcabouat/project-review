@@ -30,6 +30,82 @@ const NBSP = ' '
 
 /** Closed editor keys; each entry supplies every supported language. */
 export const EDITOR_CATALOG = {
+  'editor.scopeTags.refused': {
+    fr: 'Modification refusée : les tags et la saisie sont conservés. Vérifiez la capacité du portefeuille.',
+    en: 'Change refused: tags and input were preserved. Check the portfolio capacity.',
+  },
+  'editor.projects.bulk.noChange': {
+    fr: 'Aucun changement appliqué : valeurs identiques ou opération refusée.',
+    en: 'No changes applied: values are identical or the operation was refused.',
+  },
+  'editor.metadata.title': { fr: 'Métadonnées du projet', en: 'Project metadata' },
+  'editor.sheetMode.auto.label': { fr: 'Auto', en: 'Auto' },
+  'editor.sheetMode.always.label': { fr: 'Toujours', en: 'Always' },
+  'editor.sheetMode.never.label': { fr: 'Jamais', en: 'Never' },
+  'editor.field.scopeTags': { fr: 'Périmètre (tags)', en: 'Scope (tags)' },
+  'editor.hint.scopeTags': {
+    fr: 'Tags partagés entre projets. Entrée ou virgule pour ajouter ; 32 tags maximum.',
+    en: 'Shared project tags. Enter or comma to add; at most 32 tags.',
+  },
+  'editor.scopeTags.invalid': {
+    fr: 'Utilisez uniquement a–z, 0–9 et - après # (64 caractères par tag, 32 tags maximum).',
+    en: 'Use only a–z, 0–9 and - after # (64 characters per tag, at most 32 tags).',
+  },
+  'editor.scopeTags.remove': { fr: 'Retirer {tag}', en: 'Remove {tag}' },
+  'editor.scopeTags.suggestions': { fr: 'Tags existants :', en: 'Existing tags:' },
+  'editor.scopeTags.add': { fr: 'Ajouter', en: 'Add' },
+  'editor.projects.bulk.start': { fr: 'Sélectionner', en: 'Select projects' },
+  'editor.projects.bulk.done': { fr: 'Terminer la sélection', en: 'Done selecting' },
+  'editor.projects.bulk.select': { fr: 'Sélectionner {name}', en: 'Select {name}' },
+  'editor.projects.bulk.selectVisible': {
+    fr: 'Tout sélectionner (visible)',
+    en: 'Select all visible',
+  },
+  'editor.projects.bulk.clear': { fr: 'Désélectionner', en: 'Clear selection' },
+  'editor.projects.bulk.count': { fr: '{n} projet(s) sélectionné(s)', en: '{n} selected projects' },
+  'editor.projects.bulk.field': { fr: 'Action groupée', en: 'Bulk action' },
+  'editor.projects.bulk.target': { fr: 'Nouvelle valeur', en: 'New value' },
+  'editor.projects.bulk.choose': { fr: 'Choisir…', en: 'Choose…' },
+  'editor.projects.bulk.apply': { fr: 'Appliquer à la sélection', en: 'Apply to selected' },
+  'editor.projects.bulk.hint': {
+    fr: 'Uniquement les projets visibles sélectionnés. Une seule annulation.',
+    en: 'Only selected visible projects. Undo in one step.',
+  },
+  'editor.event.ProjectsChanged': {
+    fr: '{n} projet(s) modifié(s) en lot',
+    en: '{n} project(s) updated in bulk',
+  },
+  'editor.date.picker': { fr: 'Calendrier — {field}', en: 'Calendar — {field}' },
+  'editor.field.reference': {
+    fr: 'Référence métier (facultative)',
+    en: 'Business reference (optional)',
+  },
+  'editor.identity.title': { fr: 'Identifiant technique', en: 'Technical identity' },
+  'editor.identity.hint': {
+    fr: 'Stable et non modifiable. Conservé dans les exports pour reconnaître ce projet lors des imports. Sélectionnez-le pour le copier.',
+    en: 'Stable and read-only. Preserved in exports to identify this project during imports. Select it to copy.',
+  },
+  'editor.io.conflict': {
+    fr: 'Même identité, contenu différent',
+    en: 'Same identity, different content',
+  },
+  'editor.io.add': { fr: 'Ajouter', en: 'Add' },
+  'editor.io.alreadyPresent': { fr: 'Déjà présent — ignorer', en: 'Already present — skip' },
+  'editor.io.keepLocal': { fr: 'Conserver la version locale', en: 'Keep local version' },
+  'editor.io.takeIncoming': {
+    fr: 'Prendre la version importée (remplacement complet)',
+    en: 'Take incoming version (whole item replacement)',
+  },
+  'editor.io.addCopy': { fr: 'Ajouter une copie indépendante', en: 'Add an independent copy' },
+  'editor.io.actionFor': { fr: 'Action pour {name}', en: 'Action for {name}' },
+  'editor.io.categoryTarget': { fr: 'Rattachement de {name}', en: 'Map category {name}' },
+  'editor.io.sourceCategory': {
+    fr: 'Conserver le rattachement à la catégorie source',
+    en: 'Keep the source category association',
+  },
+  'editor.io.compare': { fr: 'Comparer les changements', en: 'Compare changes' },
+  'editor.io.local': { fr: 'Version locale', en: 'Local version' },
+  'editor.io.incoming': { fr: 'Version importée', en: 'Incoming version' },
   /* ------------------------------- shell -------------------------------- */
   'editor.nav.portfolio': { fr: 'Portefeuille', en: 'Portfolio' },
   'editor.nav.review': { fr: 'Revue', en: 'Review' },
@@ -157,6 +233,10 @@ export const EDITOR_CATALOG = {
   'editor.field.priority': { fr: 'Priorité', en: 'Priority' },
   'editor.field.stage': { fr: 'Étape', en: 'Stage' },
   'editor.field.onHold': { fr: 'En attente', en: 'On hold' },
+  'editor.hint.onHold': {
+    fr: 'Pause temporaire : le projet conserve son étape et sa santé. S’il est suivi, il n’est plus compté parmi les projets actifs et entre dans les projets à surveiller.',
+    en: 'Temporary pause: the project keeps its stage and health. If tracked, it is excluded from active projects and included in projects needing attention.',
+  },
   'editor.field.health': { fr: 'Santé', en: 'Health' },
   'editor.field.progress': { fr: 'Avancement', en: 'Progress' },
   'editor.field.lead': { fr: 'Porteur', en: 'Lead' },
@@ -168,8 +248,8 @@ export const EDITOR_CATALOG = {
   'editor.field.targetEnd': { fr: 'Fin cible', en: 'Target end' },
   'editor.field.actualEnd': { fr: 'Fin réelle', en: 'Actual end' },
   'editor.field.risks': { fr: 'Risques', en: 'Risks' },
-  'editor.field.sheet': { fr: 'Slide de détail', en: 'Detail slide' },
-  'editor.field.updatedOn': { fr: 'Mis à jour', en: 'Updated' },
+  'editor.field.sheet': { fr: 'Affichage de la slide de détail', en: 'Detail slide display' },
+  'editor.field.updatedOn': { fr: 'Dernière modification', en: 'Last modified' },
   'editor.field.author': { fr: 'Rédacteur', en: 'Writer' },
   'editor.field.id': { fr: 'ID', en: 'ID' },
 
@@ -196,6 +276,10 @@ export const EDITOR_CATALOG = {
   'editor.setting.archives': { fr: 'Archives', en: 'Archives' },
   'editor.setting.decisions': { fr: 'Décisions', en: 'Decisions' },
   'editor.setting.recapRows': { fr: 'Lignes par page', en: 'Rows per page' },
+  'editor.setting.recapRowsHint': {
+    fr: 'Maximum 10 par page avec porteurs ; 6 avec tags de périmètre.',
+    en: 'At most 10 per page with leads; 6 with scope tags.',
+  },
 
   /* --------------------------- shared values ----------------------------- */
   'editor.value.yes': { fr: 'oui', en: 'yes' },
@@ -246,8 +330,8 @@ export const EDITOR_CATALOG = {
 
   /* -------------------------- projects screen ---------------------------- */
   'editor.projects.searchPlaceholder': {
-    fr: 'Rechercher un projet par id, nom… (recherche floue)',
-    en: 'Search a project by id, name… (fuzzy search)',
+    fr: 'Rechercher par nom, référence, porteur…',
+    en: 'Search by name, reference, lead…',
   },
   'editor.projects.searchLabel': { fr: 'Rechercher un projet', en: 'Search a project' },
   'editor.projects.total': { fr: '{n} projets', en: '{n} projects' },
@@ -564,28 +648,14 @@ export const EDITOR_CATALOG = {
     en: 'Changes applied continuously — Ctrl+Z to undo',
   },
   'editor.sheet.missing': { fr: 'Projet introuvable.', en: 'Project not found.' },
-  'editor.sheet.idLocked': {
-    fr: `Identifiant stable — modifiable uniquement via «${NBSP}Renuméroter${NBSP}»`,
-    en: 'Stable identifier — changed only through "Renumber"',
-  },
-  'editor.sheet.renumber': { fr: 'Renuméroter', en: 'Renumber' },
-  'editor.sheet.renumberPrompt': {
-    fr: `Nouvel identifiant pour «${NBSP}{id}${NBSP}»${NBSP}?`,
-    en: 'New identifier for "{id}"?',
-  },
-  'editor.sheet.renumberTaken': {
-    fr: `L'identifiant «${NBSP}{id}${NBSP}» est déjà pris.`,
-    en: 'Identifier "{id}" is already taken.',
-  },
-
-  'editor.tab.state': { fr: 'Cadre & état', en: 'Frame & status' },
-  'editor.tab.narrative': { fr: 'Récit', en: 'Narrative' },
+  'editor.tab.state': { fr: 'Identité', en: 'Identity' },
+  'editor.tab.narrative': { fr: 'Suivi', en: 'Updates' },
   'editor.tab.decisions': { fr: 'Décisions', en: 'Decisions' },
   'editor.tab.milestones': { fr: 'Jalons & dates', en: 'Milestones & dates' },
   'editor.tab.options': { fr: 'Options', en: 'Options' },
 
   'editor.sheet.status': { fr: 'État', en: 'Status' },
-  'editor.sheet.frame': { fr: 'Cadre', en: 'Frame' },
+  'editor.sheet.frame': { fr: 'Identité', en: 'Identity' },
   'editor.sheet.narrative': { fr: 'Récit de revue', en: 'Review narrative' },
   'editor.sheet.timeAndMilestones': { fr: 'Temps & jalons', en: 'Time & milestones' },
   'editor.sheet.options': { fr: 'Options', en: 'Options' },
@@ -656,10 +726,6 @@ export const EDITOR_CATALOG = {
   'editor.hint.decider': {
     fr: "Qui a l'autorité de trancher",
     en: 'Who has the authority to settle it',
-  },
-  'editor.hint.scope': {
-    fr: 'Pour qui, combien, où — une ligne',
-    en: 'For whom, how many, where — one line',
   },
   'editor.hint.budget': {
     fr: `Libre et court («${NBSP}20 k€ — devis attendu${NBSP}»)`,
@@ -774,8 +840,8 @@ export const EDITOR_CATALOG = {
   },
   'editor.error.wrongType': { fr: '{expected} attendu', en: '{expected} expected' },
   'editor.error.invalidVersion': {
-    fr: `version «${NBSP}{value}${NBSP}» — 3 attendue`,
-    en: 'version "{value}" — 3 expected',
+    fr: `version «${NBSP}{value}${NBSP}» — 4 attendue. Les fichiers v3 doivent être convertis avant import.`,
+    en: 'version "{value}" — 4 expected. Convert v3 files before importing.',
   },
   'editor.error.invalidDate': {
     fr: `«${NBSP}{value}${NBSP}» invalide (date calendaire AAAA-MM-JJ attendue)`,
@@ -951,8 +1017,8 @@ export const EDITOR_CATALOG = {
     en: 'This profile contains no projects or free slides and cannot replace your portfolio.',
   },
   'editor.io.mixHint': {
-    fr: 'Seuls les éléments cochés sont importés. Un même identifiant remplace l’élément existant ; rien n’est supprimé. Décochez les blocs d’apparence pour conserver votre habillage.',
-    en: 'Only selected items are imported. A matching ID replaces the existing item; nothing is deleted. Leave appearance blocks unchecked to keep your styling.',
+    fr: 'Seuls les éléments cochés sont importés. Une identité connue conserve votre version, sauf choix explicite de remplacement ou de copie. Sélectionnez les catégories nécessaires ou rattachez-les aux vôtres. La revue et l’habillage restent inchangés tant que leurs blocs sont décochés. Remplacer une catégorie affecte aussi les projets locaux qui l’utilisent.',
+    en: 'Only selected items are imported. A known identity keeps your version unless you explicitly replace it or add a copy. Select needed categories or map them to yours. Review and appearance remain unchanged while their blocks are unchecked. Replacing a category also affects local projects using it.',
   },
   'editor.io.blocks': { fr: 'Blocs à reprendre', en: 'Settings to import' },
   'editor.io.block.review': { fr: 'Revue (titre et dates)', en: 'Review (title and dates)' },
@@ -1112,10 +1178,6 @@ export const EDITOR_CATALOG = {
   'editor.event.ProjectCreated': { fr: '{id} · projet créé', en: '{id} · project created' },
   'editor.event.ProjectDeleted': { fr: '{id} · projet supprimé', en: '{id} · project deleted' },
   'editor.event.ProjectMoved': { fr: '{id} · projet déplacé', en: '{id} · project moved' },
-  'editor.event.ProjectRenumbered': {
-    fr: '{before} ▸ {after} · renuméroté',
-    en: '{before} ▸ {after} · renumbered',
-  },
   'editor.event.FreeSlideCreated': {
     fr: 'Slide libre «{sp}{title}{sp}» ajoutée',
     en: 'Free slide "{title}" added',

@@ -74,7 +74,6 @@ describe('decide — inapplicable command → undefined', () => {
     { type: 'MoveCategory', id: 'ABSENT', to: 1 },
     { type: 'DeleteProject', id: 'ABSENT' },
     { type: 'MoveProject', id: 'ABSENT', to: 1 },
-    { type: 'RenumberProject', id: pid('ABSENT'), newId: pid('P-99') },
     { type: 'ChangeProjectField', id: 'ABSENT', field: 'name', after: 'X' },
     { type: 'ChangeProjectList', id: 'ABSENT', list: 'done', after: [] },
     { type: 'ChangeProjectMilestones', id: 'ABSENT', after: [] },
@@ -88,15 +87,6 @@ describe('decide — inapplicable command → undefined', () => {
       expect(decide(p, c)).toBeUndefined()
     })
   }
-
-  it('RenumberProject to an id already taken (uniqueness held by construction)', () => {
-    // The one refusal that is not about a missing target: `apply` trusts id
-    // uniqueness (it would duplicate — see events/ids-invariant.test.ts), so
-    // the guard MUST live here, before anything is recorded.
-    expect(
-      decide(p, { type: 'RenumberProject', id: pid('P-01'), newId: pid('P-02') }),
-    ).toBeUndefined()
-  })
 })
 
 describe('decide — trivial scalar no-op → undefined', () => {
@@ -111,7 +101,6 @@ describe('decide — trivial scalar no-op → undefined', () => {
     { type: 'RecolorCategory', id: 'poste', after: 'green' },
     { type: 'MoveCategory', id: 'infra', to: 0 },
     { type: 'MoveProject', id: 'P-01', to: 0 },
-    { type: 'RenumberProject', id: pid('P-01'), newId: pid('P-01') },
     { type: 'ChangeProjectField', id: 'P-01', field: 'progress', after: progressOf(60)! },
     { type: 'ChangeProjectField', id: 'P-02', field: 'health', after: undefined },
     { type: 'MoveFreeSlide', id: 'opening', to: 0 },

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ProjectLabel from '../commons/ProjectLabel.svelte'
   /** One page of closed and abandoned projects, including their closing notes. */
   import type { Portfolio } from '@project-review/core/model/portfolio'
   import { categoryOf, projectById } from '@project-review/core/projections'
@@ -75,9 +76,9 @@
   {@const TD = 'px-2.5 py-1.5 align-middle print:px-[9px]'}
   <table class="table table--archives w-full table-fixed">
     <colgroup>
-      <col style:width="62px" /><col style:width="260px" /><col style:width="214px" /><col
-        style:width="130px"
-      /><col style:width="110px" /><col />
+      <col style:width="322px" /><col style:width="214px" /><col style:width="130px" /><col
+        style:width="110px"
+      /><col />
     </colgroup>
     <thead>
       <tr>
@@ -89,9 +90,8 @@
     <tbody>
       {#each rows as row (row.project.id)}
         <tr class="h-13 print:h-14">
-          <td class="num {TD} text-[12.5px] font-bold print:text-[12px]">{row.project.id}</td>
           <td class="name {TD} text-[13px] leading-[1.22] print:text-[12.5px]"
-            >{row.project.name}</td
+            ><ProjectLabel project={row.project} {language} /></td
           >
           <td class="{TD} text-[13px] print:text-[12.5px]" style:--cat={row.color}
             ><span

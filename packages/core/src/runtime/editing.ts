@@ -12,6 +12,7 @@
  * runes.
  */
 
+import type { IsoDate } from '../values/date'
 import type { Portfolio } from '../model/portfolio'
 import { decide, type Command } from '../commands'
 import { apply, invert, type DomainEvent } from '../events'
@@ -59,10 +60,10 @@ export const hydrate = (portfolio: Portfolio, log?: History): RuntimeState => ({
  * Decides the command against `present`; when `decide` yields an event,
  * applies it and records it. An INAPPLICABLE or TRIVIAL command is a SILENT
  * no-op: nothing enters the log, nothing can be undone that never happened —
- * the caller reads `event: undefined` to react (e.g. a refused renumbering).
+ * the caller reads `event: undefined` to react (e.g. a command targeting a missing project).
  */
-export const execute = (state: RuntimeState, command: Command): ExecuteResult => {
-  const event = decide(state.present, command)
+export const execute = (state: RuntimeState, command: Command, today?: IsoDate): ExecuteResult => {
+  const event = decide(state.present, command, today)
   if (event === undefined) return { state, event: undefined }
   return {
     state: {

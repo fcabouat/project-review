@@ -29,6 +29,7 @@
  *
  * PURE module: model + values only, no clock, no mutation.
  */
+import { validScopeTags } from '../values/scope-tags'
 import type { Category, Color } from './category'
 import { COLORS } from './category'
 import type { Anchor, FreeSlide } from './free-slide'
@@ -157,12 +158,14 @@ export const PROJECT_KEYS = {
     'sheet',
   ],
   optional: [
+    'reference',
     'priority',
     'health',
     'progress',
     'lead',
     'sponsor',
     'scope',
+    'scopeTags',
     'budget',
     'start',
     'targetEnd',
@@ -321,6 +324,7 @@ export const validMilestone = (m: Milestone): boolean =>
 export const validProject = (p: Project): boolean =>
   ownKeysOnly(p, PROJECT_KEYS) &&
   isId(p.id) &&
+  absentOr(p.reference, isText) &&
   isText(p.name) &&
   isText(p.categoryId) &&
   isCategoryReference(p.categoryId) &&
@@ -332,6 +336,7 @@ export const validProject = (p: Project): boolean =>
   absentOr(p.lead, isText) &&
   absentOr(p.sponsor, isText) &&
   absentOr(p.scope, isText) &&
+  absentOr(p.scopeTags, validScopeTags) &&
   isText(p.goal) &&
   absentOr(p.budget, isText) &&
   absentOr(p.start, isDate) &&
@@ -459,7 +464,7 @@ export const validSettings = (s: Settings): boolean =>
  */
 export const validPortfolioShape = (p: Portfolio): boolean =>
   ownKeysOnly(p, PORTFOLIO_KEYS) &&
-  p.version === 3 &&
+  p.version === 4 &&
   validReview(p.review) &&
   validSettings(p.settings) &&
   isDenseList(p.categories) &&

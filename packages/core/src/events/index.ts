@@ -13,10 +13,10 @@
  *  3. `apply` is TOTAL: an inapplicable event (id not found) leaves the
  *     portfolio unchanged, without throwing.
  *
- * PURE modules throughout: no Svelte/DOM import, no clock. Events carry no
- * timestamp (the time shown by the history belongs to the UI, not to the
- * core). A truthful `before` is the emitter's concern — `decide` (commands/)
- * builds one by construction.
+ * PURE modules throughout: no Svelte/DOM import, no clock. The host supplies
+ * the optional project modification date; event timestamps shown in history
+ * remain UI metadata. A truthful `before` is the emitter's concern — `decide`
+ * (commands/) builds one by construction.
  */
 import type { ReviewFieldChanged } from './review'
 import type { IdentityFieldChanged, SettingChanged } from './settings'
@@ -28,6 +28,7 @@ import type {
   CategoryRenamed,
 } from './category'
 import type {
+  ProjectsChanged,
   ProjectCreated,
   ProjectDecisionsChanged,
   ProjectDeleted,
@@ -35,7 +36,6 @@ import type {
   ProjectListChanged,
   ProjectMilestonesChanged,
   ProjectMoved,
-  ProjectRenumbered,
 } from './project'
 import type {
   FreeSlideChanged,
@@ -73,10 +73,10 @@ export type DomainEvent =
   | CategoryRenamed
   | CategoryRecolored
   | CategoryMoved
+  | ProjectsChanged
   | ProjectCreated
   | ProjectDeleted
   | ProjectMoved
-  | ProjectRenumbered
   | ProjectFieldChanged
   | ProjectListChanged
   | ProjectMilestonesChanged

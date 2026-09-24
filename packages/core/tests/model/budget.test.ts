@@ -287,12 +287,7 @@ describe('the byte ceiling, weighed on EVERY command — not on a list of the gr
     CreateProject: { type: 'CreateProject', project: { ...NEW_PROJECT, goal: HUGE }, index: 0 },
     DeleteProject: null,
     MoveProject: null,
-    // An id is only required to be non-empty — so it, too, can be a megabyte.
-    RenumberProject: {
-      type: 'RenumberProject',
-      id: projectOf(p, 'P-01').id,
-      newId: HUGE as ProjectId,
-    },
+    ChangeProjects: null, // Only a known category or a closed stage value.
     ChangeProjectField: {
       type: 'ChangeProjectField',
       id: projectOf(p, 'P-02').id,
@@ -361,13 +356,6 @@ describe('the byte ceiling, weighed on EVERY command — not on a list of the gr
     // short value, still become events.
     expect(
       decide(p, { type: 'ChangeReviewField', field: 'title', after: 'Revue 2026' }),
-    ).toBeDefined()
-    expect(
-      decide(p, {
-        type: 'RenumberProject',
-        id: projectOf(p, 'P-01').id,
-        newId: 'P-42' as ProjectId,
-      }),
     ).toBeDefined()
   })
 

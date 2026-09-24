@@ -1,38 +1,15 @@
 <script lang="ts">
-  /**
-   * Sheet screen — the project sheet, in TABS rather than one long scroll: "Frame & status
-   * · Narrative · Decisions · Milestones & dates · Options". Renumbering runs
-   * in the vendored Dialog: a local draft, and the refusal surfaces inline in
-   * the same dialog instead of a second alert.
-   *
-   * Field ↔ command, at blur: `decide` reads the `before` and drops the
-   * scalar no-ops. The WHOLESALE replacements (lists, milestones, decisions)
-   * keep their local equality guards — `decide` deliberately lets deep payloads
-   * through, so the emitter is the one place that can spare the redo stack.
-   *
-   * The id is NOT a field: it only moves through `RenumberProject`, and the
-   * uniqueness check lives in `decide` — a refused renumbering comes back as
-   * `undefined` and surfaces as the inline refusal below.
-   *
-   * The screen is addressed by `#/sheet/{id}`: the project id comes from the
-   * route. Pure screen (screens contract, `contracts.ts`): navigation goes out
-   * through the two callbacks — `navigate` pushes a history entry (back to the
-   * table), `replaceRoute` swaps the current one (unknown id, renumbering).
-   *
-   * Each tab's body lives in its own component under `screens/sheet/`.
-   */
+  /** Project editing: immutable identity, optional business reference, independent fields. */
   import type { Portfolio } from '@project-review/core/model/portfolio'
   import type { Project } from '@project-review/core/model/project'
   import { categoryOf, projectById } from '@project-review/core/projections'
-  import { categoryId, projectId as asProjectId } from '@project-review/core/values/ids'
+  import { categoryId } from '@project-review/core/values/ids'
   import { catColor } from '../commons/cat-color'
   import type { ProjectScalarField } from '@project-review/core/events'
   import { te, type LabelKey } from '../i18n'
   import { projectWarnings } from '../editor/validation'
   import Icon from '../commons/Icon.svelte'
   import { Button } from '../commons/ui/button'
-  import * as Dialog from '../commons/ui/dialog'
-  import { Input } from '../commons/ui/input'
   import * as Select from '../commons/ui/select'
   import * as Tabs from '../commons/ui/tabs'
   import SlidePreviewDialog from '../editor/SlidePreviewDialog.svelte'
@@ -53,7 +30,7 @@
     readonly projectId: string
     /** Pushes a new history entry — the `editor.sheet.back` button. */
     readonly navigate: (route: Route) => void
-    /** Replaces the current entry — redirects (unknown id, renumbering). */
+    /** Replaces the current entry — redirects (unknown id). */
     readonly replaceRoute: (route: Route) => void
     readonly readOnly?: boolean
   }
@@ -67,6 +44,9 @@
   const language = $derived(portfolio.settings.language)
   const project = $derived(projectById(portfolio, projectId))
   const warnings = $derived(project ? projectWarnings(project) : [])
+  const scopeSuggestions = $derived(
+    [...new Set(portfolio.projects.flatMap((p) => p.scopeTags ?? []))].sort(),
+  )
 
   // Unknown id (deleted project, hand-typed hash): back to the table, without
   // piling a dead entry onto the browser history.
@@ -87,43 +67,11 @@
   ]
 
   /** One scalar field of the project — one command, typed by the field. */
-  function set<F extends ProjectScalarField>(field: F, after: Project[F]): void {
-    if (!project || readOnly) return
-    dispatch({ type: 'ChangeProjectField', id: project.id, field, after } as never)
-  }
-
-  /**
-   * Renumbering: the ONE way an id changes. Uniqueness is `decide`'s check —
-   * a refused command records nothing and comes back `undefined`, which is
-   * exactly when the dialog shows the refusal, inline.
-   */
-  let renumbering = $state(false)
-  let renumberDraft = $state('')
-  /** Id of the last refused proposal — the inline message names it. */
-  let renumberTaken = $state<string | undefined>(undefined)
-
-  function openRenumber(): void {
-    if (!project) return
-    renumberDraft = project.id
-    renumberTaken = undefined
-    renumbering = true
-  }
-
-  function confirmRenumber(): void {
-    if (!project) return
-    const next = asProjectId(renumberDraft.trim())
-    if (!next || next === project.id) {
-      renumbering = false
-      return
-    }
-    const event = dispatch({ type: 'RenumberProject', id: project.id, newId: next })
-    if (event === undefined) {
-      renumberTaken = next
-      return
-    }
-    renumbering = false
-    // The route addresses the OLD id: swap it for the new one in place.
-    replaceRoute({ name: 'sheet', id: next })
+  function set<F extends ProjectScalarField>(field: F, after: Project[F]): boolean {
+    if (!project || readOnly) return false
+    return (
+      dispatch({ type: 'ChangeProjectField', id: project.id, field, after } as never) !== undefined
+    )
   }
 
   const category = $derived(project ? categoryOf(portfolio, project.categoryId) : undefined)
@@ -141,53 +89,39 @@
   </p>
 {:else}
   <div
-    class="border-border bg-background flex flex-col items-stretch gap-2.5 rounded-t-lg border border-b-0 px-[22px] py-4 max-md:px-3"
+    class="sheet-header border-border bg-background flex flex-col items-stretch gap-2.5 rounded-t-lg border border-b-0 px-[22px] py-4 max-md:px-3"
   >
     <nav class="text-muted-foreground text-xs" aria-label={te('editor.sheet.breadcrumb', language)}>
       <Button variant="link" class="h-auto p-0 text-xs underline" onclick={back}>
         {te('editor.sheet.breadcrumb', language)}
       </Button>
       <span class="text-muted-foreground mx-1.5" aria-hidden="true">/</span>
-      <span class="text-(--txt2) font-semibold">{project.id}</span>
+      <span class="text-(--txt2) font-semibold">{project.name}</span>
     </nav>
-    <div class="flex items-start gap-[18px] max-md:flex-col max-md:items-stretch max-md:gap-3">
-      <fieldset disabled={readOnly} class="flex min-w-0 flex-1 gap-4 max-md:flex-col max-md:gap-3">
-        <label class="flex w-32 flex-none flex-col max-md:w-full">
-          <span class="text-(--txt2) mb-[5px] text-[12.5px] font-semibold"
-            >{te('editor.field.id', language)}</span
-          >
-          <span class="flex items-center gap-1.5">
-            <Input
-              class="read-only:text-(--txt2) read-only:bg-[#fafafa] dark:read-only:bg-white/5"
-              value={project.id}
-              readonly
-              title={te('editor.sheet.idLocked', language)}
-              aria-label={te('editor.field.id', language)}
-            />
-            <Button
-              variant="ghost"
-              size="icon-xs"
-              class="text-muted-foreground"
-              title={te('editor.sheet.renumber', language)}
-              aria-label={te('editor.sheet.renumber', language)}
-              disabled={readOnly}
-              onclick={openRenumber}>✎</Button
-            >
-          </span>
-        </label>
+    <div class="sheet-header-grid">
+      <fieldset disabled={readOnly} class="contents">
+        <div class="sheet-header-field">
+          <FieldText
+            {language}
+            label={te('editor.field.reference', language)}
+            draftKey={JSON.stringify(['project', project.id, 'reference'])}
+            value={project.reference}
+            commit={(v) => set('reference', v?.trim() || undefined)}
+          />
+        </div>
 
-        <div class="min-w-0 flex-1">
+        <div class="sheet-header-field">
           <FieldText
             {language}
             label={te('editor.field.name', language)}
             draftKey={JSON.stringify(['project', project.id, 'name'])}
             value={project.name}
             capacity="projectName"
-            commit={(v) => set('name', v ?? project.id)}
+            commit={(v) => set('name', v ?? '')}
           />
         </div>
 
-        <div class="flex w-[210px] flex-none flex-col max-md:w-full">
+        <div class="sheet-header-category">
           <span class="text-(--txt2) mb-[5px] text-[12.5px] font-semibold"
             >{te('editor.field.categoryId', language)}</span
           >
@@ -211,12 +145,7 @@
           </Select.Root>
         </div>
       </fieldset>
-      <div class="flex flex-none flex-col">
-        <!-- Keep the action aligned to the controls' input row while the
-             name field's counter remains below its input. -->
-        <span class="text-(--txt2) invisible mb-[5px] text-[12.5px] font-semibold"
-          >{te('editor.field.name', language)}</span
-        >
+      <div class="sheet-header-preview">
         <Button onclick={() => (previewing = true)}>
           <Icon name="eye-line" />
           {te('editor.preview.button', language)}
@@ -249,7 +178,9 @@
           </ul>
         {/if}
 
-        <Tabs.Content value="state"><StateTab {project} {language} {set} /></Tabs.Content>
+        <Tabs.Content value="state"
+          ><StateTab {project} {language} {set} {scopeSuggestions} /></Tabs.Content
+        >
         <Tabs.Content value="narrative">
           <NarrativeTab {project} {language} {dispatch} {set} />
         </Tabs.Content>
@@ -275,41 +206,68 @@
     <SlidePreviewDialog
       {portfolio}
       slide={{ type: 'sheet', projectId: project.id }}
-      subject={te('editor.preview.subject.sheet', language, { id: project.id })}
+      subject={te('editor.preview.subject.sheet', language, { id: project.name })}
       close={() => (previewing = false)}
     />
   {/if}
-
-  <!-- Renumbering dialog: one Input, Confirm dispatches; a refused id keeps
-       the dialog open and says which id is taken. -->
-  {#if renumbering}
-    <Dialog.Root open onOpenChange={(o) => o || (renumbering = false)}>
-      <Dialog.Content class="w-[420px]" closeLabel={te('editor.io.close', language)}>
-        <Dialog.Header>
-          <Dialog.Title>{te('editor.sheet.renumber', language)}</Dialog.Title>
-          <Dialog.Description>
-            {te('editor.sheet.renumberPrompt', language, { id: project.id })}
-          </Dialog.Description>
-        </Dialog.Header>
-        <Input
-          bind:value={renumberDraft}
-          aria-label={te('editor.field.id', language)}
-          onkeydown={(e) => {
-            if (e.key === 'Enter') confirmRenumber()
-          }}
-        />
-        {#if renumberTaken}
-          <p class="text-destructive text-xs font-semibold" role="alert">
-            {te('editor.sheet.renumberTaken', language, { id: renumberTaken })}
-          </p>
-        {/if}
-        <Dialog.Footer>
-          <Button variant="outline" onclick={() => (renumbering = false)}>
-            {te('editor.io.cancel', language)}
-          </Button>
-          <Button onclick={confirmRenumber}>{te('editor.confirm', language)}</Button>
-        </Dialog.Footer>
-      </Dialog.Content>
-    </Dialog.Root>
-  {/if}
 {/if}
+
+<style>
+  .sheet-header {
+    container-type: inline-size;
+  }
+
+  .sheet-header-grid {
+    display: grid;
+    gap: 0.75rem 1rem;
+  }
+
+  .sheet-header-field,
+  .sheet-header-category {
+    min-width: 0;
+  }
+
+  .sheet-header-category {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sheet-header-preview {
+    display: flex;
+    align-items: start;
+  }
+
+  @container (min-width: 60rem) {
+    .sheet-header-grid {
+      grid-template-columns: 11rem minmax(15rem, 1fr) 13rem auto;
+      grid-template-rows: auto auto auto auto;
+      row-gap: 0;
+    }
+
+    .sheet-header-field,
+    .sheet-header-category,
+    .sheet-header-preview {
+      display: grid;
+      grid-row: 1 / span 4;
+      grid-template-rows: subgrid;
+    }
+
+    /* Share the label, input and counter tracks, including when a label
+       wraps. FieldText keeps its native label/input association. */
+    .sheet-header-field :global(> label) {
+      display: grid;
+      grid-row: 1 / span 4;
+      grid-template-rows: subgrid;
+    }
+
+    .sheet-header-field :global(> label > span:first-child),
+    .sheet-header-category > span {
+      align-self: end;
+    }
+
+    .sheet-header-preview :global(> button) {
+      grid-row: 2;
+      align-self: start;
+    }
+  }
+</style>

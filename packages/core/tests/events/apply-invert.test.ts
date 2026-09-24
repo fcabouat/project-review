@@ -44,24 +44,6 @@ describe('invertibility — one entry per variant of the union', () => {
   }
 })
 
-describe('invert', () => {
-  it('does not consult the portfolio (pure: same output out of context)', () => {
-    // If this breaks, the inverse of an event has stopped being computable
-    // from the event alone — the property that lets undo replay over a
-    // history reloaded from storage, without any snapshot of the portfolio.
-    const e: DomainEvent = {
-      type: 'ProjectRenumbered',
-      oldId: projectId('P-01')!,
-      newId: projectId('P-99')!,
-    }
-    expect(invert(e)).toStrictEqual({
-      type: 'ProjectRenumbered',
-      oldId: projectId('P-99')!,
-      newId: projectId('P-01')!,
-    })
-  })
-})
-
 describe('apply — expected effects', () => {
   it('changes the right field without touching the others', () => {
     const e: DomainEvent = {
@@ -136,7 +118,6 @@ describe('apply is total', () => {
     { type: 'ProjectMilestonesChanged', id: 'ABSENT', before: [], after: [] },
     { type: 'ProjectDecisionsChanged', id: 'ABSENT', before: [], after: [] },
     { type: 'ProjectMoved', id: 'ABSENT', from: 0, to: 1 },
-    { type: 'ProjectRenumbered', oldId: projectId('ABSENT')!, newId: projectId('P-99')! },
     { type: 'ProjectDeleted', project: { ...NEW_PROJECT, id: projectId('ABSENT')! }, index: 0 },
     { type: 'CategoryRenamed', id: 'ABSENT', before: 'a', after: 'b' },
     { type: 'CategoryRecolored', id: 'ABSENT', before: 'blue', after: 'red' },
@@ -163,38 +144,6 @@ describe('apply is total', () => {
   it('clamps an out-of-range move destination without throwing', () => {
     const q = apply(p, { type: 'ProjectMoved', id: 'P-01', from: 0, to: 99 })
     expect(q.projects.map((x) => x.id)).toEqual(['P-02', 'P-03', 'P-01'])
-  })
-})
-
-describe('renumbering', () => {
-  const renumbered: DomainEvent = {
-    type: 'ProjectRenumbered',
-    oldId: projectId('P-01')!,
-    newId: projectId('P-99')!,
-  }
-  const changed: DomainEvent = {
-    type: 'ProjectFieldChanged',
-    id: 'P-99',
-    field: 'health',
-    before: 'watch',
-    after: 'critical',
-  }
-
-  it('allows editing the project under its new id', () => {
-    const q = apply(apply(p, renumbered), changed)
-    expect(q.projects.map((x) => x.id)).toEqual(['P-99', 'P-02', 'P-03'])
-    expect(projectOf(q, 'P-99').health).toBe('critical')
-    expect(projectOf(q, 'P-99').name).toBe(projectOf(p, 'P-01').name)
-  })
-
-  it('undoes in reverse order and restores the initial state', () => {
-    const q = apply(apply(p, renumbered), changed)
-    const back = apply(apply(q, invert(changed)), invert(renumbered))
-    expect(back).toStrictEqual(p)
-  })
-
-  it('keeps the position of the project', () => {
-    expect(apply(p, renumbered).projects.map((x) => x.id)).toEqual(['P-99', 'P-02', 'P-03'])
   })
 })
 

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ProjectLabel from '../commons/ProjectLabel.svelte'
   /**
    * Recap "Where do projects stand?":
    * one row per tracked project, paginated by `recapRows`.
@@ -99,16 +100,17 @@
 
   {@const TH =
     'px-[9px] py-[9px] text-xs leading-[1.45] font-bold tracking-[0.02em] print:px-1.5 print:text-[11.5px]'}
-  {@const TD = 'px-[9px] py-1 align-middle print:px-1.5 print:py-[5px]'}
+  {@const tagged = rows.some((row) => row.project.scopeTags?.length)}
+  {@const TD = `px-[9px] align-middle print:px-1.5 ${tagged ? 'py-0.5' : 'py-1 print:py-[5px]'}`}
   <table class="table table--recap w-full table-fixed">
-    <!-- The print canvas is narrower than the screen one: the same eight widths,
+    <!-- The print canvas is narrower than the screen one: the same seven widths,
          scaled by 0.87, keep every column — including Decision — on the page. -->
     <colgroup>
-      <col class="w-[50px] print:w-[44px]" /><col class="w-[232px] print:w-[202px]" /><col
-        class="w-[196px] print:w-[170px]"
-      /><col class="w-[174px] print:w-[151px]" /><col class="w-[90px] print:w-[78px]" /><col
-        class="w-[132px] print:w-[115px]"
-      /><col class="w-[173px] print:w-[150px]" /><col class="w-[74px] print:w-[64px]" />
+      <col class="w-[282px] print:w-[246px]" /><col class="w-[196px] print:w-[170px]" /><col
+        class="w-[174px] print:w-[151px]"
+      /><col class="w-[90px] print:w-[78px]" /><col class="w-[132px] print:w-[115px]" /><col
+        class="w-[173px] print:w-[150px]"
+      /><col class="w-[74px] print:w-[64px]" />
     </colgroup>
     <thead>
       <tr>
@@ -122,8 +124,9 @@
     <tbody>
       {#each rows as row (row.project.id)}
         <tr class="h-10 print:h-11">
-          <td class="num {TD} text-[12.5px] font-bold print:text-[12px]">{row.project.id}</td>
-          <td class="name {TD} text-[13px] leading-[1.22] print:text-[12px]">{row.project.name}</td>
+          <td class="name {TD} text-[13px] leading-[1.22] print:text-[12px]"
+            ><ProjectLabel project={row.project} {language} /></td
+          >
           <td class="{TD} text-[13px] print:text-[12.5px]" style:--cat={row.color}
             ><span
               class="pill inline-flex h-5 items-center px-2 text-[11px] font-bold whitespace-nowrap print:h-[19px] print:px-[5px] print:text-[9.5px]"

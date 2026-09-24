@@ -17,7 +17,7 @@ export type Anchor =
   | { readonly type: 'closing' }
 
 /** Hand-written slide (title + bullet blocks) woven into the generated deck at
- * its {@link Anchor}. Ids are minted by `nextFreeSlideId` (values/ids.ts). */
+ * its {@link Anchor}. Ids are minted at the application boundary. */
 export interface FreeSlide {
   readonly id: FreeSlideId
   readonly anchor: Anchor

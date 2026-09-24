@@ -47,12 +47,11 @@ export interface Review {
 /**
  * Everything on the SETTINGS side of the content/settings boundary:
  * how the deck looks and which aggregate slides it shows, never what it says.
- * A content-only import preserves this block except the language, which
- * follows the incoming content so its generated labels stay consistent.
+ * A content-only import preserves this block unless explicitly selected.
  */
 export interface Settings {
   readonly language: Language
-  /** Absent in older v3 files: sections, preserving their original navigation. */
+  /** Absent in older v4 files: sections, preserving their original navigation. */
   readonly navigation?: NavigationMode
   readonly identity: Identity
   /** Runtime presentation choices: layout family, color family and font family (a family this build carries, one deployed beside the app, or one embedded below; system fallback stack in every case). Three of them can be CARRIED BY THE FILE rather than chosen from what the build offers — the inline logo (`identity.logo`), the embedded font faces and the custom palette: absent means "nothing carried" (the meaningful default, so an export without them stays byte-identical). `customPalette`, when present, takes precedence over `palette`. */
@@ -82,7 +81,7 @@ export interface Settings {
  * carried by the move events.
  */
 export interface Portfolio {
-  readonly version: 3
+  readonly version: 4
   readonly review: Review
   readonly settings: Settings
   readonly categories: readonly Category[]

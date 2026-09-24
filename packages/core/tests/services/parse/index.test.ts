@@ -32,7 +32,7 @@ function faults(r: ParseResult): readonly string[] {
 }
 
 describe('acceptance — a contract-valid file parses whole', () => {
-  it('navigation is optional in v3 and both file gates agree on its closed values', () => {
+  it('navigation is optional in v4 and both file gates agree on its closed values', () => {
     const validate = new Ajv({ strict: false }).compile(schema)
     for (const navigation of [undefined, 'sections', 'linear', 'diagonal', null, 1]) {
       const source = JSON.parse(
@@ -55,7 +55,7 @@ describe('acceptance — a contract-valid file parses whole', () => {
     const r = parsePortfolio(rawPortfolio())
     expect(r.ok).toBe(true)
     if (!r.ok) return
-    expect(r.portfolio.version).toBe(3)
+    expect(r.portfolio.version).toBe(4)
     expect(deck(r.portfolio).length).toBeGreaterThanOrEqual(2)
   })
 
@@ -123,7 +123,7 @@ describe('refusal — structure', () => {
     ])
   })
 
-  it('refuses version ≠ 3', () => {
+  it('refuses version ≠ 4', () => {
     expect(faults(parsePortfolio(rawPortfolio({ version: 2 })))).toEqual(['version invalidVersion'])
   })
 
@@ -811,6 +811,22 @@ describe('the report is exhaustive, never first-fault', () => {
 describe('sample data — schema and parse agree', () => {
   const ajv = new Ajv({ allErrors: true })
   const validate = ajv.compile(schema)
+
+  it('agrees on lowercase scope tags with digits and hyphens, without silently repairing imports', () => {
+    for (const [scopeTags, accepted] of [
+      [['#noemi', '#ate', '#site-06', '#mixed-case-07'], true],
+      [['#NoeMI'], false],
+      [['#under_score'], false],
+      [['#invalid!'], false],
+      [['#two words'], false],
+      [['#accenté'], false],
+      [['#tag', '#tag'], false],
+    ] as const) {
+      const raw = rawPortfolio({ projects: [rawProject({ scopeTags })] })
+      expect(validate(raw)).toBe(accepted)
+      expect(parsePortfolio(raw).ok).toBe(accepted)
+    }
+  })
 
   it('refuses malformed Unicode in ids and category references on both sides', () => {
     for (const id of ['\ud800', '\udfff', 'a\ud800b']) {

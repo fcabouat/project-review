@@ -13,7 +13,6 @@ import { apply, type DomainEvent } from '../../src/events'
 import { HISTORY_LIMIT } from '../../src/events/history'
 import type { Command } from '../../src/commands'
 import { progressOf } from '../../src/values/progress'
-import { projectId } from '../../src/values/ids'
 import { execute, hydrate, redo, undo, type RuntimeState } from '../../src/runtime/editing'
 import { otherPortfolio, projectOf, testPortfolio } from '../fixtures/hand-built-portfolios'
 
@@ -109,18 +108,6 @@ describe('execute(command)', () => {
     expect(event).toBeUndefined()
     expect(state.log.past).toEqual([])
   })
-
-  it('a refused renumbering (taken id) records nothing and says so', () => {
-    const s0 = hydrate(testPortfolio())
-    const { state, event } = execute(s0, {
-      type: 'RenumberProject',
-      id: projectId('P-01')!,
-      newId: projectId('P-02')!,
-    })
-    expect(event).toBeUndefined()
-    expect(state.log.past).toEqual([])
-    expect(state.present).toStrictEqual(testPortfolio())
-  })
 })
 
 describe('undo / redo across the whole (bounded) history', () => {
@@ -195,27 +182,6 @@ describe(`bounded history — ${HISTORY_LIMIT} events in the log`, () => {
     expect(undos).toBe(HISTORY_LIMIT)
     // The dropped first edit stays applied for good.
     expect(s.present).not.toStrictEqual(testPortfolio())
-  })
-})
-
-describe('renumbering through the loop', () => {
-  it('stays consistent then undoes entirely', () => {
-    const initial = testPortfolio()
-    let s = hydrate(initial)
-
-    s = run(s, { type: 'RenumberProject', id: projectId('P-01')!, newId: projectId('P-99')! })
-    s = run(s, { type: 'ChangeProjectField', id: 'P-99', field: 'health', after: 'critical' })
-
-    expect(s.present.projects.map((x) => x.id)).toEqual(['P-99', 'P-02', 'P-03'])
-    expect(projectOf(s.present, 'P-99').health).toBe('critical')
-
-    s = undo(s)
-    expect(projectOf(s.present, 'P-99').health).toBe('watch')
-    s = undo(s)
-    expect(s.present).toStrictEqual(initial)
-
-    s = redo(redo(s))
-    expect(projectOf(s.present, 'P-99').health).toBe('critical')
   })
 })
 

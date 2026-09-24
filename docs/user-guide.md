@@ -43,8 +43,9 @@ import is a single history entry — Ctrl+Z undoes it. The optional example-data
 link (`?sample`) opens the same set in read-only mode. **Replace the portfolio**
 restores a complete file; **Mix — choose what to import** previews changes and lets you
 select review/language/identity (including logo)/theme/display blocks and then
-categories, projects and free slides individually. Selected matching IDs are
-replaced; unselected items are never deleted. Appearance profiles contain only
+categories, projects and free slides individually. Known identities keep the local
+version unless you explicitly choose replacement or an independent copy.
+Unselected items are never deleted. Appearance profiles contain only
 settings and categories and can only be mixed.
 
 <!-- Every picture in this guide is remade by one command, never by hand:
@@ -63,7 +64,7 @@ From there:
   project belongs to one category.
 
 Every view is an address: `#/review`, `#/projects`, `#/settings`,
-`#/history` — and `#/sheet/P-01` for a project sheet. The sidebar entries are
+`#/history` — and `#/sheet/<technical-id>` for a project sheet. The sidebar entries are
 real links, the browser's back and forward buttons walk your navigation, and a
 sheet's URL can be bookmarked or shared as a deep link, even from `file://`.
 
@@ -72,12 +73,12 @@ sheet's URL can be bookmarked or shared as a deep link, even from `file://`.
 <img src="images/en-projects.png" width="720" alt="Projects view: the portfolio grouped by category">
 
 Click a project row (or its pencil button) to open its sheet. The sheet editor
-has five tabs: **Frame & status**, **Narrative**, **Decisions**,
+has five tabs: **Identity**, **Updates**, **Decisions**,
 **Milestones & dates**, **Options**.
 
-<img src="images/en-sheet.png" width="720" alt="Sheet editor: Frame & status tab of a project">
+<img src="images/en-sheet.png" width="720" alt="Sheet editor: project identity and status">
 
-- The **⋯** button at the start of a row opens the row menu: **Move up**,
+- The pencil and **⋯** buttons sit at the end of each row. The latter opens the row menu: **Move up**,
   **Move down** and **Delete** (with a confirmation).
 - Changes are recorded when fields lose focus. A decision outcome commits its
   text and date together. The close/reload hook commits complete valid drafts
@@ -85,7 +86,7 @@ has five tabs: **Frame & status**, **Narrative**, **Decisions**,
   separately after 1.5 seconds idle, or after 10 seconds of continuous typing.
   These checkpoints add no undo steps. Reopen the same fields after reloading
   to resume editing; the model and slide exports change only on validation.
-  Search filters and confirmation dialogs (such as renumbering) stay temporary UI state.
+  Search filters and confirmation dialogs (such as deletion) stay temporary UI state.
   Check the save status and keep JSON backups.
 - Undo/redo keeps up to 500 actions, additionally limited by a memory budget:
   **Ctrl+Z** / **Ctrl+Y**, or the top-bar arrows. Older entries are discarded.
@@ -93,6 +94,26 @@ has five tabs: **Frame & status**, **Narrative**, **Decisions**,
   the current position; clicking through it replays or unwinds the changes.
 - The **Preview the slide** button (eye) renders the slide a project or a free
   slide will produce, without generating the whole deck.
+
+### Scope and bulk actions
+
+Under **Identity → Scope (tags)**, enter `#site-north` or `#team-06`, then press
+**Enter**, a comma or **Add**. After `#`, only `a–z`, `0–9` and `-` are accepted:
+at most 63 characters and 32 tags per project. Typed uppercase letters become lowercase
+and underscores become hyphens. A missing `#` is added and duplicates are ignored after
+normalization. Tags already used in the portfolio are suggested to reuse a shared
+vocabulary; removing a tag affects only the current project. The free-form details field
+is no longer offered. Existing files may still contain `scope`: it remains readable and
+is preserved on export, without implicit conversion on import. Tags appear in the
+project list and summaries and are included in search.
+Tags are sorted alphabetically in the editor, slides and JSON exports.
+On slides, tags and metadata are limited to two display lines to preserve the layout;
+the full text remains available on hover and in the JSON.
+
+In **Projects**, choose **Select projects**, tick the desired rows or **Select all visible**,
+then choose a **category** or **stage** and **Apply to selected**. Only selected projects
+currently visible are affected: search-filtered rows and collapsed archives are not changed.
+The whole operation can be undone in one step; bulk deletion is not offered.
 
 ## The deck
 
@@ -103,13 +124,15 @@ the archives, and the record of previous decisions. All of it is derived from
 the portfolio when the slideshow is generated; slides are never edited
 directly — change the data instead.
 
-Whether a project gets a detail sheet is its **Detail slide** option (Options
+Whether a project gets a detail sheet is its **Detail slide display** option (Options
 tab, also the A/A/N shortcuts in the project list):
 
 - **Auto** — sheet shown when the project is ready, in progress or in
   residuals, or carries a pending decision.
 - **Always** — sheet shown no matter what.
 - **Never** — the project only appears in the recap.
+
+Buttons use these short labels; the selected mode's explanation appears underneath.
 
 **Settings > Slideshow** switches the health dashboard, the recap, the
 archives and the decisions slides on or off.
@@ -136,7 +159,7 @@ in the standalone HTML export. Printing and page numbering are unchanged.
 
 <img src="images/en-navigation.png" width="420" alt="Slideshow settings with By section and Linear navigation choices">
 
-When `settings.navigation` is absent from a v3 portfolio, section navigation
+When `settings.navigation` is absent from a v4 portfolio, section navigation
 is used by default.
 
 <img src="images/en-slide.png" width="720" alt="A project sheet slide in the flat style">
@@ -197,8 +220,38 @@ application, and the files travel however you like (mail, file share…).
 3. **Mix.** Import the returned file and choose **Mix — choose what to import**.
    Nothing is selected implicitly: choose desired categories and projects, plus
    any review, language, identity, theme or display blocks. Unchecked blocks
-   preserve review, identity, presentation and free slides; selected matching
-   IDs replace in place, new IDs are added, and nothing is deleted.
+   preserve review, identity, presentation and free slides. Unknown identities are
+   added. Identical known items are skipped; differing ones offer a comparison
+   and an explicit choice: keep local, take the entire incoming item or add an
+   independent copy. Names and business references never establish a match.
+   Select required categories or map them to local categories. Replacing a category
+   also affects local projects using it. Nothing is deleted and no field-level merge occurs.
+
+### Identities and references
+
+New projects receive a random, stable, read-only technical identity. Exports preserve it;
+inspect and copy it under **Options → Project metadata**. The business reference is
+optional and reserves no column or slide space when absent. It never identifies updates.
+**Last modified**, in the same section, records the local day of creation or the last
+actual content edit. Unchanged values and list reordering do not update it; multiple
+edits on the same day retain that date. Undo/redo restores both content and date in the
+same step. Imports preserve the date carried by the file rather than using the import day.
+
+Project leads appear in the list and below titles in summaries. Recap pagination is
+capped at **6 projects per page with tags**, otherwise **10 with leads**, even when a
+higher density is requested; a lower configured limit is respected.
+
+The JSON `version` field identifies the **data format version**, independently of the
+application version. The JSON schema `packages/core/samples/portfolio.schema.json`
+and fictional samples are tracked in Git; the application does not add or upload personal
+portfolios to the repository. Incompatible format changes require a new format version;
+interface changes do not.
+
+The current file format is **v4**. Export your portfolio before upgrading from an older
+application. v3 files require a one-off external conversion; browser history and drafts
+are not automatically migrated. Unreadable browser saves remain recoverable rather than
+being silently erased. After conversion, share the same v4 file: converting separate old
+copies would give them different identities.
 
 <img src="images/en-import-merge.png" width="720" alt="The import mode choice: replace or merge, with the counted preview and the list of replaced projects">
 
@@ -268,7 +321,7 @@ for non-confidential data.
 ## On a phone or tablet
 
 The editor adapts below desktop widths: the sidebar becomes a drawer behind
-the ☰ button, forms stack, and the wide tables (the portfolio, the
+the ☰ button, forms and project rows stack, and wide tables (such as
 milestones) scroll sideways inside their own frame — the page itself never
 scrolls horizontally. The slideshow scales its 16:9 slides to fit the screen,
 and its exit bar stays visible on touch screens. Everything works on a phone;

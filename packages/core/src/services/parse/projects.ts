@@ -4,6 +4,7 @@
  * the model; `categoryId` may be `""` (the sanctioned "unassigned" reference,
  * values/ids.ts) but must be present.
  */
+import { validScopeTags } from '../../values/scope-tags'
 import type { Decision, Milestone, Project } from '../../model/project'
 import { HEALTH_LEVELS, PRIORITIES, SHEET_MODES, STAGES } from '../../model/project'
 import { DECISION_KEYS, MILESTONE_KEYS, OUTCOME_KEYS, PROJECT_KEYS } from '../../model/contract'
@@ -100,8 +101,15 @@ export function parseProjects(x: unknown, errors: Errors): readonly Project[] {
       }
     }
 
+    const scopeTags = o['scopeTags']
+    if (scopeTags !== undefined && !validScopeTags(scopeTags))
+      fail(errors, path + '.scopeTags', 'wrongType', {
+        expected: '0–32 unique hashtags: #[a-z0-9-]+, max 64 characters each',
+      })
+
     projects.push({
       id: idStr(o['id'], seen, `${path}.id`, errors) as ProjectId,
+      reference: optStr(o['reference'], `${path}.reference`, errors),
       name: str(o['name'], `${path}.name`, errors) ?? '',
       categoryId: categoryId as CategoryId,
       priority: enumVal(o['priority'], PRIORITIES, `${path}.priority`, errors),
@@ -112,6 +120,7 @@ export function parseProjects(x: unknown, errors: Errors): readonly Project[] {
       lead: optStr(o['lead'], `${path}.lead`, errors),
       sponsor: optStr(o['sponsor'], `${path}.sponsor`, errors),
       scope: optStr(o['scope'], `${path}.scope`, errors),
+      scopeTags: validScopeTags(scopeTags) ? scopeTags : undefined,
       goal: str(o['goal'], `${path}.goal`, errors) ?? '',
       budget: optStr(o['budget'], `${path}.budget`, errors),
       start: dateVal(o['start'], `${path}.start`, errors),

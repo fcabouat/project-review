@@ -70,7 +70,7 @@
     readonly route: Route
     /** Pushes a new history entry. */
     readonly navigate: (route: Route) => void
-    /** Replaces the current entry — redirects (unknown sheet id, renumbering). */
+    /** Replaces the current entry — redirects (unknown sheet id). */
     readonly replaceRoute: (route: Route) => void
     /** Local-save switch (Settings ▸ Data); absent → the row is not shown. */
     readonly persistence?: PersistenceControl

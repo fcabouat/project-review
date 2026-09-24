@@ -5,7 +5,7 @@
    * Export = serialise the portfolio — whole by default, or a PARTIAL file
    * from the category-grouped checkboxes: the selected projects, THEIR
    * categories and the current frame (`partialPortfolio`, core), still a
-   * valid stand-alone v3 file a colleague opens alone in the app.
+   * valid stand-alone v4 file a colleague opens alone in the app.
    *
    * Import = strict parsing, then a preview of either full replacement or
    * selected blocks/items. The exact candidate becomes ONE undoable

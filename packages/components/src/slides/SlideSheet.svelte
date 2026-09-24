@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { orderedScopeTags } from '@project-review/core/values/scope-tags'
   /**
    * Project sheet — the reference
    * template, a banded composition:
@@ -52,9 +53,17 @@
       [
         ['sheet.lead', project?.lead],
         ['sheet.sponsor', project?.sponsor],
-        ['sheet.scope', project?.scope],
+        [
+          'sheet.scope',
+          [orderedScopeTags(project?.scopeTags).join(' '), project?.scope]
+            .filter(Boolean)
+            .join(' · ') || undefined,
+        ],
       ] as const
     ).flatMap(([key, value]) => (value ? [{ key, value }] : [])),
+  )
+  const metaText = $derived(
+    meta.map((item) => `${fieldLabel(item.key, language)}${item.value}`).join(' · '),
   )
 
   const narratives = $derived<readonly { variant: NarrativeVariant; lines: readonly string[] }[]>([
@@ -84,14 +93,17 @@
     {#snippet heading()}
       {#if flat}
         <!-- flat: the id moves from the meta line up to the kicker -->
-        <div class="flat-kicker">{categoryName(category, language)} · {project.id}</div>
+        <div class="flat-kicker">
+          {categoryName(category, language)}{#if project.reference}
+            · {project.reference}{/if}
+        </div>
         <h2>{project.name}</h2>
         <div class="flat-headrow">
           <StageChip {project} {language} />
           <HealthDot health={project.health} {language} shape="chip" />
           <PriorityBadge priority={project.priority} {language} />
           {#if meta.length > 0}
-            <span class="flat-meta">
+            <span class="flat-meta line-clamp-2 min-w-0 flex-1 break-words" title={metaText}>
               {#each meta as item, i (item.key)}{#if i > 0}{' · '}{/if}{fieldLabel(
                   item.key,
                   language,
@@ -115,11 +127,13 @@
           </div>
         </div>
         <div
-          class="sheet-meta mt-1.5 flex-none text-[13px] leading-[18px] print:text-[12.5px] print:leading-[17px]"
+          class="sheet-meta mt-1.5 line-clamp-2 flex-none text-[13px] leading-[18px] break-words print:text-[12.5px] print:leading-[17px]"
+          title={[project.reference, metaText].filter(Boolean).join(' · ')}
         >
-          {project.id}{#each meta as item (item.key)}{' · '}{fieldLabel(item.key, language)}<b
-              >{item.value}</b
-            >{/each}
+          {#if project.reference}{project.reference}{/if}{#each meta as item, i (item.key)}{#if project.reference || i > 0}{' · '}{/if}{fieldLabel(
+              item.key,
+              language,
+            )}<b>{item.value}</b>{/each}
         </div>
       {/if}
     {/snippet}

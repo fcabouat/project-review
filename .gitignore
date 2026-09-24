@@ -32,3 +32,7 @@ storybook-static
 # Local working notes, kept out of the published tree
 internal
 _site
+
+# Personal portfolios, if copied here for local use; fictional samples remain tracked.
+/project-review.json
+/project-review-tags.json

@@ -6,7 +6,7 @@
  * fallback, no id dedup-suffix, no clamping. Unknown keys refuse too — the
  * contract is closed (`portfolio.schema.json` states the same rules).
  *
- * The parser reads the `version: 3` shape ONLY: a file whose top-level keys
+ * The parser reads the `version: 4` shape ONLY: a file whose top-level keys
  * are not the schema's is refused with its error list — no repair, no
  * guessing.
  *
@@ -120,7 +120,7 @@ export function parsePortfolio(unknownInput: unknown): ParseResult {
   }
 
   checkKeys(root, '', PORTFOLIO_KEYS, errors)
-  if (root['version'] !== undefined && root['version'] !== 3) {
+  if (root['version'] !== undefined && root['version'] !== 4) {
     fail(errors, 'version', 'invalidVersion', { value: String(root['version']) })
   }
 
@@ -133,6 +133,6 @@ export function parsePortfolio(unknownInput: unknown): ParseResult {
   if (errors.length > 0) return { ok: false, errors }
   return {
     ok: true,
-    portfolio: { version: 3, review, settings, categories, projects, freeSlides },
+    portfolio: { version: 4, review, settings, categories, projects, freeSlides },
   }
 }

@@ -8,6 +8,10 @@ import { access, mkdtemp, readFile, rm } from 'node:fs/promises'
 import { serve } from './server.mjs'
 import { checkImportSelection } from './import-selection.mjs'
 import { checkTimeline } from './timeline.mjs'
+import { checkIdentities, checkSummaryLeads } from './identities.mjs'
+import { checkSheetPolish } from './sheet-polish.mjs'
+import { checkBulkProjects } from './bulk-projects.mjs'
+import { checkScopeTags } from './scope-tags.mjs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -21,6 +25,9 @@ const FONT_FIXTURE = resolve(import.meta.dirname, 'fixtures/TestFace-Regular.wof
 /** The sample data set (fr and en alike) holds 20 projects, deriving 34 slides. */
 const SAMPLE_PROJECTS = 20
 const SAMPLE_SLIDES = 34
+const SAMPLE_FIRST_ID = JSON.parse(
+  await readFile(join(ROOT, 'dist/sample-portfolio.fr.json'), 'utf8'),
+).projects[0].id
 
 let failures = 0
 const check = (ok, label) => {
@@ -61,6 +68,12 @@ async function bootEditableSample(page, appUrl, lang = 'fr') {
   await page
     .getByRole('textbox', { name: lang === 'fr' ? 'JSON à importer' : 'JSON to import' })
     .fill(JSON.stringify(source))
+  await page
+    .getByRole('radio', {
+      name: lang === 'fr' ? 'Remplacer tout le portefeuille' : 'Replace the whole portfolio',
+      exact: true,
+    })
+    .check()
   await page
     .getByRole('button', {
       name: new RegExp(lang === 'fr' ? 'Remplacer le portefeuille' : 'Replace the portfolio'),
@@ -108,6 +121,11 @@ async function main() {
 
   try {
     await checkTimeline(browser, HTTP_ORIGIN, ROOT)
+    await checkIdentities(browser, HTTP_APP)
+    await checkSummaryLeads(browser, HTTP_APP)
+    await checkSheetPolish(browser, HTTP_APP)
+    await checkBulkProjects(browser, HTTP_APP)
+    await checkScopeTags(browser, HTTP_APP)
     /* ---- 1. file://: empty boots, and ?sample reports a load error ---- */
     await emptyBoot(browser, 'fr-FR', 'fr', 'Projets')
     await emptyBoot(browser, 'en-US', 'en', 'Projects')
@@ -152,14 +170,16 @@ async function main() {
     )
 
     // 3. hash navigation: the sheet of P-01, then back.
-    await page.goto(`${HTTP_APP}?sample#/sheet/P-01`)
+    await page.goto(`${HTTP_APP}?sample#/sheet/${SAMPLE_FIRST_ID}`)
     await settle(page)
     check(
       await page.getByRole('button', { name: '‹ Portefeuille' }).isVisible(),
       'navigation: #/sheet/P-01 shows the sheet screen',
     )
     check(
-      (await page.getByRole('textbox', { name: 'ID', exact: true }).inputValue()) === 'P-01',
+      (await page
+        .getByRole('textbox', { name: 'Référence métier (facultative)', exact: true })
+        .inputValue()) === 'P-01',
       'navigation: the sheet is P-01',
     )
     await page.goBack()
@@ -411,10 +431,14 @@ async function main() {
     // Open the P-01 sheet from the table: the edit control sits at the far
     // right of the 11-column grid — Playwright scrolls it into view inside
     // the internal scroller, exactly like a finger would.
-    await mp.getByRole('button', { name: 'Modifier P-01' }).click()
+    await mp
+      .getByRole('button', { name: 'Modifier Renouvellement des stations graphiques' })
+      .click()
     await settle(mp)
     check(
-      (await mp.getByRole('textbox', { name: 'ID', exact: true }).inputValue()) === 'P-01',
+      (await mp
+        .getByRole('textbox', { name: 'Référence métier (facultative)', exact: true })
+        .inputValue()) === 'P-01',
       'mobile: the sheet P-01 opens from the table',
     )
     await noBodyScroll('sheet')
@@ -467,7 +491,7 @@ async function main() {
     // revision read fine, the strict parse is what refuses — the realistic
     // corruption, and the one that exercises the whole reading path.
     const CORRUPT =
-      '{"format":1,"revision":7,"portfolio":{"version":3,"review":{"title":"Revue du 3 mars"},' +
+      '{"format":1,"revision":7,"portfolio":{"version":4,"review":{"title":"Revue du 3 mars"},' +
       '"was":"a portfolio"},"history":{"past":[],"future":[]}}'
     const rescue = await browser.newContext({ locale: 'fr-FR' })
     const rp = await rescue.newPage()
@@ -744,7 +768,7 @@ async function main() {
     )
 
     // Compact milestone cells share the same draft primitive.
-    await midPage.goto(`${HTTP_APP}#/sheet/P-01`)
+    await midPage.goto(`${HTTP_APP}#/sheet/${SAMPLE_FIRST_ID}`)
     await settle(midPage)
     // The sheet is in tabs; the milestone table lives on « Jalons & dates ».
     const openMilestones = async () => {
@@ -963,7 +987,7 @@ async function main() {
       await lp.getByTestId('demo-readonly-notice').isVisible(),
       'demo: readonly notice remains visible',
     )
-    await lp.goto(`${HTTP_APP}?sample&lang=en#/sheet/P-01`)
+    await lp.goto(`${HTTP_APP}?sample&lang=en#/sheet/${SAMPLE_FIRST_ID}`)
     const demoName = lp.getByRole('textbox', { name: 'Name', exact: true })
     check(await demoName.isDisabled(), 'demo: project fields cannot be edited')
     check(
@@ -987,6 +1011,7 @@ async function main() {
     await ip.goto(HTTP_APP)
     await ip.getByRole('button', { name: 'Import…' }).click()
     await ip.getByRole('textbox', { name: 'JSON to import' }).fill(JSON.stringify(sampleSource))
+    await ip.getByRole('radio', { name: 'Replace the whole portfolio', exact: true }).check()
     await ip.getByRole('button', { name: /Replace the portfolio/ }).click()
     await ip.getByRole('button', { name: 'Importer…' }).waitFor()
     check(
@@ -1031,6 +1056,7 @@ async function main() {
 
     await up.getByRole('button', { name: 'Importer…' }).click()
     await up.getByRole('textbox', { name: 'JSON à importer' }).fill(importedJson)
+    await up.getByRole('radio', { name: 'Remplacer tout le portefeuille', exact: true }).check()
     const replaceButton = up.getByRole('button', { name: /Remplacer le portefeuille/ })
     await replaceButton.waitFor({ state: 'visible' })
     const undoButton = up.getByRole('button', { name: 'Annuler', exact: true })

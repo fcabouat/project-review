@@ -8,7 +8,6 @@
  */
 
 import { isoDate } from '../../src/values/date'
-import { projectId } from '../../src/values/ids'
 import { progressOf } from '../../src/values/progress'
 import type { DomainEvent } from '../../src/events/index'
 import type { Command } from '../../src/commands/index'
@@ -25,7 +24,6 @@ import {
 } from './hand-built-portfolios'
 
 const d = (x: string) => isoDate(x)!
-const pid = (x: string) => projectId(x)!
 
 /** The portfolio every pair's `before` is read from. */
 const p = testPortfolio()
@@ -80,6 +78,18 @@ export const COMMAND_SAMPLES: CommandSamples = {
     command: { type: 'MoveCategory', id: 'infra', to: 1 },
     event: { type: 'CategoryMoved', id: 'infra', from: 0, to: 1 },
   },
+  ChangeProjects: {
+    command: {
+      type: 'ChangeProjects',
+      ids: [p.projects[0]!.id],
+      change: { field: 'stage', after: 'closed' },
+    },
+    event: {
+      type: 'ProjectsChanged',
+      before: [p.projects[0]!],
+      after: [{ ...p.projects[0]!, stage: 'closed' }],
+    },
+  },
   CreateProject: {
     command: { type: 'CreateProject', project: NEW_PROJECT, index: 3 },
     event: { type: 'ProjectCreated', project: NEW_PROJECT, index: 3 },
@@ -91,10 +101,6 @@ export const COMMAND_SAMPLES: CommandSamples = {
   MoveProject: {
     command: { type: 'MoveProject', id: 'P-01', to: 2 },
     event: { type: 'ProjectMoved', id: 'P-01', from: 0, to: 2 },
-  },
-  RenumberProject: {
-    command: { type: 'RenumberProject', id: pid('P-01'), newId: pid('P-99') },
-    event: { type: 'ProjectRenumbered', oldId: pid('P-01'), newId: pid('P-99') },
   },
   ChangeProjectField: {
     command: { type: 'ChangeProjectField', id: 'P-01', field: 'progress', after: progressOf(75)! },

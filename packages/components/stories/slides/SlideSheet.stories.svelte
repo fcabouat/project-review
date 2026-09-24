@@ -27,15 +27,15 @@
 </script>
 
 <!-- P-04, median case: the reference frame. -->
-<Story name="P-04 — median" args={{ projectId: 'P-04', page: 12 }} />
+<Story name="P-04 — median" args={{ projectId: project('P-04').id, page: 12 }} />
 
 <!-- P-09, dense case: 5 + 3 + 4 bullets, a 240-character goal, 6 milestones
      two of which are 12 days apart. It must hold without overflowing. -->
-<Story name="P-09 — dense" args={{ projectId: 'P-09', page: 19 }} />
+<Story name="P-09 — dense" args={{ projectId: project('P-09').id, page: 19 }} />
 
 <!-- P-03, minimal case: actual end instead of target end, no sponsor, "RAS"
      risks and the neutral "no pending decision" band. It must breathe. -->
-<Story name="P-03 — minimal" args={{ projectId: 'P-03', page: 10 }} />
+<Story name="P-03 — minimal" args={{ projectId: project('P-03').id, page: 10 }} />
 
 <!-- Reference plate of the risks band (out of deck): the health level chooses
      the tone and the title; an empty text gives the neutral "RAS" band. -->

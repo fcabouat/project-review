@@ -10,6 +10,7 @@
   import { te } from '../../i18n'
   import { BAND_COLOR } from '../../commons/band-color'
   import FieldText from '../../editor/FieldText.svelte'
+  import ScopeTags from '../../editor/ScopeTags.svelte'
   import FieldSegmented from '../../editor/FieldSegmented.svelte'
   import FieldSwitch from '../../editor/FieldSwitch.svelte'
   import * as RadioGroup from '../../commons/ui/radio-group'
@@ -17,10 +18,11 @@
   interface Props {
     readonly project: Project
     readonly language: Language
-    readonly set: <F extends ProjectScalarField>(field: F, after: Project[F]) => void
+    readonly scopeSuggestions?: readonly string[]
+    readonly set: <F extends ProjectScalarField>(field: F, after: Project[F]) => boolean
   }
 
-  let { project, language, set }: Props = $props()
+  let { project, language, scopeSuggestions = [], set }: Props = $props()
 
   const progressPct = $derived(project.progress ?? 0)
 
@@ -68,6 +70,7 @@
 
     <FieldSwitch
       label={te('editor.field.onHold', language)}
+      hint={te('editor.hint.onHold', language)}
       checked={project.onHold}
       commit={(v) => set('onHold', v)}
     />
@@ -155,13 +158,12 @@
       capacity="projectPerson"
       commit={(v) => set('sponsor', v)}
     />
-    <FieldText
+    <ScopeTags
       {language}
-      label={te('editor.field.scope', language)}
-      draftKey={JSON.stringify(['project', project.id, 'scope'])}
-      value={project.scope}
-      hint={te('editor.hint.scope', language)}
-      commit={(v) => set('scope', v)}
+      value={project.scopeTags}
+      suggestions={scopeSuggestions}
+      draftKey={JSON.stringify(['project', project.id, 'scopeTags'])}
+      commit={(v) => set('scopeTags', v)}
     />
     <FieldText
       {language}

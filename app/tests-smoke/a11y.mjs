@@ -42,6 +42,8 @@ async function scan(page, surface, mode) {
 
 async function editorPass(browser, base, mode) {
   const sample = JSON.parse(await readFile(join(DIST, 'sample-portfolio.fr.json'), 'utf8'))
+  sample.projects[0].scopeTags = ['#site-06', '#workstations']
+  sample.projects[1].scopeTags = ['#shared-tag']
   const context = await browser.newContext({
     locale: 'fr-FR',
     viewport: { width: 1280, height: 860 },
@@ -66,7 +68,7 @@ async function editorPass(browser, base, mode) {
   for (const [hash, surface] of [
     ['#/review', 'review'],
     ['#/projects', 'projects'],
-    ['#/sheet/P-01', 'sheet'],
+    [`#/sheet/${sample.projects[0].id}`, 'sheet'],
     ['#/settings', 'settings'],
     ['#/history', 'history'],
     ['#/about', 'about'],
@@ -75,6 +77,11 @@ async function editorPass(browser, base, mode) {
     await page.waitForSelector('.editor')
     await settle()
     await scan(page, surface, mode)
+    if (surface === 'projects') {
+      await page.getByRole('button', { name: 'Sélectionner', exact: true }).click()
+      await page.getByRole('button', { name: 'Tout sélectionner (visible)', exact: true }).click()
+      await scan(page, 'project batch actions', mode)
+    }
   }
 
   for (const [label, surface] of [
@@ -171,7 +178,7 @@ async function recoveryPass(browser, base, mode) {
   )
   await context.addInitScript(
     (raw) => localStorage.setItem('project-review/state', raw),
-    '{"format":1,"revision":7,"portfolio":{"version":3,"review":{"title":"Revue du 3 mars"},' +
+    '{"format":1,"revision":7,"portfolio":{"version":4,"review":{"title":"Revue du 3 mars"},' +
       '"was":"a portfolio"},"history":{"past":[],"future":[]}}',
   )
   const page = await context.newPage()
