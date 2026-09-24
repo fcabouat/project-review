@@ -20,10 +20,10 @@ describe('project scope vocabulary', () => {
     expect(scopeTagsFromText('   , ')).toEqual([])
     expect(scopeTagsFromText('Pas de prose!')).toBeUndefined()
     expect(scopeTagsFromText('#NoeMI #ATE team-06 #Mixed_Case-07')).toEqual([
-      '#noemi',
       '#ate',
-      '#team-06',
       '#mixed-case-07',
+      '#noemi',
+      '#team-06',
     ])
     expect(validScopeTags(['#a', '#0', '#-', `#${'a'.repeat(63)}`])).toBe(true)
     expect(validScopeTags(Array.from({ length: 32 }, (_, i) => `#tag-${i}`))).toBe(true)

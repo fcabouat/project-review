@@ -112,6 +112,7 @@ Dans **Identité → Périmètre (tags)**, saisissez par exemple `#site-nord` ou
 `#equipe-06`, puis **Entrée**, une virgule ou **Ajouter**. Après `#`, seuls `a–z`,
 `0–9` et `-` sont acceptés : 63 caractères maximum, jusqu'à 32 tags par projet.
 À la saisie, les majuscules deviennent des minuscules et les `_` deviennent des tirets.
+Les tags sont classés par ordre alphabétique dans l'éditeur, les slides et les exports JSON.
 Le préfixe `#` est ajouté si nécessaire et les doublons sont ignorés après normalisation. Les tags déjà
 utilisés dans le portefeuille sont proposés pour réutiliser le même vocabulaire ;
 la croix d'un tag le retire uniquement du projet courant. Le champ de précisions libres

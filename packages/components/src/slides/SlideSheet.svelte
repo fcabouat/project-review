@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { orderedScopeTags } from '@project-review/core/values/scope-tags'
   /**
    * Project sheet — the reference
    * template, a banded composition:
@@ -54,7 +55,9 @@
         ['sheet.sponsor', project?.sponsor],
         [
           'sheet.scope',
-          [project?.scopeTags?.join(' '), project?.scope].filter(Boolean).join(' · ') || undefined,
+          [orderedScopeTags(project?.scopeTags).join(' '), project?.scope]
+            .filter(Boolean)
+            .join(' · ') || undefined,
         ],
       ] as const
     ).flatMap(([key, value]) => (value ? [{ key, value }] : [])),

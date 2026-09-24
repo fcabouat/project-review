@@ -1,7 +1,11 @@
 <script lang="ts">
   import { untrack } from 'svelte'
   import type { Language } from '@project-review/core/model/theme'
-  import { scopeTagsFromText, validScopeTags } from '@project-review/core/values/scope-tags'
+  import {
+    orderedScopeTags,
+    scopeTagsFromText,
+    validScopeTags,
+  } from '@project-review/core/values/scope-tags'
   import { te } from '../i18n'
   import { Input } from '../commons/ui/input'
   import { Button } from '../commons/ui/button'
@@ -17,8 +21,8 @@
 
   let { value, suggestions = [], draftKey, language, commit }: Props = $props()
   const drafts = useDrafts()
-  const tags = $derived(value ?? [])
-  const base = $derived(JSON.stringify(tags))
+  const tags = $derived(orderedScopeTags(value))
+  const base = $derived(JSON.stringify(value ?? []))
   const inputId = $props.id()
   let container: HTMLDivElement | undefined = $state()
   // Preserve typing across checkpoint echoes; only model/recovery changes resync the input.
@@ -30,7 +34,7 @@
   const combined = $derived(parsed === undefined ? undefined : [...new Set([...tags, ...parsed])])
   const valid = $derived(combined !== undefined && validScopeTags(combined))
   const available = $derived(
-    suggestions
+    orderedScopeTags(suggestions)
       .filter(
         (tag) =>
           !tags.includes(tag) &&
@@ -48,6 +52,7 @@
 
   // Keep partial text checkpointed when a chip is removed or a suggestion is added.
   function update(next: readonly string[], remainder = draft): void {
+    next = orderedScopeTags(next)
     refused = false
     if (JSON.stringify(next) !== base && !commit(next.length ? next : undefined)) {
       refused = true
