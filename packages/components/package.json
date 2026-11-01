@@ -26,7 +26,7 @@
     "reveal.js": "^6.0.1",
     "svelte": "^5.56.10",
     "tailwind-merge": "^3.6.0",
-    "tailwind-variants": "3.3.1"
+    "tailwind-variants": "4.0.0"
   },
   "devDependencies": {
     "@fontsource/inter": "^5.3.0",
